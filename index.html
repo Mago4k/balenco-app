@@ -164,6 +164,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       <button data-tab="calendar">📅 Calendar</button>
       <button data-tab="photos">📷 Photos</button>
       <button data-tab="balances">💵 Balances</button>
+      <button data-tab="maps">🗺️ Map & Route</button>
       <button data-tab="settings">⚙️ Settings</button>
     </div>
     <div class="tip"><strong style="color:var(--navy)">Lead connection idea:</strong><br>Facebook, website, or Google leads can be copied/imported here now. Later this can connect automatically with Zapier/Make + a database.</div>
@@ -193,7 +194,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 
     <div class="mobile">
       <button class="active" data-tab="dashboard">🏠<br>Home</button><button data-tab="leads">🎯<br>Leads</button><button data-tab="clients">👥<br>Clients</button><button data-tab="estimates">📄<br>Quotes</button>
-      <button data-tab="calendar">📅<br>Calendar</button><button data-tab="photos">📷<br>Photos</button><button data-tab="balances">💵<br>Money</button><button data-tab="settings">⚙️<br>Setup</button>
+      <button data-tab="calendar">📅<br>Calendar</button><button data-tab="photos">📷<br>Photos</button><button data-tab="balances">💵<br>Money</button><button data-tab="maps">🗺️<br>Map</button><button data-tab="settings">⚙️<br>Setup</button>
     </div>
 
     <section id="dashboard" class="tab active">
@@ -246,7 +247,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
             <input id="clientNameInput" placeholder="Client name" required>
             <input id="clientPhone" placeholder="Phone">
             <input id="clientEmail" placeholder="Email">
-            <input id="clientAddress" placeholder="Address / area">
+            <input id="clientAddress" placeholder="Full address for map / area">
             <input id="clientProject" placeholder="Project type" required>
             <select id="clientStatus"><option>Active</option><option>Estimate sent</option><option>Payment due</option><option>Completed</option></select>
             <input id="clientBalance" type="number" min="0" step="1" placeholder="Open balance" value="0">
@@ -302,6 +303,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
             <input id="apptEnd" type="datetime-local">
             <input id="apptLocation" placeholder="Location">
             <textarea id="apptNotes" rows="4" placeholder="Appointment notes"></textarea>
+            <label class="notice" style="display:flex;gap:10px;align-items:center"><input id="apptReminder24" type="checkbox" style="width:auto" checked> Prepare 24h client reminder message</label>
             <button class="btn" type="submit">Save appointment</button>
           </form>
         </div>
@@ -332,6 +334,30 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
         <div class="card stat"><div class="icon">📄</div><label>Tax total on estimates</label><strong id="moneyTax">$0</strong></div>
       </div>
       <div class="card" style="margin-top:18px"><div class="title"><div><h3>Open balances</h3><p>Track who owes money and create payment reminders.</p></div></div><div id="balanceList" class="list"></div></div>
+    </section>
+
+    <section id="maps" class="tab">
+      <div class="grid2">
+        <div class="card">
+          <div class="title"><div><h3>Client map links</h3><p>Open client addresses in Google Maps and get directions.</p></div></div>
+          <div class="notice">This version uses Google Maps links. A live embedded map later needs a Google Maps API key.</div>
+          <div id="clientMapList" class="list" style="margin-top:14px"></div>
+        </div>
+        <div class="card">
+          <div class="title"><div><h3>Estimate route suggestion</h3><p>Choose a starting point and get a suggested order to visit clients.</p></div></div>
+          <div class="form">
+            <input id="routeStart" placeholder="Starting address, example: Montreal, QC">
+            <select id="routeFilter"><option value="estimates">Clients needing estimates / appointments</option><option value="all">All visible clients</option><option value="balance">Clients with open balances</option></select>
+            <button class="btn" type="button" id="suggestRouteBtn">Suggest route</button>
+          </div>
+          <div id="routeSuggestion" class="list" style="margin-top:14px"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:18px">
+        <div class="title"><div><h3>24h appointment reminders</h3><p>Copy or open SMS reminders for clients one day before appointments.</p></div></div>
+        <div class="notice">Automatic SMS sending needs a real backend + Twilio. This prototype prepares the message and opens SMS when supported.</div>
+        <div id="reminderList" class="list" style="margin-top:14px"></div>
+      </div>
     </section>
 
     <section id="settings" class="tab">
@@ -372,7 +398,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 (function() {
   'use strict';
 
-  const STORAGE = 'balenco_clean_stable_v4';
+  const STORAGE = 'balenco_clean_stable_v7_simple_login_maps';
   let role = 'employee';
   let user = 'Alex Martin';
   let state = null;
@@ -388,6 +414,12 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     const c2 = uid();
     const c3 = uid();
     state = {
+      accounts: [
+        { id:uid(), name:'Carlos Reyes', email:'reyesc383@gmail.com', password:'admin123', role:'owner', createdAt:new Date().toISOString() },
+        { id:uid(), name:'Alex Martin', email:'alex@balenco.app', password:'demo123', role:'employee', createdAt:new Date().toISOString() },
+        { id:uid(), name:'Maya Chen', email:'maya@balenco.app', password:'demo123', role:'employee', createdAt:new Date().toISOString() }
+      ],
+      currentAccountId: '',
       settings: {
         company: 'Your Company Name',
         email: 'info@company.com',
@@ -432,6 +464,14 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     if (!state || !state.settings || !Array.isArray(state.clients)) seed();
 
     // Migration safety for older saved data
+    if (!Array.isArray(state.accounts)) {
+      state.accounts = [
+        { id:uid(), name:'Carlos Reyes', email:'reyesc383@gmail.com', password:'admin123', role:'owner', createdAt:new Date().toISOString() },
+        { id:uid(), name:'Alex Martin', email:'alex@balenco.app', password:'demo123', role:'employee', createdAt:new Date().toISOString() },
+        { id:uid(), name:'Maya Chen', email:'maya@balenco.app', password:'demo123', role:'employee', createdAt:new Date().toISOString() }
+      ];
+    }
+    state.currentAccountId = state.currentAccountId || '';
     state.settings.logo = state.settings.logo || '';
     state.estimates = (state.estimates || []).map(e => ({
       deposit: 0,
@@ -441,6 +481,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       approvedAt: '',
       ...e
     }));
+    state.appointments = (state.appointments || []).map(a => ({ reminder24:true, reminderSent:false, ...a }));
     state.photos = state.photos || [];
     state.logs = state.logs || [];
     save();
@@ -544,6 +585,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     renderAppointments();
     renderPhotos();
     renderBalances();
+    renderMaps();
     renderSettings();
   }
 
@@ -602,7 +644,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
         <div class="title"><div><h3>${esc(c.name)}</h3><p>${esc(c.project)}</p></div><span class="pill ${statusClass(c.status)}">${esc(c.status)}</span></div>
         <p class="muted">📞 ${esc(c.phone || 'No phone')}<br>✉️ ${esc(c.email || 'No email')}<br>📍 ${esc(c.address || 'No address')}</p>
         <div class="audit owner-only">Entered by ${esc(c.createdBy)} • ${date(c.createdAt)}</div>
-        <div class="item"><div><span class="muted">Open balance</span><strong>${money(c.balance)}</strong></div><button class="btn out small" type="button" data-action="delete" data-col="clients" data-id="${c.id}">Delete</button></div>
+        <div class="item"><div><span class="muted">Open balance</span><strong>${money(c.balance)}</strong></div><button class="btn small" type="button" data-action="mapClient" data-id="${c.id}">Map</button><button class="btn out small" type="button" data-action="delete" data-col="clients" data-id="${c.id}">Delete</button></div>
       </div>
     `).join('') || '<div class="empty">No clients found.</div>';
   }
@@ -782,6 +824,143 @@ Date: ${date(e.createdAt)}`;
     `).join('') || '<div class="empty">No open balances.</div>';
   }
 
+
+  function mapsUrl(address) {
+    return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(address || '');
+  }
+
+  function directionsUrl(address) {
+    return 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(address || '');
+  }
+
+  function hashText(text) {
+    let h = 0;
+    text = String(text || '').toLowerCase();
+    for (let i=0; i<text.length; i++) h = ((h << 5) - h) + text.charCodeAt(i);
+    return Math.abs(h);
+  }
+
+  function proximityScore(start, address) {
+    const s = String(start || '').toLowerCase();
+    const a = String(address || '').toLowerCase();
+    let score = Math.abs(a.length - s.length) + (Math.abs(hashText(a) - hashText(s)) % 50);
+    ['montreal','laval','longueuil','ndg','westmount','verdun','dorval','brossard','anjou','lasalle','outremont'].forEach((k, i) => {
+      if (s.includes(k) && a.includes(k)) score -= 40 - i;
+      else if (a.includes(k)) score += i;
+    });
+    return score;
+  }
+
+  function routeCandidates() {
+    const filter = $('routeFilter') ? $('routeFilter').value : 'estimates';
+    let clients = visible(state.clients).filter(c => c.address && c.address.trim());
+    if (filter === 'balance') clients = clients.filter(c => Number(c.balance || 0) > 0);
+    if (filter === 'estimates') {
+      const estimateIds = new Set(visible(state.estimates).filter(e => ['Draft','Sent'].includes(e.status)).map(e => e.clientId));
+      const apptIds = new Set(visible(state.appointments).filter(a => new Date(a.start) >= new Date()).map(a => a.clientId));
+      clients = clients.filter(c => estimateIds.has(c.id) || apptIds.has(c.id) || ['Estimate sent','Active'].includes(c.status));
+    }
+    return clients;
+  }
+
+  function renderMaps() {
+    if (!$('clientMapList')) return;
+    const clients = visible(state.clients).filter(c => c.address && c.address.trim());
+    $('clientMapList').innerHTML = clients.map(c => `
+      <div class="map-card">
+        <div><strong style="color:var(--navy)">${esc(c.name)}</strong><div class="muted">${esc(c.address)}<br>${esc(c.project)} • ${esc(c.phone || 'No phone')}</div></div>
+        <div class="actions"><button class="btn small" type="button" data-action="mapClient" data-id="${c.id}">Open map</button><button class="btn out small" type="button" data-action="directionsClient" data-id="${c.id}">Directions</button></div>
+      </div>
+    `).join('') || '<div class="empty">Add client addresses to use maps.</div>';
+
+    renderReminderList();
+    if (!$('routeSuggestion').innerHTML) $('routeSuggestion').innerHTML = '<div class="empty">Enter a start address and click Suggest route.</div>';
+  }
+
+  function suggestRoute() {
+    const start = $('routeStart').value.trim();
+    const clients = routeCandidates().slice().sort((a,b) => proximityScore(start,a.address) - proximityScore(start,b.address));
+    if (!clients.length) {
+      $('routeSuggestion').innerHTML = '<div class="empty">No clients with addresses match this filter.</div>';
+      return;
+    }
+    $('routeSuggestion').innerHTML = clients.map((c, i) => `
+      <div class="route-step">
+        <div class="route-num">${i+1}</div>
+        <div style="flex:1"><strong style="color:var(--navy)">${esc(c.name)}</strong><div class="muted">${esc(c.address)}<br>${esc(c.project)} • ${esc(c.phone || 'No phone')}</div><div class="actions" style="margin-top:8px"><button class="btn small" type="button" data-action="directionsClient" data-id="${c.id}">Directions</button></div></div>
+      </div>
+    `).join('') + '<div class="actions"><button class="btn" type="button" data-action="openFullRoute">Open full route in Google Maps</button></div>';
+  }
+
+  function fullRouteUrl(start, clients) {
+    const valid = clients.filter(c => c.address).slice(0, 9);
+    if (!valid.length) return '';
+    const destination = valid[valid.length - 1].address;
+    const waypoints = valid.slice(0, -1).map(c => c.address).join('|');
+    let url = 'https://www.google.com/maps/dir/?api=1';
+    if (start) url += '&origin=' + encodeURIComponent(start);
+    url += '&destination=' + encodeURIComponent(destination);
+    if (waypoints) url += '&waypoints=' + encodeURIComponent(waypoints);
+    return url;
+  }
+
+  function reminderMessage(appt) {
+    const c = client(appt.clientId) || {};
+    return `Hi ${c.name || ''}, this is a reminder for your appointment with ${state.settings.company} tomorrow: ${appt.title} on ${date(appt.start)}${appt.location ? ' at ' + appt.location : ''}. Please reply to confirm. Thank you.`;
+  }
+
+  function renderReminderList() {
+    if (!$('reminderList')) return;
+    const appts = visible(state.appointments).filter(a => a.reminder24 && new Date(a.start) >= new Date()).sort((a,b) => new Date(a.start)-new Date(b.start));
+    $('reminderList').innerHTML = appts.map(a => {
+      const c = client(a.clientId) || {};
+      return `<div class="item"><div><strong>${esc(a.title)}</strong><span class="muted">${esc(c.name || 'Client')} • ${date(a.start)} • ${esc(c.phone || 'No phone')}</span><p class="muted">${esc(reminderMessage(a))}</p>${a.reminderSent ? '<span class="pill green">Reminder marked sent</span>' : '<span class="pill amber">24h reminder ready</span>'}</div><div class="actions"><button class="btn small" type="button" data-action="copyReminder" data-id="${a.id}">Copy SMS</button><button class="btn out small" type="button" data-action="textReminder" data-id="${a.id}">Open SMS</button><button class="btn out small" type="button" data-action="markReminderSent" data-id="${a.id}">Mark sent</button></div></div>`;
+    }).join('') || '<div class="empty">No upcoming reminders. Add an appointment and keep the 24h reminder checked.</div>';
+  }
+
+  function mapClient(id) {
+    const c = client(id);
+    if (!c || !c.address) return alert('This client has no address.');
+    window.open(mapsUrl(c.address), '_blank');
+  }
+
+  function directionsClient(id) {
+    const c = client(id);
+    if (!c || !c.address) return alert('This client has no address.');
+    window.open(directionsUrl(c.address), '_blank');
+  }
+
+  function openFullRoute() {
+    const start = $('routeStart').value.trim();
+    const clients = routeCandidates().slice().sort((a,b) => proximityScore(start,a.address) - proximityScore(start,b.address));
+    const url = fullRouteUrl(start, clients);
+    if (url) window.open(url, '_blank');
+  }
+
+  function copyReminder(id) {
+    const a = state.appointments.find(x => x.id === id);
+    if (!a) return;
+    navigator.clipboard.writeText(reminderMessage(a));
+    toast('Reminder copied');
+  }
+
+  function textReminder(id) {
+    const a = state.appointments.find(x => x.id === id);
+    if (!a) return;
+    const c = client(a.clientId) || {};
+    const phone = String(c.phone || '').replace(/[^\d+]/g, '');
+    window.location.href = `sms:${phone}?&body=${encodeURIComponent(reminderMessage(a))}`;
+  }
+
+  function markReminderSent(id) {
+    const a = state.appointments.find(x => x.id === id);
+    if (!a) return;
+    a.reminderSent = true;
+    log('Marked reminder sent', `${user} marked a reminder sent for ${clientName(a.clientId)}.`);
+    save();
+    renderAll();
+  }
+
   function renderSettings() {
     $('setCompany').value = state.settings.company || '';
     $('setEmail').value = state.settings.email || '';
@@ -831,7 +1010,7 @@ Date: ${date(e.createdAt)}`;
 
   function addAppointment(event) {
     event.preventDefault();
-    const a = { id:uid(), title:$('apptTitle').value, clientId:$('apptClient').value, start:$('apptStart').value, end:$('apptEnd').value, location:$('apptLocation').value, notes:$('apptNotes').value, createdBy:user, createdAt:new Date().toISOString() };
+    const a = { id:uid(), title:$('apptTitle').value, clientId:$('apptClient').value, start:$('apptStart').value, end:$('apptEnd').value, location:$('apptLocation').value, notes:$('apptNotes').value, reminder24:$('apptReminder24').checked, reminderSent:false, createdBy:user, createdAt:new Date().toISOString() };
     state.appointments.unshift(a);
     log('Created appointment', `${user} created appointment ${a.title} for ${clientName(a.clientId)}.`);
     save();
@@ -1109,6 +1288,12 @@ Date: ${date(e.createdAt)}`;
     if (action === 'ics') downloadICS(id);
     if (action === 'googleCal') openGoogleCal(id);
     if (action === 'paymentReminder') paymentReminder(id);
+    if (action === 'mapClient') mapClient(id);
+    if (action === 'directionsClient') directionsClient(id);
+    if (action === 'openFullRoute') openFullRoute();
+    if (action === 'copyReminder') copyReminder(id);
+    if (action === 'textReminder') textReminder(id);
+    if (action === 'markReminderSent') markReminderSent(id);
   }
 
   function bindEvents() {
@@ -1143,6 +1328,7 @@ Date: ${date(e.createdAt)}`;
     $('downloadEstimateBtn').addEventListener('click', downloadEstimatePage);
     $('companyLogoInput').addEventListener('change', uploadCompanyLogo);
     $('clearLogoBtn').addEventListener('click', clearCompanyLogo);
+    $('suggestRouteBtn').addEventListener('click', suggestRoute);
 
     document.body.addEventListener('click', handleAction);
   }
@@ -1153,4 +1339,3 @@ Date: ${date(e.createdAt)}`;
 </script>
 </body>
 </html>
-
