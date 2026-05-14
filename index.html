@@ -1057,7 +1057,7 @@ Date: ${date(e.createdAt)}`;
         var isOwner = p.role === 'owner';
         return '<div class="item"><div><strong>' + esc(p.name) + '</strong><div class="muted">' + esc(p.email || '') + '</div></div>' +
           '<div class="actions"><span class="pill ' + (isOwner ? 'blue' : 'green') + '">' + (isOwner ? 'Admin' : 'Employee') + '</span>' +
-          (!isSelf ? '<button class="btn out small" onclick="toggleRole('' + p.id + '','' + p.role + '')">' + (isOwner ? 'Make employee' : 'Make admin') + '</button>' : '<span class="muted" style="font-size:12px">You</span>') +
+          (!isSelf ? '<button class="btn out small" onclick="toggleRole(\'' + p.id + '\',\'' + p.role + '\')">' + (isOwner ? 'Make employee' : 'Make admin') + '</button>' : '<span class="muted" style="font-size:12px">You</span>') +
           '</div></div>';
       }).join('');
     });
