@@ -158,11 +158,26 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       <p style="font-size:13px">Secure cloud storage powered by Supabase.</p>
     </div>
     <div class="login-form">
-      <div class="title"><div><h3>Sign in</h3><p>Enter your credentials to continue.</p></div></div>
-      <input type="email" id="loginEmail" placeholder="Email address" autocomplete="username">
-      <input type="password" id="loginPass" placeholder="Password" autocomplete="current-password">
-      <div id="loginError" style="color:var(--danger);font-size:13px;display:none;padding:8px 12px;background:#fef2f2;border-radius:12px;border:1px solid #fecaca;"></div>
-      <button class="btn" type="button" id="enterBtn">Sign in</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
+        <button id="tabSignIn" class="btn" type="button" style="border-radius:14px">Sign in</button>
+        <button id="tabSignUp" class="btn out" type="button" style="border-radius:14px">Create account</button>
+      </div>
+      <div id="panelSignIn">
+        <div class="title" style="margin-top:8px"><div><h3>Welcome back</h3><p>Enter your credentials to continue.</p></div></div>
+        <input type="email" id="loginEmail" placeholder="Email address" autocomplete="username">
+        <input type="password" id="loginPass" placeholder="Password" autocomplete="current-password">
+        <div id="loginError" style="color:var(--danger);font-size:13px;display:none;padding:8px 12px;background:#fef2f2;border-radius:12px;border:1px solid #fecaca;"></div>
+        <button class="btn" type="button" id="enterBtn">Sign in</button>
+      </div>
+      <div id="panelSignUp" style="display:none">
+        <div class="title" style="margin-top:8px"><div><h3>Create account</h3><p>New accounts are set as Employee. The owner can update your role.</p></div></div>
+        <input type="text" id="signupName" placeholder="Full name">
+        <input type="email" id="signupEmail" placeholder="Email address" autocomplete="username">
+        <input type="password" id="signupPass" placeholder="Password (min 6 characters)" autocomplete="new-password">
+        <div id="signupError" style="color:var(--danger);font-size:13px;display:none;padding:8px 12px;background:#fef2f2;border-radius:12px;border:1px solid #fecaca;"></div>
+        <div id="signupSuccess" style="color:#047857;font-size:13px;display:none;padding:8px 12px;background:#ecfdf5;border-radius:12px;border:1px solid #d1fae5;"></div>
+        <button class="btn" type="button" id="signupBtn">Create account</button>
+      </div>
     </div>
   </div>
 </section>
@@ -392,14 +407,9 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
             <button class="btn" type="submit">Save settings</button>
           </form>
         </div>
-        <div class="card">
-          <div class="title"><div><h3>Essential next upgrades</h3><p>What turns this into a real multi-user app.</p></div></div>
-          <div class="list">
-            <div class="item"><div><strong>Real database</strong><span class="muted">Supabase/Firebase so all employees see the same data on different devices.</span></div></div>
-            <div class="item"><div><strong>Real email sending</strong><span class="muted">SendGrid/Resend so estimates can send directly from the app.</span></div></div>
-            <div class="item"><div><strong>Lead automation</strong><span class="muted">Facebook Lead Ads + Zapier/Make can create leads automatically.</span></div></div>
-            <div class="item"><div><strong>PDF estimates</strong><span class="muted">Generate branded PDFs with signature acceptance and payment tracking.</span></div></div>
-          </div>
+        <div class="card owner-only">
+          <div class="title"><div><h3>Team</h3><p>Manage user accounts and roles.</p></div></div>
+          <div id="teamList" class="list"><div class="empty">Loading team…</div></div>
         </div>
       </div>
     </section>
@@ -469,7 +479,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     if (!profile) {
       var isOwner = supaUser.email === 'reyesc383@gmail.com';
       var name = isOwner ? 'Carlos Reyes' : (supaUser.user_metadata && supaUser.user_metadata.name ? supaUser.user_metadata.name : supaUser.email.split('@')[0]);
-      await sb.from('profiles').insert({ id:userId, name:name, role:isOwner ? 'owner' : 'employee' });
+      await sb.from('profiles').insert({ id:userId, name:name, role:isOwner ? 'owner' : 'employee', email:supaUser.email });
       profile = { name:name, role:isOwner ? 'owner' : 'employee' };
     }
     role = profile.role;
@@ -543,6 +553,49 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     t.textContent = message;
     t.style.display = 'block';
     setTimeout(() => { t.style.display = 'none'; }, 2200);
+  }
+
+  function showSignIn() {
+    $('panelSignIn').style.display = '';
+    $('panelSignUp').style.display = 'none';
+    $('tabSignIn').className = 'btn';
+    $('tabSignUp').className = 'btn out';
+  }
+
+  function showSignUp() {
+    $('panelSignIn').style.display = 'none';
+    $('panelSignUp').style.display = '';
+    $('tabSignIn').className = 'btn out';
+    $('tabSignUp').className = 'btn';
+    $('signupError').style.display = 'none';
+    $('signupSuccess').style.display = 'none';
+  }
+
+  async function signUp() {
+    const name = $('signupName').value.trim();
+    const email = $('signupEmail').value.trim();
+    const pass = $('signupPass').value;
+    const errEl = $('signupError');
+    const sucEl = $('signupSuccess');
+    errEl.style.display = 'none';
+    sucEl.style.display = 'none';
+    if (!name || !email || !pass) { errEl.textContent = 'Please fill in all fields.'; errEl.style.display = 'block'; return; }
+    if (pass.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
+    $('signupBtn').textContent = 'Creating account…';
+    $('signupBtn').disabled = true;
+    const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: { name } } });
+    $('signupBtn').textContent = 'Create account';
+    $('signupBtn').disabled = false;
+    if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
+    if (data.user) {
+      await sb.from('profiles').insert({ id:data.user.id, name, role:'employee', email });
+    }
+    sucEl.textContent = 'Account created! You can now sign in.';
+    sucEl.style.display = 'block';
+    $('signupName').value = '';
+    $('signupEmail').value = '';
+    $('signupPass').value = '';
+    setTimeout(showSignIn, 1800);
   }
 
   async function enterApp() {
@@ -960,7 +1013,34 @@ Date: ${date(e.createdAt)}`;
     renderAll();
   }
 
+  function renderTeam() {
+    if (role !== 'owner') return;
+    const el = $('teamList');
+    if (!el) return;
+    sb.from('profiles').select('*').order('created_at', { ascending: true }).then(function(res) {
+      var profiles = res.data || [];
+      if (!profiles.length) { el.innerHTML = '<div class="empty">No team members yet.</div>'; return; }
+      el.innerHTML = profiles.map(function(p) {
+        var isSelf = p.id === userId;
+        var isOwner = p.role === 'owner';
+        return '<div class="item"><div><strong>' + esc(p.name) + '</strong><div class="muted">' + esc(p.email || '') + '</div></div>' +
+          '<div class="actions"><span class="pill ' + (isOwner ? 'blue' : 'green') + '">' + (isOwner ? 'Admin' : 'Employee') + '</span>' +
+          (!isSelf ? '<button class="btn out small" onclick="toggleRole('' + p.id + '','' + p.role + '')">' + (isOwner ? 'Make employee' : 'Make admin') + '</button>' : '<span class="muted" style="font-size:12px">You</span>') +
+          '</div></div>';
+      }).join('');
+    });
+  }
+
+  async function toggleRole(profileId, currentRole) {
+    var newRole = currentRole === 'owner' ? 'employee' : 'owner';
+    var res = await sb.from('profiles').update({ role: newRole }).eq('id', profileId);
+    if (res.error) { toast('Error updating role'); return; }
+    renderTeam();
+    toast(newRole === 'owner' ? 'Promoted to admin' : 'Changed to employee');
+  }
+
   function renderSettings() {
+    renderTeam();
     $('setCompany').value = state.settings.company || '';
     $('setEmail').value = state.settings.email || '';
     $('setPhone').value = state.settings.phone || '';
@@ -1312,6 +1392,9 @@ Date: ${date(e.createdAt)}`;
   }
 
   function bindEvents() {
+    $('tabSignIn').addEventListener('click', showSignIn);
+    $('tabSignUp').addEventListener('click', showSignUp);
+    $('signupBtn').addEventListener('click', signUp);
     $('enterBtn').addEventListener('click', enterApp);
     $('switchBtn').addEventListener('click', backToLogin);
     $('exportBtn').addEventListener('click', exportData);
