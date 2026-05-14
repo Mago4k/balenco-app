@@ -1105,7 +1105,8 @@ Date: ${date(e.createdAt)}`;
     event.preventDefault();
     const c = { id:uid(), name:$('clientNameInput').value, phone:$('clientPhone').value, email:$('clientEmail').value, address:$('clientAddress').value, project:$('clientProject').value, status:$('clientStatus').value, balance:Number($('clientBalance').value || 0), createdBy:user, createdAt:new Date().toISOString() };
     state.clients.unshift(c);
-    sb.from('clients').insert({ id:c.id, name:c.name, phone:c.phone, email:c.email, address:c.address, project:c.project, status:c.status, balance:c.balance, created_by:c.createdBy, created_at:c.createdAt });
+    sb.from('clients').insert({ id:c.id, name:c.name, phone:c.phone, email:c.email, address:c.address, project:c.project, status:c.status, balance:c.balance, created_by:c.createdBy, created_at:c.createdAt })
+      .then(({ error }) => { if (error) { toast('Save error: ' + error.message); console.error('Client insert error:', error); } });
     log('Added client', `${user} added ${c.name}.`);
     save();
     event.target.reset();
