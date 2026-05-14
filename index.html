@@ -53,6 +53,7 @@ button { cursor:pointer; }
 .mob-icon svg { width:17px; height:17px; stroke-width:2.2; }
 .mobile { display:none; position:fixed; bottom:0; left:0; right:0; background:#fff; border-top:1px solid var(--line); overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding:6px 2px calc(6px + env(safe-area-inset-bottom)); z-index:100; box-shadow:0 -4px 20px rgba(15,23,42,.07); }
 .mobile::-webkit-scrollbar { display:none; }
+body:not(.app-visible) .mobile { display:none!important; }
 .mobile button { flex:0 0 auto; border:0; background:transparent; padding:4px 11px; display:flex; flex-direction:column; align-items:center; gap:3px; font-size:10px; font-weight:700; color:#94a3b8; white-space:nowrap; }
 .mobile button.active { color:var(--navy); }
 .mobile button.active .mob-icon { opacity:1; transform:scale(1.1); }
@@ -518,6 +519,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
   function showApp() {
     document.body.classList.toggle('owner-mode', role === 'owner');
     document.body.classList.toggle('employee-mode', role === 'employee');
+    document.body.classList.add('app-visible');
     $('login').style.display = 'none';
     $('app').style.display = 'grid';
     $('rolePill').textContent = role === 'owner' ? 'Owner / Admin account' : 'Employee account';
@@ -640,6 +642,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
   }
 
   async function backToLogin() {
+    document.body.classList.remove('app-visible');
     await sb.auth.signOut();
     $('login').style.display = 'grid';
     $('app').style.display = 'none';
