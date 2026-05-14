@@ -1252,23 +1252,35 @@ Date: ${date(e.createdAt)}`;
     toast('Estimate copied');
   }
 
-  function emailEstimate() {
+  async function emailEstimate() {
     const e = currentEstimate();
     if (!e) return;
     const c = client(e.clientId) || {};
     if (!c.email) { toast('No email on file for this client. Add one in their profile first.'); return; }
-    const subject = encodeURIComponent('Estimate – ' + e.title);
-    let bodyText = estimateText(e);
-    // Keep under 1800 chars to stay within mailto URL limits
-    if (bodyText.length > 1800) bodyText = bodyText.substring(0, 1800) + '\n\n[See full estimate in the app]';
-    const body = encodeURIComponent(bodyText);
-    const link = document.createElement('a');
-    link.href = `mailto:${c.email}?subject=${subject}&body=${body}`;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast('Opening email app…');
+    const btn = $('emailEstimateBtn');
+    btn.textContent = 'Sending…';
+    btn.disabled = true;
+    try {
+      const subject = 'Estimate – ' + e.title;
+      const html = estimateHTML(e);
+      const res = await fetch('https://wvqqazdzejjksjcjdbcm.supabase.co/functions/v1/send-estimate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + SUPA_KEY
+        },
+        body: JSON.stringify({ to: c.email, subject, html })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      toast('Estimate sent to ' + c.email);
+      log('Sent estimate', user + ' emailed estimate to ' + c.email);
+    } catch (err) {
+      toast('Send failed: ' + err.message);
+    } finally {
+      btn.textContent = 'Send by email';
+      btn.disabled = false;
+    }
   }
 
   function estimatePageHTML(e) {
