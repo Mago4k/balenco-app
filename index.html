@@ -1255,9 +1255,19 @@ Date: ${date(e.createdAt)}`;
     const e = currentEstimate();
     if (!e) return;
     const c = client(e.clientId) || {};
-    const subject = encodeURIComponent('Estimate - ' + e.title);
-    const body = encodeURIComponent(estimateText(e));
-    window.location.href = `mailto:${encodeURIComponent(c.email || '')}?subject=${subject}&body=${body}`;
+    if (!c.email) { toast('No email on file for this client. Add one in their profile first.'); return; }
+    const subject = encodeURIComponent('Estimate – ' + e.title);
+    let bodyText = estimateText(e);
+    // Keep under 1800 chars to stay within mailto URL limits
+    if (bodyText.length > 1800) bodyText = bodyText.substring(0, 1800) + '\n\n[See full estimate in the app]';
+    const body = encodeURIComponent(bodyText);
+    const link = document.createElement('a');
+    link.href = `mailto:${c.email}?subject=${subject}&body=${body}`;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast('Opening email app…');
   }
 
   function estimatePageHTML(e) {
