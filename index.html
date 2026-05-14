@@ -139,10 +139,10 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
   .hero-in { flex-direction:column; align-items:flex-start; }
 }
 @media(max-width:720px) {
-  .login-card { grid-template-columns:1fr; border-radius:0; border:0; box-shadow:none; min-height:100vh; }
+  .login { display:block; padding:0; background:#fff; min-height:100vh; }
+  .login-card { display:block; border-radius:0; border:0; box-shadow:none; min-height:100vh; }
   .login-brand { display:none; }
-  .login { padding:0; background:#fff; }
-  .login-form { padding:36px 24px; min-height:100vh; align-content:center; }
+  .login-form { padding:48px 28px 40px; min-height:100vh; display:flex; flex-direction:column; justify-content:center; gap:14px; }
   .grid2,.grid3,.grid4,.form2,.estimate-blocks,.estimate-payment,.signature-box { grid-template-columns:1fr; }
   .top { flex-direction:column; align-items:flex-start; gap:8px; }
   .top .actions { width:100%; }
@@ -1249,12 +1249,7 @@ Date: ${date(e.createdAt)}`;
   }
 
   function estimatePageHTML(e) {
-    return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(e.title)} Estimate</title><style>${printStyles()}</style></head><body>${estimateHTML(e)}  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js');
-    }
-  </script>
-</body></html>`;
+    return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(e.title)} Estimate</title><style>${printStyles()}</style></head><body>${estimateHTML(e)}</body></html>`;
   }
 
   function printStyles() {
@@ -1469,5 +1464,8 @@ Date: ${date(e.createdAt)}`;
   if (typeof lucide !== 'undefined') lucide.createIcons();
 })();
 </script>
+  <script>
+    if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");
+  </script>
 </body>
 </html>
