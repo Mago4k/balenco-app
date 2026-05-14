@@ -1223,7 +1223,12 @@ Date: ${date(e.createdAt)}`;
   }
 
   function estimatePageHTML(e) {
-    return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(e.title)} Estimate</title><style>${printStyles()}</style></head><body>${estimateHTML(e)}</body></html>`;
+    return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(e.title)} Estimate</title><style>${printStyles()}</style></head><body>${estimateHTML(e)}  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
+    }
+  </script>
+</body></html>`;
   }
 
   function printStyles() {
