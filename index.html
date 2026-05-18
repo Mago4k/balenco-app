@@ -107,9 +107,23 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 .empty { text-align:center; padding:28px; border:1px dashed #cbd5e1; border-radius:22px; background:var(--soft); color:var(--muted); }
 .photo { height:140px; background:#fff; border-radius:18px; display:grid; place-items:center; overflow:hidden; margin-bottom:10px; font-size:34px; }
 .photo img { width:100%; height:100%; object-fit:cover; }
-.stat .icon { width:44px; height:44px; border-radius:16px; background:#eff6ff; display:grid; place-items:center; font-size:22px; margin-bottom:12px; }
-.stat label { display:block; color:var(--muted); font-weight:800; font-size:13px; }
-.stat strong { display:block; color:var(--navy); font-size:28px; margin-top:4px; }
+.stat-icon { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:10px; }
+.line-items-wrap { margin-bottom:6px; }
+.line-items-edit { width:100%; border-collapse:collapse; font-size:13px; margin-bottom:6px; }
+.line-items-edit th { text-align:left; padding:4px 6px; color:var(--muted); font-weight:700; font-size:11px; text-transform:uppercase; border-bottom:1px solid var(--border); }
+.line-items-edit td { padding:4px 4px; vertical-align:middle; }
+.line-items-edit td input { border:1px solid var(--border); border-radius:6px; padding:5px 8px; font-size:13px; width:100%; box-sizing:border-box; background:var(--surface); }
+.line-items-edit td.li-qty input { width:60px; }
+.line-items-edit td.li-price input { width:90px; }
+.line-items-edit td.li-total { color:var(--navy); font-weight:700; font-size:13px; min-width:72px; text-align:right; padding-right:6px; }
+.line-items-edit td.li-rm button { background:none; border:none; color:var(--muted); cursor:pointer; font-size:16px; padding:2px 6px; border-radius:6px; }
+.line-items-edit td.li-rm button:hover { background:#fef2f2; color:#b91c1c; }
+.add-line-btn { background:none; border:1px dashed var(--border); color:var(--accent); font-size:13px; padding:5px 14px; border-radius:8px; cursor:pointer; margin-bottom:6px; width:100%; }
+.add-line-btn:hover { background:#eff6ff; }
+.line-items-foot { text-align:right; font-size:14px; color:var(--muted); padding:4px 2px; }
+.line-items-foot strong { color:var(--navy); }
+.stat label { display:block; color:var(--muted); font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:.4px; margin-top:2px; }
+.stat strong { display:block; color:var(--navy); font-size:24px; font-weight:900; margin-top:4px; }
 .estimate-doc { max-width:800px; margin:0 auto; background:#fff; color:#0f172a; }
 .estimate-head { display:flex; justify-content:space-between; gap:18px; align-items:flex-start; padding-bottom:18px; border-bottom:2px solid #e2e8f0; }
 .estimate-brand { display:grid; gap:8px; }
@@ -263,10 +277,10 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 
     <section id="dashboard" class="tab active">
       <div class="grid4">
-        <div class="card stat"><div class="icon">🎯</div><label>Open leads</label><strong id="statLeads">0</strong></div>
-        <div class="card stat"><div class="icon">📄</div><label>Visible estimates</label><strong id="statEstimates">0</strong></div>
-        <div class="card stat"><div class="icon">✅</div><label>Accepted value</label><strong id="statAccepted">$0</strong></div>
-        <div class="card stat"><div class="icon">💵</div><label>Open balances</label><strong id="statBalances">$0</strong></div>
+        <div class="card stat"><div class="stat-icon" style="background:#eff6ff"><i data-lucide="target" style="color:#3b82f6;width:20px;height:20px"></i></div><label>Active leads</label><strong id="statLeads">0</strong></div>
+        <div class="card stat"><div class="stat-icon" style="background:#ecfdf5"><i data-lucide="trending-up" style="color:#047857;width:20px;height:20px"></i></div><label>This month revenue</label><strong id="statAccepted">$0</strong></div>
+        <div class="card stat"><div class="stat-icon" style="background:#fefce8"><i data-lucide="file-text" style="color:#b45309;width:20px;height:20px"></i></div><label>Pipeline value</label><strong id="statEstimates">$0</strong></div>
+        <div class="card stat"><div class="stat-icon" style="background:#fef2f2"><i data-lucide="circle-dollar-sign" style="color:#b91c1c;width:20px;height:20px"></i></div><label>Outstanding</label><strong id="statBalances">$0</strong></div>
       </div>
       <div class="grid2" style="margin-top:18px">
         <div class="card"><div class="title"><div><h3>Upcoming appointments</h3><p>Next appointments and job visits.</p></div></div><div id="dashAppointments" class="list"></div></div>
@@ -330,13 +344,22 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
             <div class="form2">
               <select id="estimateClient" required></select>
               <input id="estimateTitle" placeholder="Project title" required>
-              <input id="estimateSubtotal" type="number" min="0" step="1" placeholder="Subtotal before taxes" required>
+              <div class="line-items-wrap">
+              <table class="line-items-edit">
+                <thead><tr><th>Description</th><th>Qty</th><th>Unit price</th><th>Total</th><th></th></tr></thead>
+                <tbody id="lineItemsBody"></tbody>
+              </table>
+              <button type="button" class="btn-ghost add-line-btn" onclick="addLineItem()">+ Add item</button>
+              <div class="line-items-foot">Subtotal: <strong id="lineItemsSubtotal">$0.00</strong></div>
+            </div>
+            <input type="hidden" id="estimateSubtotal">
               <select id="estimateStatus"><option>Draft</option><option>Sent</option><option>Accepted</option><option>Lost</option><option>Partially paid</option></select>
               <input id="estimateDeposit" type="number" min="0" step="1" placeholder="Deposit required">
               <select id="estimatePaymentSchedule"><option>Deposit + balance on completion</option><option>50% deposit / 50% completion</option><option>Progress payments</option><option>Due on completion</option><option>Custom payment terms</option></select>
             </div>
             <textarea id="estimateScope" rows="7" placeholder="Scope of work / included items"></textarea>
             <textarea id="estimatePaymentNotes" rows="3" placeholder="Payment schedule notes"></textarea>
+            <input type="date" id="estimateExpiry" placeholder="Estimate valid until">
             <button class="btn" type="submit">Save estimate</button>
           </form>
         </div>
@@ -656,6 +679,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
   }
 
   function openTab(tabId) {
+    if (tabId === 'estimates') { setTimeout(function() { if ($('lineItemsBody') && !$('lineItemsBody').children.length) addLineItem(); }, 50); }
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     const target = $(tabId);
     if (target) target.classList.add('active');
@@ -687,11 +711,14 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
   function renderDashboard() {
     const leads = visible(state.leads).filter(l => !['Won','Lost'].includes(l.status));
     const estimates = visible(state.estimates);
-    const accepted = estimates.filter(e => e.status === 'Accepted').reduce((sum,e) => sum + calc(e).total, 0);
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const monthRevenue = estimates.filter(e => e.status === 'Accepted' && e.updatedAt >= monthStart).reduce((sum,e) => sum + calc(e).total, 0);
+    const pipeline = estimates.filter(e => ['Draft','Sent'].includes(e.status)).reduce((sum,e) => sum + calc(e).total, 0);
     const balances = visible(state.clients).reduce((sum,c) => sum + Number(c.balance || 0), 0);
     $('statLeads').textContent = leads.length;
-    $('statEstimates').textContent = estimates.length;
-    $('statAccepted').textContent = money(accepted);
+    $('statEstimates').textContent = money(pipeline);
+    $('statAccepted').textContent = money(monthRevenue);
     $('statBalances').textContent = money(balances);
 
     $('dashAppointments').innerHTML = visible(state.appointments).slice().sort((a,b) => new Date(a.start) - new Date(b.start)).slice(0,5).map(a => `
@@ -827,7 +854,7 @@ Date: ${date(e.createdAt)}`;
           </div>
           <div style="text-align:right">
             <div class="estimate-brand-title" style="font-size:22px">Estimate</div>
-            <div class="estimate-brand-meta">Quote #: ${estimateNumber(e)}<br>Date: ${date(e.createdAt)}<br>Prepared by: ${esc(e.createdBy)}</div>
+            <div class="estimate-brand-meta">Quote #: ${estimateNumber(e)}<br>Date: ${date(e.createdAt)}${e.expiry ? '<br>Valid until: ' + date(e.expiry) : ''}<br>Prepared by: ${esc(e.createdBy)}</div>
             <div style="margin-top:10px"><span class="estimate-badge">${esc(e.status)}</span></div>
           </div>
         </div>
@@ -841,7 +868,7 @@ Date: ${date(e.createdAt)}`;
 
         <div class="estimate-pricing">
           <table>
-            <tr><td>Subtotal</td><td style="text-align:right">${money(e.subtotal)}</td></tr>
+            ${(e.line_items && e.line_items.length > 0) ? '<tr class=\"li-head\"><th style=\"text-align:left;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0\">Description</th><th style=\"text-align:center;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0\">Qty</th><th style=\"text-align:right;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0\">Unit price</th><th style=\"text-align:right;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0\">Total</th></tr>' + e.line_items.map(function(item) { return '<tr><td style=\"padding:6px 8px\">' + esc(item.desc) + '</td><td style=\"text-align:center;padding:6px 8px\">' + item.qty + '</td><td style=\"text-align:right;padding:6px 8px\">' + money(item.price) + '</td><td style=\"text-align:right;padding:6px 8px;font-weight:600\">' + money(item.qty * item.price) + '</td></tr>'; }).join('') + '<tr><td colspan=\"3\" style=\"text-align:right;padding:8px;border-top:1px solid #e2e8f0;font-weight:600\">Subtotal</td><td style=\"text-align:right;padding:8px;border-top:1px solid #e2e8f0;font-weight:600\">' + money(e.subtotal) + '</td></tr>' : '<tr><td>Subtotal</td><td style=\"text-align:right\">' + money(e.subtotal) + '</td></tr>'}
             <tr><td>TPS (${esc(state.settings.tps)}%)</td><td style="text-align:right">${money(tax.tps)}</td></tr>
             <tr><td>TVQ (${esc(state.settings.tvq)}%)</td><td style="text-align:right">${money(tax.tvq)}</td></tr>
             <tr class="total-row"><td>Total</td><td style="text-align:right">${money(tax.total)}</td></tr>
@@ -1116,14 +1143,74 @@ Date: ${date(e.createdAt)}`;
     toast('Client saved');
   }
 
+  function addLineItem(desc, qty, price) {
+    const body = $('lineItemsBody');
+    if (!body) return;
+    const tr = document.createElement('tr');
+    const safeDesc = (desc || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    tr.innerHTML = '<td><input type="text" placeholder="Description" oninput="calcLineItems()" value="' + safeDesc + '"></td>' +
+      '<td class="li-qty"><input type="number" min="0" step="0.01" placeholder="1" oninput="calcLineItems()" value="' + (qty||1) + '"></td>' +
+      '<td class="li-price"><input type="number" min="0" step="0.01" placeholder="0.00" oninput="calcLineItems()" value="' + (price||'') + '"></td>' +
+      '<td class="li-total">$0.00</td>' +
+      '<td class="li-rm"><button type="button" onclick="removeLineItem(this)" title="Remove">✕</button></td>';
+    body.appendChild(tr);
+    calcLineItems();
+  }
+
+  function removeLineItem(btn) {
+    btn.closest('tr').remove();
+    calcLineItems();
+  }
+
+  function calcLineItems() {
+    let subtotal = 0;
+    const rows = document.querySelectorAll('#lineItemsBody tr');
+    rows.forEach(function(tr) {
+      const inputs = tr.querySelectorAll('input');
+      const qty = parseFloat(inputs[1].value) || 0;
+      const price = parseFloat(inputs[2].value) || 0;
+      const lineTotal = qty * price;
+      subtotal += lineTotal;
+      tr.querySelector('.li-total').textContent = '$' + lineTotal.toFixed(2);
+    });
+    const sub = $('lineItemsSubtotal');
+    if (sub) sub.textContent = '$' + subtotal.toFixed(2);
+    const hidden = $('estimateSubtotal');
+    if (hidden) hidden.value = subtotal.toFixed(2);
+  }
+
+  function getLineItems() {
+    const items = [];
+    document.querySelectorAll('#lineItemsBody tr').forEach(function(tr) {
+      const inputs = tr.querySelectorAll('input');
+      const desc = inputs[0].value.trim();
+      const qty = parseFloat(inputs[1].value) || 0;
+      const price = parseFloat(inputs[2].value) || 0;
+      if (desc || price) items.push({ desc: desc, qty: qty, price: price });
+    });
+    return items;
+  }
+
+  function resetLineItems() {
+    const body = $('lineItemsBody');
+    if (body) body.innerHTML = '';
+    const sub = $('lineItemsSubtotal');
+    if (sub) sub.textContent = '$0.00';
+    const hidden = $('estimateSubtotal');
+    if (hidden) hidden.value = '0';
+    addLineItem();
+  }
+
   function addEstimate(event) {
     event.preventDefault();
-    const e = { id:uid(), clientId:$('estimateClient').value, title:$('estimateTitle').value, subtotal:Number($('estimateSubtotal').value || 0), deposit:Number($('estimateDeposit').value || 0), paymentSchedule:$('estimatePaymentSchedule').value, paymentNotes:$('estimatePaymentNotes').value, approvedBy:'', approvedAt:'', status:$('estimateStatus').value, scope:$('estimateScope').value, createdBy:user, createdAt:new Date().toISOString(), updatedBy:user, updatedAt:new Date().toISOString() };
+    calcLineItems();
+    const e = { id:uid(), clientId:$('estimateClient').value, title:$('estimateTitle').value, line_items:getLineItems(), subtotal:Number($('estimateSubtotal').value || 0), deposit:Number($('estimateDeposit').value || 0), paymentSchedule:$('estimatePaymentSchedule').value, paymentNotes:$('estimatePaymentNotes').value, approvedBy:'', approvedAt:'', status:$('estimateStatus').value, scope:$('estimateScope').value, expiry:$('estimateExpiry').value || '', createdBy:user, createdAt:new Date().toISOString(), updatedBy:user, updatedAt:new Date().toISOString() };
     state.estimates.unshift(e);
-    sb.from('estimates').insert({ id:e.id, client_id:e.clientId, title:e.title, subtotal:e.subtotal, deposit:e.deposit, payment_schedule:e.paymentSchedule, payment_notes:e.paymentNotes, approved_by:'', approved_at:null, status:e.status, scope:e.scope, created_by:e.createdBy, created_at:e.createdAt, updated_by:e.updatedBy, updated_at:e.updatedAt });
+    sb.from('estimates').insert({ id:e.id, client_id:e.clientId, title:e.title, line_items:e.line_items||[], subtotal:e.subtotal, deposit:e.deposit, payment_schedule:e.paymentSchedule, payment_notes:e.paymentNotes, approved_by:'', approved_at:null, status:e.status, scope:e.scope, created_by:e.createdBy, created_at:e.createdAt, updated_by:e.updatedBy, updated_at:e.updatedAt });
     log('Created estimate', `${user} created ${e.title} for ${clientName(e.clientId)}.`);
     save();
     event.target.reset();
+    resetLineItems();
     renderAll();
     $('previewEstimate').value = e.id;
     renderEstimatePreview();
@@ -1142,6 +1229,29 @@ Date: ${date(e.createdAt)}`;
     toast('Appointment saved');
   }
 
+  function compressImage(file, maxPx, quality) {
+    maxPx = maxPx || 1200; quality = quality || 0.82;
+    return new Promise(function(resolve) {
+      var reader = new FileReader();
+      reader.onload = function(ev) {
+        var img = new Image();
+        img.onload = function() {
+          var w = img.width, h = img.height;
+          if (w > maxPx || h > maxPx) {
+            if (w > h) { h = Math.round(h * maxPx / w); w = maxPx; }
+            else { w = Math.round(w * maxPx / h); h = maxPx; }
+          }
+          var canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
   function addPhoto(event) {
     event.preventDefault();
     const file = $('photoFile').files[0];
@@ -1151,7 +1261,8 @@ Date: ${date(e.createdAt)}`;
     const finish = (dataUrl='') => {
       const p = { id:uid(), clientId, type, notes, data:dataUrl, createdBy:user, createdAt:new Date().toISOString() };
       state.photos.unshift(p);
-      sb.from('photos').insert({ id:p.id, client_id:p.clientId, type:p.type, notes:p.notes, storage_path:dataUrl, created_by:p.createdBy, created_at:p.createdAt });
+      sb.from('photos').insert({ id:p.id, client_id:p.clientId, type:p.type, notes:p.notes, storage_path:dataUrl, created_by:p.createdBy, created_at:p.createdAt })
+        .then(({ error }) => { if (error) toast('Photo save error: ' + error.message); });
       log('Uploaded photo', `${user} uploaded photo for ${clientName(p.clientId)}.`);
       event.target.reset();
       renderAll();
@@ -1160,9 +1271,12 @@ Date: ${date(e.createdAt)}`;
     if (file) {
       const ext = file.name.split('.').pop();
       const path = clientId + '/' + uid() + '.' + ext;
-      sb.storage.from('photos').upload(path, file).then(({ error }) => {
-        if (error) { const rd = new FileReader(); rd.onload = () => finish(rd.result); rd.readAsDataURL(file); }
-        else { finish(sb.storage.from('photos').getPublicUrl(path).data.publicUrl); }
+      toast('Uploading…');
+      compressImage(file).then(compressed => {
+        sb.storage.from('photos').upload(path, file).then(({ error }) => {
+          if (error) { finish(compressed); }
+          else { finish(sb.storage.from('photos').getPublicUrl(path).data.publicUrl); }
+        });
       });
     } else { finish(''); }
   }
@@ -1192,14 +1306,21 @@ Date: ${date(e.createdAt)}`;
     if (!lead) return;
     const c = { id:uid(), name:lead.name, phone:lead.phone, email:lead.email, address:'', project:lead.project, status:'Active', balance:0, createdBy:user, createdAt:new Date().toISOString() };
     state.clients.unshift(c);
-    sb.from('clients').insert({ id:c.id, name:c.name, phone:c.phone, email:c.email, address:c.address, project:c.project, status:c.status, balance:c.balance, created_by:c.createdBy, created_at:c.createdAt });
+    sb.from('clients').insert({ id:c.id, name:c.name, phone:c.phone, email:c.email, address:c.address, project:c.project, status:c.status, balance:c.balance, created_by:c.createdBy, created_at:c.createdAt })
+      .then(({ error }) => { if (error) toast('Save error: ' + error.message); });
     lead.status = 'Won';
     sb.from('leads').update({ status:'Won' }).eq('id', id);
     log('Converted lead', `${user} converted ${lead.name} into a client.`);
     save();
     renderAll();
-    openTab('clients');
-    toast('Lead converted to client');
+    toast('Lead converted! Creating estimate…');
+    setTimeout(() => {
+      openTab('estimates');
+      const sel = $('estimateClient');
+      if (sel) { sel.value = c.id; }
+      const titleInput = $('estimateTitle');
+      if (titleInput && lead.project) titleInput.value = lead.project;
+    }, 400);
   }
 
   function setLeadStatus(id, status) {
