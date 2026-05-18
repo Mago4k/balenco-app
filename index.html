@@ -172,6 +172,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body class="employee-mode">
 <section id="login" class="login">
@@ -348,7 +349,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
             <button class="btn" type="button" id="copyEstimateBtn">Copy text</button>
             <button class="btn out" type="button" id="emailEstimateBtn">Send by email</button>
             <button class="btn out" type="button" id="printEstimateBtn">Print / save PDF</button>
-            <button class="btn out" type="button" id="downloadEstimateBtn">Download estimate page</button>
+            <button class="btn out" type="button" id="downloadEstimateBtn">Download PDFload estimate page</button>
           </div>
         </div>
       </div>
@@ -1318,16 +1319,37 @@ Date: ${date(e.createdAt)}`;
     win.document.close();
   }
 
-  function downloadEstimatePage() {
+  async function downloadEstimatePage() {
     const e = currentEstimate();
     if (!e) return;
-    const blob = new Blob([estimatePageHTML(e)], { type:'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${estimateNumber(e)}-${e.title.replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.html`;
-    a.click();
-    URL.revokeObjectURL(url);
+    const btn = $('downloadEstimateBtn');
+    btn.textContent = 'Generating PDF…';
+    btn.disabled = true;
+    try {
+      const container = document.createElement('div');
+      container.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:800px;background:#fff;padding:32px;font-family:Inter,Arial,sans-serif;';
+      container.innerHTML = estimateHTML(e);
+      // inline the print styles
+      const styleEl = document.createElement('style');
+      styleEl.textContent = printStyles();
+      container.prepend(styleEl);
+      document.body.appendChild(container);
+      const filename = estimateNumber(e) + '-' + (e.title || 'estimate').replace(/[^a-z0-9]/gi, '-') + '.pdf';
+      await html2pdf().set({
+        margin: 0,
+        filename,
+        image: { type:'jpeg', quality:0.97 },
+        html2canvas: { scale:2, useCORS:true, letterRendering:true },
+        jsPDF: { unit:'mm', format:'a4', orientation:'portrait' }
+      }).from(container).save();
+      document.body.removeChild(container);
+      log('Downloaded estimate', user + ' downloaded PDF for ' + e.title);
+    } catch(err) {
+      toast('PDF error: ' + err.message);
+    } finally {
+      btn.textContent = 'Download PDF';
+      btn.disabled = false;
+    }
   }
 
   function uploadCompanyLogo(event) {
