@@ -1638,6 +1638,9 @@ Date: ${date(e.createdAt)}`;
     const { data: { session } } = await sb.auth.getSession();
     if (session) await startSession(session.user);
   }
+  window.addLineItem = addLineItem;
+  window.removeLineItem = removeLineItem;
+  window.calcLineItems = calcLineItems;
   init();
   if (typeof lucide !== 'undefined') lucide.createIcons();
   document.addEventListener('keydown', function(ev) {
