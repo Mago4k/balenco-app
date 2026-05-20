@@ -1640,6 +1640,13 @@ Date: ${date(e.createdAt)}`;
   }
   init();
   if (typeof lucide !== 'undefined') lucide.createIcons();
+  document.addEventListener('keydown', function(ev) {
+    if (ev.key !== 'Enter') return;
+    const form = ev.target.closest('#estimateForm');
+    if (!form) return;
+    if (ev.target.tagName === 'TEXTAREA') return;
+    ev.preventDefault();
+  });
 })();
 </script>
   <script>
