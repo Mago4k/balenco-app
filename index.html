@@ -1206,7 +1206,7 @@ Date: ${date(e.createdAt)}`;
     calcLineItems();
     const e = { id:uid(), clientId:$('estimateClient').value, title:$('estimateTitle').value, line_items:getLineItems(), subtotal:Number($('estimateSubtotal').value || 0), deposit:Number($('estimateDeposit').value || 0), paymentSchedule:$('estimatePaymentSchedule').value, paymentNotes:$('estimatePaymentNotes').value, approvedBy:'', approvedAt:'', status:$('estimateStatus').value, scope:$('estimateScope').value, expiry:$('estimateExpiry').value || '', createdBy:user, createdAt:new Date().toISOString(), updatedBy:user, updatedAt:new Date().toISOString() };
     state.estimates.unshift(e);
-    sb.from('estimates').insert({ id:e.id, client_id:e.clientId, title:e.title, line_items:e.line_items||[], subtotal:e.subtotal, deposit:e.deposit, payment_schedule:e.paymentSchedule, payment_notes:e.paymentNotes, approved_by:'', approved_at:null, status:e.status, scope:e.scope, created_by:e.createdBy, created_at:e.createdAt, updated_by:e.updatedBy, updated_at:e.updatedAt });
+    sb.from('estimates').insert({ id:e.id, client_id:e.clientId, title:e.title, line_items:e.line_items||[], subtotal:e.subtotal, deposit:e.deposit, payment_schedule:e.paymentSchedule, payment_notes:e.paymentNotes, approved_by:'', approved_at:null, status:e.status, scope:e.scope, expiry:e.expiry||null, created_by:e.createdBy, created_at:e.createdAt, updated_by:e.updatedBy, updated_at:e.updatedAt }).then(function(res){ if(res.error) toast('Save error: '+res.error.message); });
     log('Created estimate', `${user} created ${e.title} for ${clientName(e.clientId)}.`);
     save();
     event.target.reset();
