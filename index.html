@@ -529,6 +529,8 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     if (!sr) {
       await sb.from('settings').insert({ id:'global', company:'Your Company Name', email:'info@company.com', phone:'514-000-0000', address:'Montreal, Quebec', tps:5, tvq:9.975, logo:'', terms:'Estimate valid for 15 days. Deposit required before scheduling. Hidden conditions, permits, and extra work are not included unless stated.' });
     }
+    console.log("fetchState results:", { clients: (clients||[]).length, leads: (leads||[]).length, estimates: (estimates||[]).length });
+    if ((clients||[]).length === 0 && (leads||[]).length === 0) toast("DB loaded empty — check console");
     state = {
       settings: sr ? { company:sr.company, email:sr.email, phone:sr.phone, address:sr.address, tps:sr.tps, tvq:sr.tvq, logo:sr.logo||'', terms:sr.terms } : { company:'Your Company Name', email:'info@company.com', phone:'514-000-0000', address:'Montreal, Quebec', tps:5, tvq:9.975, logo:'', terms:'' },
       clients: (clients||[]).map(function(r){ return { id:r.id, name:r.name, phone:r.phone||'', email:r.email||'', address:r.address||'', project:r.project||'', status:r.status||'Active', balance:r.balance||0, createdBy:r.created_by||'', createdAt:r.created_at }; }),
