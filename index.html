@@ -340,7 +340,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       <div class="grid2">
         <div class="card">
           <div class="title"><div><h3>Create professional estimate</h3><p>Includes TPS/TVQ, deposit, payment schedule, signature, and approval.</p></div></div>
-          <form id="estimateForm" class="form">
+          <form id="estimateForm" class="form" onkeydown="if(event.key==='Enter'&&event.target.tagName!=='TEXTAREA'&&event.target.type!=='submit'){event.preventDefault();}">
             <div class="form2">
               <select id="estimateClient" required></select>
               <input id="estimateTitle" placeholder="Project title" required>
