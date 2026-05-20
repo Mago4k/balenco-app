@@ -1353,9 +1353,9 @@ Date: ${date(e.createdAt)}`;
 
   function approveEstimate() {
     const e = currentEstimate();
-    if (!e) return;
-    const name = prompt('Client name for approval:', clientName(e.clientId));
-    if (!name) return;
+    if (!e) { toast('Select an estimate first'); return; }
+    const name = clientName(e.clientId) || user;
+    if (!confirm('Mark "' + e.title + '" as Accepted?')) return;
     e.status = 'Accepted';
     e.approvedBy = name;
     e.approvedAt = new Date().toISOString();
