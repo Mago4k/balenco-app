@@ -122,6 +122,18 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 .add-line-btn:hover { background:#eff6ff; }
 .line-items-foot { text-align:right; font-size:14px; color:var(--muted); padding:4px 2px; }
 .line-items-foot strong { color:var(--navy); }
+.payments-section { border-top:1px solid var(--border); padding-top:14px; margin-top:4px; }
+.payments-section h4 { font-size:13px; font-weight:800; color:var(--navy); margin:0 0 10px; text-transform:uppercase; letter-spacing:.4px; }
+.payment-item { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--border); font-size:13px; }
+.payment-item:last-child { border-bottom:none; }
+.payment-item .p-meta { color:var(--muted); font-size:12px; margin-top:2px; }
+.payment-add { display:flex; gap:8px; margin-top:10px; align-items:center; }
+.payment-add input { flex:1; border:1px solid var(--border); border-radius:8px; padding:7px 10px; font-size:13px; background:var(--surface); }
+.payment-add input[type="number"] { max-width:120px; }
+.payment-add button { white-space:nowrap; }
+.balance-row { display:flex; justify-content:space-between; padding:8px 0; font-size:14px; font-weight:700; color:var(--navy); border-top:1px solid var(--border); margin-top:8px; }
+.balance-row.paid { color:#047857; }
+.balance-row span:last-child { font-size:16px; }
 .stat label { display:block; color:var(--muted); font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:.4px; margin-top:2px; }
 .stat strong { display:block; color:var(--navy); font-size:24px; font-weight:900; margin-top:4px; }
 .estimate-doc { max-width:800px; margin:0 auto; background:#fff; color:#0f172a; }
@@ -371,6 +383,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
             <button class="btn out" type="button" id="printEstimateBtn">Print / save PDF</button>
             <button class="btn out" type="button" id="downloadEstimateBtn">Download PDFload estimate page</button>
           </div>
+          <div id="estimatePayments" style="margin-top:16px"></div>
         </div>
       </div>
       <div class="card" style="margin-top:18px"><div class="title"><div><h3>Estimates</h3><p>Mark any estimate accepted or lost.</p></div></div><div class="table"><table><thead><tr><th>Estimate</th><th>Client</th><th>Subtotal</th><th>Taxes</th><th>Total</th><th>Status</th><th class="owner-only">Entered by</th><th class="right">Actions</th></tr></thead><tbody id="estimateTable"></tbody></table></div></div>
@@ -520,7 +533,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       settings: sr ? { company:sr.company, email:sr.email, phone:sr.phone, address:sr.address, tps:sr.tps, tvq:sr.tvq, logo:sr.logo||'', terms:sr.terms } : { company:'Your Company Name', email:'info@company.com', phone:'514-000-0000', address:'Montreal, Quebec', tps:5, tvq:9.975, logo:'', terms:'' },
       clients: (clients||[]).map(function(r){ return { id:r.id, name:r.name, phone:r.phone||'', email:r.email||'', address:r.address||'', project:r.project||'', status:r.status||'Active', balance:r.balance||0, createdBy:r.created_by||'', createdAt:r.created_at }; }),
       leads: (leads||[]).map(function(r){ return { id:r.id, name:r.name, phone:r.phone||'', email:r.email||'', source:r.source||'', project:r.project||'', status:r.status||'New', notes:r.notes||'', createdBy:r.created_by||'', createdAt:r.created_at }; }),
-      estimates: (estimates||[]).map(function(r){ return { id:r.id, clientId:r.client_id, title:r.title||'', subtotal:r.subtotal||0, line_items:r.line_items||[], deposit:r.deposit||0, paymentSchedule:r.payment_schedule||'', paymentNotes:r.payment_notes||'', approvedBy:r.approved_by||'', approvedAt:r.approved_at||'', status:r.status||'Draft', scope:r.scope||'', expiry:r.expiry||'', createdBy:r.created_by||'', createdAt:r.created_at, updatedBy:r.updated_by||'', updatedAt:r.updated_at }; }),
+      estimates: (estimates||[]).map(function(r){ return { id:r.id, clientId:r.client_id, title:r.title||'', subtotal:r.subtotal||0, line_items:r.line_items||[], deposit:r.deposit||0, paymentSchedule:r.payment_schedule||'', paymentNotes:r.payment_notes||'', approvedBy:r.approved_by||'', approvedAt:r.approved_at||'', status:r.status||'Draft', scope:r.scope||'', expiry:r.expiry||'', payments:r.payments||[], createdBy:r.created_by||'', createdAt:r.created_at, updatedBy:r.updated_by||'', updatedAt:r.updated_at }; }),
       appointments: (appointments||[]).map(function(r){ return { id:r.id, title:r.title||'', clientId:r.client_id, start:r.start_time||'', end:r.end_time||'', location:r.location||'', notes:r.notes||'', reminder24:r.reminder24!==false, reminderSent:r.reminder_sent||false, createdBy:r.created_by||'', createdAt:r.created_at }; }),
       photos: (photos||[]).map(function(r){ return { id:r.id, clientId:r.client_id, type:r.type||'', notes:r.notes||'', data:r.storage_path||'', createdBy:r.created_by||'', createdAt:r.created_at }; }),
       logs: (logs||[]).map(function(r){ return { id:r.id, action:r.action||'', detail:r.detail||'', user:r.user_name||'', at:r.created_at }; })
@@ -712,7 +725,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const monthRevenue = estimates.filter(e => e.status === 'Accepted' && e.updatedAt >= monthStart).reduce((sum,e) => sum + calc(e).total, 0);
     const pipeline = estimates.filter(e => ['Draft','Sent'].includes(e.status)).reduce((sum,e) => sum + calc(e).total, 0);
-    const balances = visible(state.clients).reduce((sum,c) => sum + Number(c.balance || 0), 0);
+    const balances = visible(state.estimates).filter(function(e){ return e.status === 'Accepted'; }).reduce(function(sum,e){ var paid = (e.payments||[]).reduce(function(s,p){ return s + Number(p.amount||0); },0); return sum + Math.max(calc(e).total - paid, 0); }, 0);
     $('statLeads').textContent = leads.length;
     $('statEstimates').textContent = money(pipeline);
     $('statAccepted').textContent = money(monthRevenue);
@@ -906,7 +919,10 @@ Date: ${date(e.createdAt)}`;
   }
 
   function renderEstimatePreview() {
-    $('estimatePreview').innerHTML = estimateHTML(currentEstimate());
+    const e = currentEstimate();
+    $('estimatePreview').innerHTML = estimateHTML(e);
+    const ep = $('estimatePayments');
+    if (ep) ep.innerHTML = paymentsHTML(e);
   }
 
   function renderAppointments() {
@@ -1203,7 +1219,7 @@ Date: ${date(e.createdAt)}`;
     calcLineItems();
     const e = { id:uid(), clientId:$('estimateClient').value, title:$('estimateTitle').value, line_items:getLineItems(), subtotal:Number($('estimateSubtotal').value || 0), deposit:Number($('estimateDeposit').value || 0), paymentSchedule:$('estimatePaymentSchedule').value, paymentNotes:$('estimatePaymentNotes').value, approvedBy:'', approvedAt:'', status:$('estimateStatus').value, scope:$('estimateScope').value, expiry:$('estimateExpiry').value || '', createdBy:user, createdAt:new Date().toISOString(), updatedBy:user, updatedAt:new Date().toISOString() };
     state.estimates.unshift(e);
-    sb.from('estimates').insert({ id:e.id, client_id:e.clientId, title:e.title, line_items:e.line_items||[], subtotal:e.subtotal, deposit:e.deposit, payment_schedule:e.paymentSchedule, payment_notes:e.paymentNotes, approved_by:'', approved_at:null, status:e.status, scope:e.scope, expiry:e.expiry||null, created_by:e.createdBy, created_at:e.createdAt, updated_by:e.updatedBy, updated_at:e.updatedAt }).then(function(res){ if(res.error) toast('Save error: '+res.error.message); });
+    sb.from('estimates').insert({ id:e.id, client_id:e.clientId, title:e.title, line_items:e.line_items||[], payments:[], subtotal:e.subtotal, deposit:e.deposit, payment_schedule:e.paymentSchedule, payment_notes:e.paymentNotes, approved_by:'', approved_at:null, status:e.status, scope:e.scope, expiry:e.expiry||null, created_by:e.createdBy, created_at:e.createdAt, updated_by:e.updatedBy, updated_at:e.updatedAt }).then(function(res){ if(res.error) toast('Save error: '+res.error.message); });
     log('Created estimate', `${user} created ${e.title} for ${clientName(e.clientId)}.`);
     save();
     event.target.reset();
@@ -1346,6 +1362,52 @@ Date: ${date(e.createdAt)}`;
     openTab('estimates');
     $('previewEstimate').value = id;
     renderEstimatePreview();
+  }
+
+  function paymentsHTML(e) {
+    if (!e) return '';
+    if (e.status !== 'Accepted') return '';
+    const payments = e.payments || [];
+    const total = calc(e).total;
+    const totalPaid = payments.reduce(function(s,p){ return s + Number(p.amount||0); }, 0);
+    const remaining = Math.max(total - totalPaid, 0);
+    const rows = payments.length ? payments.map(function(p) {
+      return '<div class="payment-item"><div><strong>' + money(p.amount) + '</strong>' +
+        (p.note ? ' — ' + esc(p.note) : '') +
+        '<div class="p-meta">' + date(p.date) + ' · ' + esc(p.by) + '</div></div></div>';
+    }).join('') : '<p style="color:var(--muted);font-size:13px;margin:4px 0">No payments recorded yet.</p>';
+    const doneClass = remaining === 0 ? ' paid' : '';
+    return '<div class="payments-section">' +
+      '<h4>Payments</h4>' +
+      rows +
+      '<div class="balance-row' + doneClass + '">' +
+        '<span>' + (remaining === 0 ? 'Fully paid' : 'Remaining balance') + '</span>' +
+        '<span>' + money(remaining) + '</span>' +
+      '</div>' +
+      (remaining > 0 ? '<div class="payment-add">' +
+        '<input type="number" id="paymentAmount" min="0" step="0.01" placeholder="Amount">' +
+        '<input type="text" id="paymentNote" placeholder="Note (optional)">' +
+        '<button class="btn" type="button" onclick="recordPayment(\"' + e.id + '\")">Record payment</button>' +
+      '</div>' : '') +
+    '</div>';
+  }
+
+  function recordPayment(estimateId) {
+    const e = state.estimates.find(function(est){ return est.id === estimateId; });
+    if (!e) return;
+    const amountInput = $('paymentAmount');
+    const noteInput = $('paymentNote');
+    const amount = parseFloat(amountInput ? amountInput.value : 0);
+    const note = noteInput ? noteInput.value.trim() : '';
+    if (!amount || amount <= 0) { toast('Enter a valid amount'); return; }
+    e.payments = e.payments || [];
+    e.payments.push({ id:uid(), amount:amount, note:note, date:new Date().toISOString(), by:user });
+    sb.from('estimates').update({ payments:e.payments }).eq('id', e.id)
+      .then(function(res){ if(res.error) toast('Save error: ' + res.error.message); });
+    log('Payment recorded', user + ' recorded ' + money(amount) + ' payment for ' + e.title);
+    save();
+    renderAll();
+    toast('Payment recorded — ' + money(amount));
   }
 
   function approveEstimate() {
@@ -1633,6 +1695,7 @@ Date: ${date(e.createdAt)}`;
     if (session) await startSession(session.user);
   }
   window.addLineItem = addLineItem;
+  window.recordPayment = recordPayment;
   window.removeLineItem = removeLineItem;
   window.calcLineItems = calcLineItems;
   init();
