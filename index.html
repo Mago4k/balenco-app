@@ -1598,9 +1598,6 @@ Date: ${date(e.createdAt)}`;
     $('signupBtn').addEventListener('click', signUp);
     $('enterBtn').addEventListener('click', enterApp);
     $('switchBtn').addEventListener('click', backToLogin);
-    $('exportBtn').addEventListener('click', exportData);
-    $('importInput').addEventListener('change', importData);
-    $('resetBtn').addEventListener('click', resetData);
 
     document.querySelectorAll('[data-tab]').forEach(button => {
       button.addEventListener('click', () => openTab(button.dataset.tab));
