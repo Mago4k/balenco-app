@@ -1455,11 +1455,13 @@ Date: ${date(e.createdAt)}`;
     try {
       const subject = 'Estimate – ' + e.title;
       const html = estimateHTML(e);
+      const { data: { session } } = await sb.auth.getSession();
+      const token = session?.access_token || SUPA_KEY;
       const res = await fetch('https://wvqqazdzejjksjcjdbcm.supabase.co/functions/v1/send-estimate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + SUPA_KEY
+          'Authorization': 'Bearer ' + token
         },
         body: JSON.stringify({ to: c.email, subject, html })
       });
