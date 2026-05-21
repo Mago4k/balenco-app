@@ -134,6 +134,14 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 .balance-row { display:flex; justify-content:space-between; padding:8px 0; font-size:14px; font-weight:700; color:var(--navy); border-top:1px solid var(--border); margin-top:8px; }
 .balance-row.paid { color:#047857; }
 .balance-row span:last-child { font-size:16px; }
+.stat-detail-row { display:flex; justify-content:space-between; align-items:flex-start; padding:10px 0; border-bottom:1px solid #e2e8f0; font-size:14px; }
+.stat-detail-row:last-child { border-bottom:none; }
+.stat-detail-row .sd-left strong { display:block; color:#0f172a; margin-bottom:2px; }
+.stat-detail-row .sd-left span { color:#64748b; font-size:12px; }
+.stat-detail-row .sd-right { text-align:right; font-weight:700; color:#0f172a; white-space:nowrap; margin-left:12px; }
+.stat-detail-row .sd-right .sd-sub { display:block; font-size:12px; font-weight:400; color:#64748b; }
+.stat-detail-total { display:flex; justify-content:space-between; padding:12px 0 0; font-weight:800; font-size:15px; color:#0f172a; border-top:2px solid #0f172a; margin-top:8px; }
+#statDetailOverlay.open { display:flex!important; }
 .stat label { display:block; color:var(--muted); font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:.4px; margin-top:2px; }
 .stat strong { display:block; color:var(--navy); font-size:24px; font-weight:900; margin-top:4px; }
 .estimate-doc { max-width:800px; margin:0 auto; background:#fff; color:#0f172a; }
@@ -286,10 +294,10 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 
     <section id="dashboard" class="tab active">
       <div class="grid4">
-        <div class="card stat"><div class="stat-icon" style="background:#eff6ff"><i data-lucide="target" style="color:#3b82f6;width:20px;height:20px"></i></div><label>Active leads</label><strong id="statLeads">0</strong></div>
-        <div class="card stat"><div class="stat-icon" style="background:#ecfdf5"><i data-lucide="trending-up" style="color:#047857;width:20px;height:20px"></i></div><label>This month revenue</label><strong id="statAccepted">$0</strong></div>
-        <div class="card stat"><div class="stat-icon" style="background:#fefce8"><i data-lucide="file-text" style="color:#b45309;width:20px;height:20px"></i></div><label>Pipeline value</label><strong id="statEstimates">$0</strong></div>
-        <div class="card stat"><div class="stat-icon" style="background:#fef2f2"><i data-lucide="circle-dollar-sign" style="color:#b91c1c;width:20px;height:20px"></i></div><label>Outstanding</label><strong id="statBalances">$0</strong></div>
+        <div class="card stat" onclick="showStatDetail('leads')" style="cursor:pointer"><div class="stat-icon" style="background:#eff6ff"><i data-lucide="target" style="color:#3b82f6;width:20px;height:20px"></i></div><label>Active leads</label><strong id="statLeads">0</strong></div>
+        <div class="card stat" onclick="showStatDetail('revenue')" style="cursor:pointer"><div class="stat-icon" style="background:#ecfdf5"><i data-lucide="trending-up" style="color:#047857;width:20px;height:20px"></i></div><label>This month revenue</label><strong id="statAccepted">$0</strong></div>
+        <div class="card stat" onclick="showStatDetail('pipeline')" style="cursor:pointer"><div class="stat-icon" style="background:#fefce8"><i data-lucide="file-text" style="color:#b45309;width:20px;height:20px"></i></div><label>Pipeline value</label><strong id="statEstimates">$0</strong></div>
+        <div class="card stat" onclick="showStatDetail('outstanding')" style="cursor:pointer"><div class="stat-icon" style="background:#fef2f2"><i data-lucide="circle-dollar-sign" style="color:#b91c1c;width:20px;height:20px"></i></div><label>Outstanding</label><strong id="statBalances">$0</strong></div>
       </div>
       <div class="grid2" style="margin-top:18px">
         <div class="card"><div class="title"><div><h3>Upcoming appointments</h3><p>Next appointments and job visits.</p></div></div><div id="dashAppointments" class="list"></div></div>
@@ -1697,8 +1705,70 @@ Date: ${date(e.createdAt)}`;
     const { data: { session } } = await sb.auth.getSession();
     if (session) await startSession(session.user);
   }
+  function showStatDetail(type) {
+    var overlay = document.getElementById('statDetailOverlay');
+    var title = document.getElementById('statDetailTitle');
+    var body = document.getElementById('statDetailBody');
+    var now = new Date();
+    var monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    var rows = '';
+    var total = 0;
+    if (type === 'leads') {
+      title.textContent = 'Active Leads';
+      var leads = visible(state.leads).filter(function(l){ return !['Won','Lost'].includes(l.status); });
+      if (!leads.length) { body.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">No active leads</p>'; overlay.classList.add('open'); return; }
+      rows = leads.map(function(l) {
+        return '<div class="stat-detail-row"><div class="sd-left"><strong>' + esc(l.name) + '</strong><span>' + esc(l.project||'No project') + ' · ' + esc(l.source||'')+'</span></div><div class="sd-right"><span class="pill ' + statusClass(l.status) + '">' + esc(l.status) + '</span></div></div>';
+      }).join('');
+      body.innerHTML = rows + '<div class="stat-detail-total"><span>Total active</span><span>' + leads.length + '</span></div>';
+    } else if (type === 'revenue') {
+      title.textContent = 'This Month Revenue';
+      var ests = visible(state.estimates).filter(function(e){ return e.status === 'Accepted' && e.updatedAt >= monthStart; });
+      if (!ests.length) { body.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">No accepted estimates this month</p>'; overlay.classList.add('open'); return; }
+      ests.forEach(function(e){ total += calc(e).total; });
+      rows = ests.map(function(e) {
+        return '<div class="stat-detail-row"><div class="sd-left"><strong>' + esc(e.title) + '</strong><span>' + esc(clientName(e.clientId)) + ' · Accepted ' + date(e.updatedAt) + '</span></div><div class="sd-right">' + money(calc(e).total) + '</div></div>';
+      }).join('');
+      body.innerHTML = rows + '<div class="stat-detail-total"><span>Total</span><span>' + money(total) + '</span></div>';
+    } else if (type === 'pipeline') {
+      title.textContent = 'Pipeline Value';
+      var ests = visible(state.estimates).filter(function(e){ return ['Draft','Sent'].includes(e.status); });
+      if (!ests.length) { body.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">No estimates in pipeline</p>'; overlay.classList.add('open'); return; }
+      ests.forEach(function(e){ total += calc(e).total; });
+      rows = ests.map(function(e) {
+        return '<div class="stat-detail-row"><div class="sd-left"><strong>' + esc(e.title) + '</strong><span>' + esc(clientName(e.clientId)) + '</span></div><div class="sd-right">' + money(calc(e).total) + '<span class="sd-sub">' + esc(e.status) + '</span></div></div>';
+      }).join('');
+      body.innerHTML = rows + '<div class="stat-detail-total"><span>Total</span><span>' + money(total) + '</span></div>';
+    } else if (type === 'outstanding') {
+      title.textContent = 'Outstanding Balances';
+      var ests = visible(state.estimates).filter(function(e){ return e.status === 'Accepted'; });
+      var items = ests.map(function(e) {
+        var deposit = Number(e.deposit||0);
+        var paid = deposit + (e.payments||[]).reduce(function(s,p){ return s+Number(p.amount||0);},0);
+        var remaining = Math.max(calc(e).total - paid, 0);
+        return { e:e, remaining:remaining };
+      }).filter(function(x){ return x.remaining > 0; });
+      if (!items.length) { body.innerHTML = '<p style="color:#047857;text-align:center;padding:20px">All balances are clear!</p>'; overlay.classList.add('open'); return; }
+      items.forEach(function(x){ total += x.remaining; });
+      rows = items.map(function(x) {
+        var e = x.e;
+        var deposit = Number(e.deposit||0);
+        var pmts = (e.payments||[]).reduce(function(s,p){ return s+Number(p.amount||0);},0);
+        return '<div class="stat-detail-row"><div class="sd-left"><strong>' + esc(e.title) + '</strong><span>' + esc(clientName(e.clientId)) + ' · Total: ' + money(calc(e).total) + ' · Deposit: ' + money(deposit) + (pmts>0?' · Paid: '+money(pmts):'')+'</span></div><div class="sd-right">' + money(x.remaining) + '<span class="sd-sub">remaining</span></div></div>';
+      }).join('');
+      body.innerHTML = rows + '<div class="stat-detail-total"><span>Total outstanding</span><span>' + money(total) + '</span></div>';
+    }
+    overlay.classList.add('open');
+  }
+
+  function closeStatDetail() {
+    document.getElementById('statDetailOverlay').classList.remove('open');
+  }
+
   window.addLineItem = addLineItem;
   window.recordPayment = recordPayment;
+  window.showStatDetail = showStatDetail;
+  window.closeStatDetail = closeStatDetail;
   window.removeLineItem = removeLineItem;
   window.calcLineItems = calcLineItems;
   init();
@@ -1712,7 +1782,17 @@ Date: ${date(e.createdAt)}`;
   });
 })();
 </script>
-  <script>
+  <div id="statDetailOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeStatDetail()">
+  <div id="statDetailPanel" style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:640px;max-height:80vh;overflow-y:auto;padding:24px;box-shadow:0 -4px 32px rgba(0,0,0,.15)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <h3 id="statDetailTitle" style="margin:0;font-size:18px;color:#0f172a"></h3>
+      <button onclick="closeStatDetail()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#64748b;padding:4px 8px">✕</button>
+    </div>
+    <div id="statDetailBody"></div>
+  </div>
+</div>
+
+<script>
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("/sw.js");
   </script>
 </body>
