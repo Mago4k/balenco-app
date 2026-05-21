@@ -725,7 +725,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
     const monthRevenue = estimates.filter(e => e.status === 'Accepted' && e.updatedAt >= monthStart).reduce((sum,e) => sum + calc(e).total, 0);
     const pipeline = estimates.filter(e => ['Draft','Sent'].includes(e.status)).reduce((sum,e) => sum + calc(e).total, 0);
-    const balances = visible(state.estimates).filter(function(e){ return e.status === 'Accepted'; }).reduce(function(sum,e){ var paid = (e.payments||[]).reduce(function(s,p){ return s + Number(p.amount||0); },0); return sum + Math.max(calc(e).total - paid, 0); }, 0);
+    const balances = visible(state.estimates).filter(function(e){ return e.status === 'Accepted'; }).reduce(function(sum,e){ var deposit = Number(e.deposit||0); var paid = deposit + (e.payments||[]).reduce(function(s,p){ return s + Number(p.amount||0); },0); return sum + Math.max(calc(e).total - paid, 0); }, 0);
     $('statLeads').textContent = leads.length;
     $('statEstimates').textContent = money(pipeline);
     $('statAccepted').textContent = money(monthRevenue);
