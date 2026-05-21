@@ -1422,12 +1422,7 @@ Date: ${date(e.createdAt)}`;
     e.updatedBy = user;
     e.updatedAt = new Date().toISOString();
     sb.from('estimates').update({ status:'Accepted', approved_by:name, approved_at:e.approvedAt, updated_by:user, updated_at:e.updatedAt }).eq('id', e.id)
-      .then(function(res){
-        console.log('approve update res:', JSON.stringify(res));
-        console.log('updating id:', e.id);
-        if(res.error) toast('Save error: ' + res.error.message);
-        sb.from('estimates').select('id,status').eq('id', e.id).then(function(r2){ console.log('verify fetch:', JSON.stringify(r2)); });
-      });
+      .then(function(res){ if(res.error) toast('Save error: ' + res.error.message); });
     log('Client approved estimate', `${name} approved ${e.title}.`);
     save();
     renderAll();
