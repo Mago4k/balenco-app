@@ -1352,7 +1352,8 @@ Date: ${date(e.createdAt)}`;
     e.status = status;
     e.updatedBy = user;
     e.updatedAt = new Date().toISOString();
-    sb.from('estimates').update({ status, updated_by:user, updated_at:e.updatedAt }).eq('id', id);
+    sb.from('estimates').update({ status, updated_by:user, updated_at:e.updatedAt }).eq('id', id)
+      .then(function(res){ if(res.error) toast('Save error: ' + res.error.message); });
     log('Updated estimate', `${user} marked ${e.title} as ${status}.`);
     save();
     renderAll();
@@ -1420,7 +1421,8 @@ Date: ${date(e.createdAt)}`;
     e.approvedAt = new Date().toISOString();
     e.updatedBy = user;
     e.updatedAt = new Date().toISOString();
-    sb.from('estimates').update({ status:'Accepted', approved_by:name, approved_at:e.approvedAt, updated_by:user, updated_at:e.updatedAt }).eq('id', e.id);
+    sb.from('estimates').update({ status:'Accepted', approved_by:name, approved_at:e.approvedAt, updated_by:user, updated_at:e.updatedAt }).eq('id', e.id)
+      .then(function(res){ if(res.error) toast('Save error: ' + res.error.message); });
     log('Client approved estimate', `${name} approved ${e.title}.`);
     save();
     renderAll();
