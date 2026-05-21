@@ -1370,7 +1370,8 @@ Date: ${date(e.createdAt)}`;
     if (e.status !== 'Accepted') return '';
     const payments = e.payments || [];
     const total = calc(e).total;
-    const totalPaid = payments.reduce(function(s,p){ return s + Number(p.amount||0); }, 0);
+    const deposit = Number(e.deposit || 0);
+    const totalPaid = deposit + payments.reduce(function(s,p){ return s + Number(p.amount||0); }, 0);
     const remaining = Math.max(total - totalPaid, 0);
     const rows = payments.length ? payments.map(function(p) {
       return '<div class="payment-item"><div><strong>' + money(p.amount) + '</strong>' +
