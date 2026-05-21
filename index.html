@@ -1387,7 +1387,7 @@ Date: ${date(e.createdAt)}`;
       (remaining > 0 ? '<div class="payment-add">' +
         '<input type="number" id="paymentAmount" min="0" step="0.01" placeholder="Amount">' +
         '<input type="text" id="paymentNote" placeholder="Note (optional)">' +
-        '<button class="btn" type="button" onclick="recordPayment(\"' + e.id + '\")">Record payment</button>' +
+        '<button class="btn" type="button" onclick="recordPayment(&#39;' + e.id + '&#39;)">Record payment</button>' +
       '</div>' : '') +
     '</div>';
   }
