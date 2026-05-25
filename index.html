@@ -203,12 +203,47 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
   input,select,textarea { padding:12px 13px; font-size:16px; }
   .stat .num { font-size:26px; }
 }
+/* ── Approval page ─────────────────────────────── */
+.approve-page-wrap { min-height:100vh; display:grid; place-items:center; padding:24px; background:radial-gradient(circle at top right,rgba(227,6,19,.08),transparent 30%),linear-gradient(135deg,#f7f8fb,#eef4ff); }
+.approve-card { width:min(860px,100%); }
+.approve-card-head { background:var(--navy); color:#fff; border-radius:30px 30px 0 0; padding:24px 28px; display:flex; align-items:center; gap:14px; }
+.approve-card-head img { max-height:52px; max-width:160px; object-fit:contain; border-radius:10px; background:#fff; padding:6px 10px; }
+.approve-card-head h2 { margin:0; font-size:20px; }
+.approve-card-head p { margin:4px 0 0; color:#dbeafe; font-size:14px; }
+.approve-card-body { background:#fff; border:1px solid var(--line); border-top:0; border-radius:0 0 30px 30px; padding:28px; }
+.approve-sign { border:1px solid var(--line); border-radius:20px; padding:20px; margin-top:20px; background:var(--soft); }
+.approve-sign h4 { margin:0 0 8px; color:var(--navy); font-size:16px; }
+.approve-sign p { margin:0 0 14px; color:var(--muted); font-size:14px; line-height:1.5; }
+.approve-sign .sign-row { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:end; }
+.approve-success { background:#ecfdf5; border:1px solid #bbf7d0; border-radius:20px; padding:28px; text-align:center; margin-top:20px; }
+.approve-success h3 { color:#065f46; margin:0 0 8px; font-size:20px; }
+.approve-success p { color:#047857; margin:0; font-size:15px; line-height:1.5; }
+.approve-already { background:#fffbeb; border:1px solid #fef3c7; border-radius:20px; padding:24px; text-align:center; margin-top:20px; }
+.approve-already h3 { color:#92400e; margin:0 0 8px; font-size:18px; }
+.approve-already p { color:#b45309; margin:0; font-size:14px; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </head>
 <body class="employee-mode">
+<section id="approve-page" style="display:none">
+  <div class="approve-page-wrap">
+    <div class="approve-card">
+      <div class="approve-card-head">
+        <div id="approveLogoWrap"></div>
+        <div>
+          <h2 id="approveCompanyName">Balenco</h2>
+          <p>Estimate for review &amp; approval</p>
+        </div>
+      </div>
+      <div class="approve-card-body">
+        <div id="approveContent"><p style="color:#64748b;text-align:center;padding:40px">Loading estimate…</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
 <section id="login" class="login">
   <div class="login-card">
     <div class="login-brand">
@@ -227,7 +262,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       <div id="panelSignIn">
         <div class="title" style="margin-top:8px"><div><h3>Welcome back</h3><p>Enter your credentials to continue.</p></div></div>
         <input type="email" id="loginEmail" placeholder="Email address" autocomplete="username">
-        <input type="password" id="loginPass" placeholder="Password" autocomplete="current-password">
+        <div style="position:relative"><input type="password" id="loginPass" placeholder="Password" autocomplete="current-password" style="width:100%;padding-right:42px"><button type="button" onclick="togglePass('loginPass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;color:#64748b;display:flex;align-items:center"><i data-lucide="eye" style="width:18px;height:18px"></i></button></div>
         <div id="loginError" style="color:var(--danger);font-size:13px;display:none;padding:8px 12px;background:#fef2f2;border-radius:12px;border:1px solid #fecaca;"></div>
         <button class="btn" type="button" id="enterBtn">Sign in</button>
       </div>
@@ -235,7 +270,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
         <div class="title" style="margin-top:8px"><div><h3>Create account</h3><p>New accounts are set as Employee. The owner can update your role.</p></div></div>
         <input type="text" id="signupName" placeholder="Full name">
         <input type="email" id="signupEmail" placeholder="Email address" autocomplete="username">
-        <input type="password" id="signupPass" placeholder="Password (min 6 characters)" autocomplete="new-password">
+        <div style="position:relative"><input type="password" id="signupPass" placeholder="Password (min 6 characters)" autocomplete="new-password" style="width:100%;padding-right:42px"><button type="button" onclick="togglePass('signupPass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;color:#64748b;display:flex;align-items:center"><i data-lucide="eye" style="width:18px;height:18px"></i></button></div>
         <div id="signupError" style="color:var(--danger);font-size:13px;display:none;padding:8px 12px;background:#fef2f2;border-radius:12px;border:1px solid #fecaca;"></div>
         <div id="signupSuccess" style="color:#047857;font-size:13px;display:none;padding:8px 12px;background:#ecfdf5;border-radius:12px;border:1px solid #d1fae5;"></div>
         <button class="btn" type="button" id="signupBtn">Create account</button>
@@ -386,10 +421,11 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
           <div id="estimatePreview" class="preview" style="margin-top:12px"></div>
           <div class="actions" style="margin-top:12px">
             <button class="btn approve" type="button" id="approveBtn">Client approve</button>
+            <button class="btn" type="button" id="copyLinkBtn">Copy approval link</button>
             <button class="btn" type="button" id="copyEstimateBtn">Copy text</button>
             <button class="btn out" type="button" id="emailEstimateBtn">Send by email</button>
             <button class="btn out" type="button" id="printEstimateBtn">Print / save PDF</button>
-            <button class="btn out" type="button" id="downloadEstimateBtn">Download PDFload estimate page</button>
+            <button class="btn out" type="button" id="downloadEstimateBtn">Download PDF</button>
           </div>
           <div id="estimatePayments" style="margin-top:16px"></div>
         </div>
@@ -474,7 +510,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
             <input id="setEmail" placeholder="Company email">
             <input id="setPhone" placeholder="Company phone">
             <input id="setAddress" placeholder="Company address">
-            <div class="form2"><input id="setTPS" type="number" step="0.001" placeholder="TPS rate %" value="5"><input id="setTVQ" type="number" step="0.001" placeholder="TVQ rate %" value="9.975"></div>
+            <div style="display:none"><input id="setTPS" type="number" step="0.001" placeholder="TPS rate %" value="5"><input id="setTVQ" type="number" step="0.001" placeholder="TVQ rate %" value="9.975"></div>
             <div class="card" style="padding:14px;border-radius:18px;background:#f8fafc">
               <div class="title" style="margin-bottom:10px"><div><h3 style="font-size:16px">Estimate logo</h3><p>Optional: upload your own company logo for professional estimates.</p></div></div>
               <div class="form"><label class="btn out" style="justify-content:flex-start">Upload logo<input id="companyLogoInput" type="file" accept="image/*" style="display:none"></label><div id="logoStatus" class="muted">No custom logo uploaded.</div><div class="actions"><button type="button" class="btn out small" id="clearLogoBtn">Remove logo</button></div></div>
@@ -578,6 +614,14 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
   function load() { seed(); }
 
   function save() {}
+
+  function togglePass(id, btn) {
+    const input = $(id);
+    const showing = input.type === 'text';
+    input.type = showing ? 'password' : 'text';
+    btn.innerHTML = showing ? '<i data-lucide="eye" style="width:18px;height:18px"></i>' : '<i data-lucide="eye-off" style="width:18px;height:18px"></i>';
+    lucide.createIcons();
+  }
 
   function esc(value) {
     return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[ch]));
@@ -1691,6 +1735,7 @@ Date: ${date(e.createdAt)}`;
     $('clientSearch').addEventListener('input', renderClients);
     $('previewEstimate').addEventListener('change', renderEstimatePreview);
     $('approveBtn').addEventListener('click', approveEstimate);
+    $('copyLinkBtn').addEventListener('click', copyApprovalLink);
     $('copyEstimateBtn').addEventListener('click', copyEstimate);
     $('emailEstimateBtn').addEventListener('click', emailEstimate);
     $('printEstimateBtn').addEventListener('click', printEstimate);
@@ -1702,7 +1747,116 @@ Date: ${date(e.createdAt)}`;
     document.body.addEventListener('click', handleAction);
   }
 
+  function copyApprovalLink() {
+    const e = currentEstimate();
+    if (!e) { toast('Select an estimate first'); return; }
+    const link = 'https://balenco.app/?approve=' + e.id;
+    navigator.clipboard.writeText(link);
+    toast('Approval link copied');
+  }
+
+  async function approvalPageInit() {
+    const params = new URLSearchParams(window.location.search);
+    const estimateId = params.get('approve');
+    if (!estimateId) return false;
+
+    document.getElementById('approve-page').style.display = '';
+    document.getElementById('login').style.display = 'none';
+
+    const content = document.getElementById('approveContent');
+    try {
+      const [estRes, settingsRes] = await Promise.all([
+        sb.from('estimates').select('*').eq('id', estimateId).single(),
+        sb.from('settings').select('*').eq('id', 'global').single()
+      ]);
+
+      if (estRes.error || !estRes.data) {
+        content.innerHTML = '<div style="text-align:center;padding:40px"><strong style="color:#b91c1c">Estimate not found.</strong><br><span style="color:#64748b;font-size:14px">This link may be invalid or expired.</span></div>';
+        return true;
+      }
+
+      const est = estRes.data;
+      const cfg = settingsRes.data || {};
+      const clientRes = est.client_id ? await sb.from('clients').select('*').eq('id', est.client_id).single() : { data: null };
+      const clientData = clientRes.data || {};
+
+      // Set a temporary state so estimateHTML can render
+      state = {
+        settings: { tps: cfg.tps || 5, tvq: cfg.tvq || 9.975, company: cfg.company || '', logo: cfg.logo || '', address: cfg.address || '', phone: cfg.phone || '', email: cfg.email || '', terms: cfg.terms || '' },
+        clients: clientData.id ? [{ id: clientData.id, name: clientData.name, address: clientData.address, phone: clientData.phone, email: clientData.email }] : [],
+        estimates: [est]
+      };
+
+      // Normalize DB row to the shape estimateHTML expects
+      const e = {
+        id: est.id, title: est.title, scope: est.scope, subtotal: est.subtotal,
+        deposit: est.deposit, paymentSchedule: est.payment_schedule,
+        paymentNotes: est.payment_notes, clientId: est.client_id,
+        createdBy: est.created_by, createdAt: est.created_at,
+        approvedBy: est.approved_by, approvedAt: est.approved_at,
+        status: est.status, expiry: est.expiry,
+        line_items: est.line_items || [], payments: est.payments || [],
+        updatedAt: est.updated_at
+      };
+
+      if (cfg.logo) {
+        document.getElementById('approveLogoWrap').innerHTML = '<img src="' + esc(cfg.logo) + '" alt="Logo">';
+      }
+      document.getElementById('approveCompanyName').textContent = cfg.company || 'Balenco';
+
+      if (e.status === 'Accepted') {
+        content.innerHTML = estimateHTML(e) +
+          '<div class="approve-already"><h3>Already approved</h3><p>This estimate was approved by <strong>' + esc(e.approvedBy || '') + '</strong> on ' + date(e.approvedAt) + '.</p></div>';
+      } else {
+        content.innerHTML = estimateHTML(e) +
+          '<div class="approve-sign" id="approveSignBox">' +
+            '<h4>Approve this estimate</h4>' +
+            '<p>By entering your name and clicking Approve, you agree to the terms above and authorize <strong>' + esc(cfg.company || 'the contractor') + '</strong> to proceed with the described work.</p>' +
+            '<div class="sign-row">' +
+              '<input id="approveNameInput" placeholder="Your full name" autocomplete="name">' +
+              '<button class="btn approve" id="approveSubmitBtn" onclick="submitApproval(\'' + est.id + '\')">Approve estimate</button>' +
+            '</div>' +
+          '</div>';
+      }
+    } catch (err) {
+      content.innerHTML = '<div style="text-align:center;padding:40px;color:#b91c1c"><strong>Failed to load estimate.</strong><br><span style="font-size:14px;color:#64748b">' + esc(err.message) + '</span></div>';
+    }
+    return true;
+  }
+
+  async function submitApproval(estimateId) {
+    const nameInput = document.getElementById('approveNameInput');
+    const name = (nameInput ? nameInput.value : '').trim();
+    if (!name) { if (nameInput) nameInput.focus(); toast('Please enter your full name to approve.'); return; }
+
+    const btn = document.getElementById('approveSubmitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Approving…';
+
+    try {
+      const now = new Date().toISOString();
+      const { error } = await sb.from('estimates')
+        .update({ status: 'Accepted', approved_by: name, approved_at: now, updated_at: now })
+        .eq('id', estimateId)
+        .neq('status', 'Accepted');
+
+      if (error) throw new Error(error.message);
+
+      document.getElementById('approveSignBox').outerHTML =
+        '<div class="approve-success">' +
+          '<h3>Estimate approved!</h3>' +
+          '<p>Thank you, <strong>' + esc(name) + '</strong>. Your approval has been recorded and the contractor has been notified.</p>' +
+        '</div>';
+    } catch (err) {
+      btn.disabled = false;
+      btn.textContent = 'Approve estimate';
+      toast('Error: ' + err.message);
+    }
+  }
+
   async function init() {
+    const isApprovalPage = await approvalPageInit();
+    if (isApprovalPage) return;
     bindEvents();
     const { data: { session } } = await sb.auth.getSession();
     if (session) await startSession(session.user);
@@ -1771,6 +1925,7 @@ Date: ${date(e.createdAt)}`;
   window.recordPayment = recordPayment;
   window.showStatDetail = showStatDetail;
   window.closeStatDetail = closeStatDetail;
+  window.submitApproval = submitApproval;
   window.removeLineItem = removeLineItem;
   window.calcLineItems = calcLineItems;
   init();
