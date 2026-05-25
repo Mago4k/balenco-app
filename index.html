@@ -221,6 +221,18 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 .approve-already { background:#fffbeb; border:1px solid #fef3c7; border-radius:20px; padding:24px; text-align:center; margin-top:20px; }
 .approve-already h3 { color:#92400e; margin:0 0 8px; font-size:18px; }
 .approve-already p { color:#b45309; margin:0; font-size:14px; }
+/* ── Client portal ─────────────────────────────── */
+.portal-wrap { min-height:100vh; padding:24px; background:radial-gradient(circle at top right,rgba(227,6,19,.08),transparent 30%),linear-gradient(135deg,#f7f8fb,#eef4ff); }
+.portal-inner { max-width:860px; margin:0 auto; }
+.portal-head { background:var(--navy); color:#fff; border-radius:30px; padding:24px 28px; display:flex; align-items:center; gap:16px; margin-bottom:20px; }
+.portal-head img { max-height:52px; max-width:160px; object-fit:contain; border-radius:10px; background:#fff; padding:6px 10px; }
+.portal-head h2 { margin:0; font-size:20px; }
+.portal-head p { margin:4px 0 0; color:#dbeafe; font-size:14px; }
+.portal-est-card { background:var(--soft); border:1px solid var(--line); border-radius:20px; padding:16px; margin-bottom:12px; }
+.portal-est-card h4 { margin:0 0 4px; color:var(--navy); font-size:16px; }
+.portal-est-meta { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
+.portal-appt { background:var(--soft); border:1px solid var(--line); border-radius:16px; padding:14px; margin-bottom:10px; }
+.portal-section { margin-bottom:18px; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
@@ -240,6 +252,21 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       <div class="approve-card-body">
         <div id="approveContent"><p style="color:#64748b;text-align:center;padding:40px">Loading estimate…</p></div>
       </div>
+    </div>
+  </div>
+</section>
+
+<section id="client-portal" style="display:none">
+  <div class="portal-wrap">
+    <div class="portal-inner">
+      <div class="portal-head">
+        <div id="portalLogoWrap"></div>
+        <div>
+          <h2 id="portalCompanyName">Balenco</h2>
+          <p id="portalClientName">Your estimates &amp; appointments</p>
+        </div>
+      </div>
+      <div id="portalContent"><p style="color:#64748b;text-align:center;padding:40px">Loading…</p></div>
     </div>
   </div>
 </section>
@@ -474,7 +501,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
         <div class="card stat"><div class="icon">✅</div><label>Accepted estimate value</label><strong id="moneyAccepted">$0</strong></div>
         <div class="card stat"><div class="icon">📄</div><label>Tax total on estimates</label><strong id="moneyTax">$0</strong></div>
       </div>
-      <div class="card" style="margin-top:18px"><div class="title"><div><h3>Open balances</h3><p>Track who owes money and create payment reminders.</p></div></div><div id="balanceList" class="list"></div></div>
+      <div class="card" style="margin-top:18px"><div class="title"><div><h3>Open balances</h3><p>Track who owes money and create payment reminders.</p></div><button class="btn out small" type="button" id="exportCSVBtn">Export CSV</button></div><div id="balanceList" class="list"></div></div>
     </section>
 
     <section id="maps" class="tab">
@@ -823,7 +850,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
         <div class="title"><div><h3>${esc(c.name)}</h3><p>${esc(c.project)}</p></div><span class="pill ${statusClass(c.status)}">${esc(c.status)}</span></div>
         <p class="muted">📞 ${esc(c.phone || 'No phone')}<br>✉️ ${esc(c.email || 'No email')}<br>📍 ${esc(c.address || 'No address')}</p>
         <div class="audit owner-only">Entered by ${esc(c.createdBy)} • ${date(c.createdAt)}</div>
-        <div class="item"><div><span class="muted">Open balance</span><strong>${money(c.balance)}</strong></div><button class="btn small" type="button" data-action="mapClient" data-id="${c.id}">Map</button><button class="btn out small" type="button" data-action="delete" data-col="clients" data-id="${c.id}">Delete</button></div>
+        <div class="item"><div><span class="muted">Open balance</span><strong>${money(c.balance)}</strong></div><button class="btn small" type="button" data-action="copyClientLink" data-id="${c.id}">Client link</button><button class="btn out small" type="button" data-action="mapClient" data-id="${c.id}">Map</button><button class="btn out small" type="button" data-action="delete" data-col="clients" data-id="${c.id}">Delete</button></div>
       </div>
     `).join('') || '<div class="empty">No clients found.</div>';
   }
@@ -1709,6 +1736,7 @@ Date: ${date(e.createdAt)}`;
     if (action === 'copyReminder') copyReminder(id);
     if (action === 'textReminder') textReminder(id);
     if (action === 'markReminderSent') markReminderSent(id);
+    if (action === 'copyClientLink') copyClientLink(id);
   }
 
   function bindEvents() {
@@ -1743,8 +1771,143 @@ Date: ${date(e.createdAt)}`;
     $('companyLogoInput').addEventListener('change', uploadCompanyLogo);
     $('clearLogoBtn').addEventListener('click', clearCompanyLogo);
     $('suggestRouteBtn').addEventListener('click', suggestRoute);
+    $('exportCSVBtn').addEventListener('click', exportCSV);
 
     document.body.addEventListener('click', handleAction);
+  }
+
+  function copyClientLink(id) {
+    const link = 'https://balenco.app/?client=' + id;
+    navigator.clipboard.writeText(link);
+    toast('Client link copied');
+  }
+
+  function exportCSV() {
+    const estimates = visible(state.estimates);
+    if (!estimates.length) { toast('No estimates to export'); return; }
+    const rows = [['Quote #','Client','Title','Date','Subtotal','TPS','TVQ','Total','Deposit','Payments Received','Balance Due','Status']];
+    estimates.forEach(function(e, i) {
+      const tax = calc(e);
+      const deposit = Number(e.deposit || 0);
+      const pmts = (e.payments || []).reduce(function(s, p) { return s + Number(p.amount || 0); }, 0);
+      const remaining = Math.max(tax.total - deposit - pmts, 0);
+      rows.push([
+        'EST-' + (1001 + i),
+        clientName(e.clientId),
+        e.title || '',
+        e.createdAt ? e.createdAt.slice(0, 10) : '',
+        Number(e.subtotal || 0).toFixed(2),
+        tax.tps.toFixed(2),
+        tax.tvq.toFixed(2),
+        tax.total.toFixed(2),
+        deposit.toFixed(2),
+        pmts.toFixed(2),
+        remaining.toFixed(2),
+        e.status || ''
+      ]);
+    });
+    const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'balenco-estimates-' + new Date().toISOString().slice(0, 10) + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('CSV exported');
+    log('Exported CSV', user + ' exported estimates to CSV');
+  }
+
+  async function clientPortalInit() {
+    const params = new URLSearchParams(window.location.search);
+    const clientId = params.get('client');
+    if (!clientId) return false;
+
+    document.getElementById('client-portal').style.display = '';
+    document.getElementById('login').style.display = 'none';
+
+    const content = document.getElementById('portalContent');
+    try {
+      const [clientRes, settingsRes, estimatesRes, apptsRes] = await Promise.all([
+        sb.from('clients').select('*').eq('id', clientId).single(),
+        sb.from('settings').select('*').eq('id', 'global').single(),
+        sb.from('estimates').select('*').eq('client_id', clientId).order('created_at', { ascending: false }),
+        sb.from('appointments').select('*').eq('client_id', clientId).order('start_time', { ascending: true })
+      ]);
+
+      if (clientRes.error || !clientRes.data) {
+        content.innerHTML = '<div style="text-align:center;padding:40px;color:#b91c1c"><strong>Client not found.</strong></div>';
+        return true;
+      }
+
+      const c = clientRes.data;
+      const cfg = settingsRes.data || {};
+      const estimates = estimatesRes.data || [];
+      const nowStr = new Date().toISOString();
+      const upcoming = (apptsRes.data || []).filter(a => (a.start_time || '') >= nowStr);
+
+      state = {
+        settings: { tps: cfg.tps || 5, tvq: cfg.tvq || 9.975, company: cfg.company || '', logo: cfg.logo || '', address: cfg.address || '', phone: cfg.phone || '', email: cfg.email || '', terms: cfg.terms || '' },
+        clients: [c],
+        estimates: estimates
+      };
+
+      if (cfg.logo) document.getElementById('portalLogoWrap').innerHTML = '<img src="' + esc(cfg.logo) + '" alt="Logo">';
+      document.getElementById('portalCompanyName').textContent = cfg.company || 'Balenco';
+      document.getElementById('portalClientName').textContent = 'Hi, ' + esc(c.name || 'there') + ' — your estimates & appointments';
+
+      let html = '';
+
+      if (!estimates.length) {
+        html += '<div class="card portal-section"><p class="muted" style="text-align:center;padding:20px">No estimates on file yet.</p></div>';
+      } else {
+        html += '<div class="card portal-section"><div class="title"><div><h3>Your Estimates</h3></div></div>';
+        estimates.forEach(function(est) {
+          const tpsAmt = Number(est.subtotal || 0) * Number(cfg.tps || 5) / 100;
+          const tvqAmt = Number(est.subtotal || 0) * Number(cfg.tvq || 9.975) / 100;
+          const total = Number(est.subtotal || 0) + tpsAmt + tvqAmt;
+          const deposit = Number(est.deposit || 0);
+          const pmts = (est.payments || []).reduce(function(s, p) { return s + Number(p.amount || 0); }, 0);
+          const remaining = Math.max(total - deposit - pmts, 0);
+          const sColors = { 'Accepted':'green', 'Lost':'redpill', 'Sent':'blue', 'Draft':'white' };
+          html += '<div class="portal-est-card">' +
+            '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">' +
+              '<div><h4>' + esc(est.title) + '</h4><p class="muted" style="margin:0;font-size:13px">' + esc(est.scope || '') + '</p></div>' +
+              '<span class="pill ' + (sColors[est.status] || 'white') + '">' + esc(est.status) + '</span>' +
+            '</div>' +
+            '<div class="portal-est-meta">' +
+              '<div class="pay-card"><span>Total</span><strong>' + money(total) + '</strong></div>' +
+              '<div class="pay-card"><span>Deposit</span><strong>' + money(deposit) + '</strong></div>' +
+              '<div class="pay-card"><span>Balance due</span><strong>' + money(remaining) + '</strong></div>' +
+            '</div>' +
+            (est.status !== 'Accepted' && est.status !== 'Lost'
+              ? '<div style="margin-top:12px"><a class="btn approve" style="text-decoration:none;display:inline-flex" href="/?approve=' + est.id + '">Review &amp; approve</a></div>'
+              : '') +
+          '</div>';
+        });
+        html += '</div>';
+      }
+
+      if (upcoming.length) {
+        html += '<div class="card portal-section"><div class="title"><div><h3>Upcoming Appointments</h3></div></div>';
+        upcoming.forEach(function(a) {
+          html += '<div class="portal-appt"><strong>' + esc(a.title) + '</strong>' +
+            '<p class="muted" style="margin:4px 0 0;font-size:13px">' +
+            (a.start_time ? new Date(a.start_time).toLocaleString('en-CA', { dateStyle: 'medium', timeStyle: 'short' }) : '') +
+            (a.location ? ' &nbsp;·&nbsp; ' + esc(a.location) : '') +
+            '</p></div>';
+        });
+        html += '</div>';
+      }
+
+      html += '<div class="card portal-section"><div class="title"><div><h3>Questions?</h3></div></div>' +
+        '<p class="muted" style="margin:0">' + esc(cfg.phone || '') + (cfg.phone && cfg.email ? ' &nbsp;·&nbsp; ' : '') + esc(cfg.email || '') + '</p></div>';
+
+      content.innerHTML = html;
+    } catch (err) {
+      content.innerHTML = '<div style="text-align:center;padding:40px;color:#b91c1c"><strong>Failed to load.</strong><br><span style="font-size:14px;color:#64748b">' + esc(err.message) + '</span></div>';
+    }
+    return true;
   }
 
   function copyApprovalLink() {
@@ -1857,6 +2020,8 @@ Date: ${date(e.createdAt)}`;
   async function init() {
     const isApprovalPage = await approvalPageInit();
     if (isApprovalPage) return;
+    const isClientPortal = await clientPortalInit();
+    if (isClientPortal) return;
     bindEvents();
     const { data: { session } } = await sb.auth.getSession();
     if (session) await startSession(session.user);
