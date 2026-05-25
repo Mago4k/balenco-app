@@ -1007,7 +1007,16 @@ Date: ${date(e.createdAt)}`;
   function renderAppointments() {
     $('appointmentList').innerHTML = visible(state.appointments).slice().sort((a,b) => new Date(a.start) - new Date(b.start)).map(a => `
       <div class="item">
-        <div><strong>${esc(a.title)}</strong><span class="muted">${esc(clientName(a.clientId))} • ${date(a.start)} • ${esc(a.location)}</span><p class="muted">${esc(a.notes)}</p><div class="audit owner-only">Created by ${esc(a.createdBy)} • ${date(a.createdAt)}</div></div>
+        <div>
+          <strong>${esc(a.title)}</strong>
+          <span class="muted">${esc(clientName(a.clientId))} • ${date(a.start)} • ${esc(a.location)}</span>
+          <p class="muted">${esc(a.notes)}</p>
+          <div style="margin-top:6px">
+            ${a.reminder24 && a.reminderSent ? '<span class="pill green" style="font-size:11px">Email reminder sent ✓</span>' : ''}
+            ${a.reminder24 && !a.reminderSent ? '<span class="pill amber" style="font-size:11px">Reminder pending</span>' : ''}
+          </div>
+          <div class="audit owner-only">Created by ${esc(a.createdBy)} • ${date(a.createdAt)}</div>
+        </div>
         <div class="actions"><button class="btn small" type="button" data-action="ics" data-id="${a.id}">ICS</button><button class="btn out small" type="button" data-action="googleCal" data-id="${a.id}">Google</button><button class="btn out small" type="button" data-action="delete" data-col="appointments" data-id="${a.id}">Delete</button></div>
       </div>
     `).join('') || '<div class="empty">No appointments yet.</div>';
