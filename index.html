@@ -476,6 +476,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
             <button class="btn out" type="button" id="printEstimateBtn">Print / save PDF</button>
             <button class="btn out" type="button" id="downloadEstimateBtn">Download PDF</button>
             <button class="btn out" type="button" id="invoiceBtn">Print invoice</button>
+            <button class="btn" type="button" id="paymentLinkBtn" style="background:#635bff">Copy payment link</button>
           </div>
           <div id="estimatePayments" style="margin-top:16px"></div>
         </div>
@@ -1846,6 +1847,7 @@ Date: ${date(e.createdAt)}`;
     $('suggestRouteBtn').addEventListener('click', suggestRoute);
     $('exportCSVBtn').addEventListener('click', exportCSV);
     $('invoiceBtn').addEventListener('click', printInvoice);
+    $('paymentLinkBtn').addEventListener('click', sendPaymentLink);
 
     document.body.addEventListener('click', handleAction);
   }
@@ -2024,6 +2026,43 @@ Date: ${date(e.createdAt)}`;
     $('historyOverlay').classList.remove('open');
   }
 
+  // ── Stripe payments ───────────────────────────────────────────
+  async function sendPaymentLink() {
+    const e = currentEstimate();
+    if (!e) { toast('Select an estimate first'); return; }
+    if (!e.deposit || Number(e.deposit) <= 0) { toast('Add a deposit amount to this estimate first'); return; }
+    const btn = $('paymentLinkBtn');
+    btn.textContent = 'Creating…';
+    btn.disabled = true;
+    try {
+      const { data, error } = await sb.functions.invoke('create-checkout', { body: { estimate_id: e.id } });
+      if (error) throw new Error(error.message);
+      if (data.error) throw new Error(data.error);
+      await navigator.clipboard.writeText(data.url);
+      toast('Payment link copied — send it to your client');
+      log('Created payment link', user + ' created Stripe payment link for ' + e.title);
+    } catch (err) {
+      toast('Error: ' + err.message);
+    } finally {
+      btn.textContent = 'Copy payment link';
+      btn.disabled = false;
+    }
+  }
+
+  async function payDeposit(estimateId) {
+    const btn = document.getElementById('payBtn-' + estimateId);
+    if (btn) { btn.textContent = 'Loading…'; btn.disabled = true; }
+    try {
+      const { data, error } = await sb.functions.invoke('create-checkout', { body: { estimate_id: estimateId } });
+      if (error) throw new Error(error.message);
+      if (data.error) throw new Error(data.error);
+      window.location.href = data.url;
+    } catch (err) {
+      toast('Error: ' + err.message);
+      if (btn) { btn.textContent = 'Pay deposit'; btn.disabled = false; }
+    }
+  }
+
   function copyClientLink(id) {
     const link = 'https://balenco.app/?client=' + id;
     navigator.clipboard.writeText(link);
@@ -2104,6 +2143,15 @@ Date: ${date(e.createdAt)}`;
       document.getElementById('portalCompanyName').textContent = cfg.company || 'Balenco';
       document.getElementById('portalClientName').textContent = 'Hi, ' + esc(c.name || 'there') + ' — your estimates & appointments';
 
+      // Show payment success banner if redirected from Stripe
+      const portalParams = new URLSearchParams(window.location.search);
+      if (portalParams.get('paid') === '1') {
+        const banner = document.createElement('div');
+        banner.style = 'background:#ecfdf5;border:1px solid #bbf7d0;border-radius:18px;padding:16px 20px;margin-bottom:18px;color:#065f46;font-weight:700;font-size:15px';
+        banner.textContent = '✅ Payment received — thank you! Your contractor has been notified.';
+        document.getElementById('portalContent').before(banner);
+      }
+
       let html = '';
 
       if (!estimates.length) {
@@ -2128,9 +2176,10 @@ Date: ${date(e.createdAt)}`;
               '<div class="pay-card"><span>Deposit</span><strong>' + money(deposit) + '</strong></div>' +
               '<div class="pay-card"><span>Balance due</span><strong>' + money(remaining) + '</strong></div>' +
             '</div>' +
-            (est.status !== 'Accepted' && est.status !== 'Lost'
-              ? '<div style="margin-top:12px"><a class="btn approve" style="text-decoration:none;display:inline-flex" href="/?approve=' + est.id + '">Review &amp; approve</a></div>'
-              : '') +
+            '<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">' +
+            (est.status !== 'Accepted' && est.status !== 'Lost' ? '<a class="btn approve" style="text-decoration:none;display:inline-flex" href="/?approve=' + est.id + '">Review &amp; approve</a>' : '') +
+            (Number(est.deposit || 0) > 0 && est.status !== 'Lost' && remaining > 0 ? '<button class="btn" id="payBtn-' + est.id + '" onclick="payDeposit(\'' + est.id + '\')" style="background:#635bff">Pay deposit ' + money(Number(est.deposit)) + '</button>' : '') +
+            '</div>' +
           '</div>';
         });
         html += '</div>';
@@ -2340,6 +2389,7 @@ Date: ${date(e.createdAt)}`;
   window.closeStatDetail = closeStatDetail;
   window.submitApproval = submitApproval;
   window.closeClientHistory = closeClientHistory;
+  window.payDeposit = payDeposit;
   window.removeLineItem = removeLineItem;
   window.calcLineItems = calcLineItems;
   init();
