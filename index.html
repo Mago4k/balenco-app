@@ -233,6 +233,18 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 .portal-est-meta { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
 .portal-appt { background:var(--soft); border:1px solid var(--line); border-radius:16px; padding:14px; margin-bottom:10px; }
 .portal-section { margin-bottom:18px; }
+/* ── Client history modal ──────────────────────── */
+.history-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:200; align-items:flex-end; justify-content:center; }
+.history-overlay.open { display:flex; }
+.history-panel { background:#fff; border-radius:20px 20px 0 0; width:100%; max-width:700px; max-height:84vh; overflow-y:auto; padding:24px; box-shadow:0 -4px 32px rgba(0,0,0,.15); }
+.history-item { background:var(--soft); border:1px solid var(--line); border-radius:16px; padding:14px; }
+.history-item h4 { margin:0 0 4px; color:var(--navy); font-size:14px; }
+/* ── Revenue chart ─────────────────────────────── */
+.rev-chart { display:flex; align-items:flex-end; gap:8px; height:100px; margin-top:16px; padding:0 4px; }
+.rev-bar-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end; }
+.rev-bar { width:100%; background:var(--navy); border-radius:6px 6px 0 0; min-height:3px; opacity:.85; }
+.rev-month { font-size:10px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.4px; }
+.rev-amt { font-size:10px; color:var(--navy); font-weight:900; white-space:nowrap; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
@@ -361,9 +373,19 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
         <div class="card stat" onclick="showStatDetail('pipeline')" style="cursor:pointer"><div class="stat-icon" style="background:#fefce8"><i data-lucide="file-text" style="color:#b45309;width:20px;height:20px"></i></div><label>Pipeline value</label><strong id="statEstimates">$0</strong></div>
         <div class="card stat" onclick="showStatDetail('outstanding')" style="cursor:pointer"><div class="stat-icon" style="background:#fef2f2"><i data-lucide="circle-dollar-sign" style="color:#b91c1c;width:20px;height:20px"></i></div><label>Outstanding</label><strong id="statBalances">$0</strong></div>
       </div>
+      <div class="grid4" style="margin-top:16px">
+        <div class="card stat"><div class="stat-icon" style="background:#f0fdf4"><i data-lucide="percent" style="color:#047857;width:20px;height:20px"></i></div><label>Win rate</label><strong id="statWinRate">0%</strong></div>
+        <div class="card stat"><div class="stat-icon" style="background:#eff6ff"><i data-lucide="trending-up" style="color:#1d4ed8;width:20px;height:20px"></i></div><label>YTD revenue</label><strong id="statYTD">$0</strong></div>
+        <div class="card stat"><div class="stat-icon" style="background:#fdf4ff"><i data-lucide="users" style="color:#9333ea;width:20px;height:20px"></i></div><label>Total clients</label><strong id="statClients">0</strong></div>
+        <div class="card stat"><div class="stat-icon" style="background:#fff7ed"><i data-lucide="briefcase" style="color:#ea580c;width:20px;height:20px"></i></div><label>Avg job value</label><strong id="statAvgJob">$0</strong></div>
+      </div>
       <div class="grid2" style="margin-top:18px">
         <div class="card"><div class="title"><div><h3>Upcoming appointments</h3><p>Next appointments and job visits.</p></div></div><div id="dashAppointments" class="list"></div></div>
         <div class="card"><div class="title"><div><h3>Recent activity</h3><p class="owner-only">Owner view shows employee actions.</p></div></div><div id="activityList" class="list"></div></div>
+      </div>
+      <div class="card" style="margin-top:18px">
+        <div class="title"><div><h3>Revenue — last 6 months</h3><p>Accepted estimate value per month.</p></div></div>
+        <div id="revenueChart" class="rev-chart"></div>
       </div>
     </section>
 
@@ -453,6 +475,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
             <button class="btn out" type="button" id="emailEstimateBtn">Send by email</button>
             <button class="btn out" type="button" id="printEstimateBtn">Print / save PDF</button>
             <button class="btn out" type="button" id="downloadEstimateBtn">Download PDF</button>
+            <button class="btn out" type="button" id="invoiceBtn">Print invoice</button>
           </div>
           <div id="estimatePayments" style="margin-top:16px"></div>
         </div>
@@ -625,6 +648,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     user = profile.name;
     await fetchState();
     showApp();
+    startRealtime();
   }
 
   function showApp() {
@@ -802,22 +826,53 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     const estimates = visible(state.estimates);
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-    const monthRevenue = estimates.filter(e => e.status === 'Accepted' && e.updatedAt >= monthStart).reduce((sum,e) => sum + calc(e).total, 0);
-    const pipeline = estimates.filter(e => ['Draft','Sent'].includes(e.status)).reduce((sum,e) => sum + calc(e).total, 0);
-    const balances = visible(state.estimates).filter(function(e){ return e.status === 'Accepted'; }).reduce(function(sum,e){ var deposit = Number(e.deposit||0); var paid = deposit + (e.payments||[]).reduce(function(s,p){ return s + Number(p.amount||0); },0); return sum + Math.max(calc(e).total - paid, 0); }, 0);
-    $('statLeads').textContent = leads.length;
-    $('statEstimates').textContent = money(pipeline);
-    $('statAccepted').textContent = money(monthRevenue);
-    $('statBalances').textContent = money(balances);
+    const yearStart  = new Date(now.getFullYear(), 0, 1).toISOString();
 
-    $('dashAppointments').innerHTML = visible(state.appointments).slice().sort((a,b) => new Date(a.start) - new Date(b.start)).slice(0,5).map(a => `
-      <div class="item"><div><strong>${esc(a.title)}</strong><span class="muted">${esc(clientName(a.clientId))} • ${esc(a.location)} • ${esc(a.createdBy)}</span></div><span class="pill amber">${date(a.start)}</span></div>
-    `).join('') || '<div class="empty">No appointments yet.</div>';
+    const monthRevenue = estimates.filter(e => e.status === 'Accepted' && e.updatedAt >= monthStart).reduce((s,e) => s + calc(e).total, 0);
+    const ytdRevenue   = estimates.filter(e => e.status === 'Accepted' && e.updatedAt >= yearStart).reduce((s,e) => s + calc(e).total, 0);
+    const pipeline     = estimates.filter(e => ['Draft','Sent'].includes(e.status)).reduce((s,e) => s + calc(e).total, 0);
+    const balances     = estimates.filter(e => e.status === 'Accepted').reduce((s,e) => {
+      const deposit = Number(e.deposit||0);
+      const paid = deposit + (e.payments||[]).reduce((x,p) => x + Number(p.amount||0), 0);
+      return s + Math.max(calc(e).total - paid, 0);
+    }, 0);
+    const accepted = estimates.filter(e => e.status === 'Accepted');
+    const closed   = estimates.filter(e => ['Accepted','Lost'].includes(e.status)).length;
+    const winRate  = closed > 0 ? Math.round(accepted.length / closed * 100) : 0;
+    const avgJob   = accepted.length > 0 ? accepted.reduce((s,e) => s + calc(e).total, 0) / accepted.length : 0;
+
+    $('statLeads').textContent    = leads.length;
+    $('statEstimates').textContent = money(pipeline);
+    $('statAccepted').textContent  = money(monthRevenue);
+    $('statBalances').textContent  = money(balances);
+    if ($('statWinRate'))  $('statWinRate').textContent  = winRate + '%';
+    if ($('statYTD'))      $('statYTD').textContent      = money(ytdRevenue);
+    if ($('statClients'))  $('statClients').textContent  = visible(state.clients).length;
+    if ($('statAvgJob'))   $('statAvgJob').textContent   = money(avgJob);
+
+    $('dashAppointments').innerHTML = visible(state.appointments)
+      .filter(a => new Date(a.start) >= now)
+      .sort((a,b) => new Date(a.start) - new Date(b.start))
+      .slice(0, 5)
+      .map(a => {
+        const c = client(a.clientId) || {};
+        return `<div class="item">
+          <div>
+            <strong>${esc(a.title)}</strong>
+            <span class="muted">${esc(clientName(a.clientId))} • ${date(a.start)}</span>
+            ${c.phone ? `<br><a href="tel:${esc(c.phone)}" style="font-size:13px;color:var(--navy);font-weight:700">${esc(c.phone)}</a>` : ''}
+            ${a.location ? `<span class="muted"> • ${esc(a.location)}</span>` : ''}
+          </div>
+          ${a.reminderSent ? '<span class="pill green" style="font-size:11px">Reminded ✓</span>' : '<span class="pill amber">' + date(a.start) + '</span>'}
+        </div>`;
+      }).join('') || '<div class="empty">No upcoming appointments.</div>';
 
     const logs = role === 'owner' ? state.logs : state.logs.filter(l => l.user === user);
     $('activityList').innerHTML = logs.slice(0,6).map(l => `
       <div class="item"><div><strong>${esc(l.action)}</strong><span class="muted">${esc(l.detail)} • ${esc(l.user)} • ${date(l.at)}</span></div></div>
     `).join('') || '<div class="empty">No activity yet.</div>';
+
+    renderRevenueChart();
   }
 
   function renderLeads() {
@@ -850,14 +905,22 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
         <div class="title"><div><h3>${esc(c.name)}</h3><p>${esc(c.project)}</p></div><span class="pill ${statusClass(c.status)}">${esc(c.status)}</span></div>
         <p class="muted">📞 ${esc(c.phone || 'No phone')}<br>✉️ ${esc(c.email || 'No email')}<br>📍 ${esc(c.address || 'No address')}</p>
         <div class="audit owner-only">Entered by ${esc(c.createdBy)} • ${date(c.createdAt)}</div>
-        <div class="item"><div><span class="muted">Open balance</span><strong>${money(c.balance)}</strong></div><button class="btn small" type="button" data-action="copyClientLink" data-id="${c.id}">Client link</button><button class="btn out small" type="button" data-action="mapClient" data-id="${c.id}">Map</button><button class="btn out small" type="button" data-action="delete" data-col="clients" data-id="${c.id}">Delete</button></div>
+        <div class="item"><div><span class="muted">Open balance</span><strong>${money(c.balance)}</strong></div><button class="btn small" type="button" data-action="clientHistory" data-id="${c.id}">History</button><button class="btn out small" type="button" data-action="copyClientLink" data-id="${c.id}">Client link</button><button class="btn out small" type="button" data-action="mapClient" data-id="${c.id}">Map</button><button class="btn out small" type="button" data-action="delete" data-col="clients" data-id="${c.id}">Delete</button></div>
       </div>
     `).join('') || '<div class="empty">No clients found.</div>';
   }
 
   function renderEstimates() {
+    const now = new Date();
     $('estimateTable').innerHTML = visible(state.estimates).map(e => {
       const tax = calc(e);
+      const daysOld = Math.floor((now - new Date(e.createdAt)) / 86400000);
+      const needsFollowUp = ['Draft','Sent'].includes(e.status);
+      const followUpBadge = needsFollowUp && daysOld >= 14
+        ? '<br><span class="pill redpill" style="font-size:10px;margin-top:3px">Overdue ' + daysOld + 'd</span>'
+        : needsFollowUp && daysOld >= 7
+          ? '<br><span class="pill amber" style="font-size:10px;margin-top:3px">Follow up ' + daysOld + 'd</span>'
+          : '';
       return `
         <tr>
           <td><strong>${esc(e.title)}</strong><br><span class="muted">${esc(e.scope)}</span></td>
@@ -865,7 +928,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
           <td>${money(e.subtotal)}</td>
           <td>${money(tax.tps + tax.tvq)}</td>
           <td><strong>${money(tax.total)}</strong></td>
-          <td><span class="pill ${statusClass(e.status)}">${esc(e.status)}</span></td>
+          <td><span class="pill ${statusClass(e.status)}">${esc(e.status)}</span>${followUpBadge}</td>
           <td class="owner-only">${esc(e.createdBy)}<br><span class="muted">${date(e.createdAt)}</span></td>
           <td class="right">
             <div class="actions">
@@ -1746,6 +1809,7 @@ Date: ${date(e.createdAt)}`;
     if (action === 'textReminder') textReminder(id);
     if (action === 'markReminderSent') markReminderSent(id);
     if (action === 'copyClientLink') copyClientLink(id);
+    if (action === 'clientHistory') openClientHistory(id);
   }
 
   function bindEvents() {
@@ -1781,8 +1845,183 @@ Date: ${date(e.createdAt)}`;
     $('clearLogoBtn').addEventListener('click', clearCompanyLogo);
     $('suggestRouteBtn').addEventListener('click', suggestRoute);
     $('exportCSVBtn').addEventListener('click', exportCSV);
+    $('invoiceBtn').addEventListener('click', printInvoice);
 
     document.body.addEventListener('click', handleAction);
+  }
+
+  // ── Real-time sync ────────────────────────────────────────────
+  let _rtDebounce;
+  function startRealtime() {
+    const refetch = () => {
+      clearTimeout(_rtDebounce);
+      _rtDebounce = setTimeout(async () => { await fetchState(); renderAll(); }, 900);
+    };
+    sb.channel('app-changes')
+      .on('postgres_changes', { event:'*', schema:'public', table:'clients' },     refetch)
+      .on('postgres_changes', { event:'*', schema:'public', table:'leads' },       refetch)
+      .on('postgres_changes', { event:'*', schema:'public', table:'estimates' },   refetch)
+      .on('postgres_changes', { event:'*', schema:'public', table:'appointments' },refetch)
+      .on('postgres_changes', { event:'*', schema:'public', table:'photos' },      refetch)
+      .on('postgres_changes', { event:'*', schema:'public', table:'logs' },        refetch)
+      .subscribe();
+  }
+
+  // ── Revenue chart ──────────────────────────────────────────────
+  function renderRevenueChart() {
+    const el = $('revenueChart');
+    if (!el) return;
+    const now = new Date();
+    const months = [];
+    for (let i = 5; i >= 0; i--) {
+      const d     = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const start = d.toISOString();
+      const end   = new Date(d.getFullYear(), d.getMonth() + 1, 1).toISOString();
+      const label = d.toLocaleString('en-CA', { month: 'short' });
+      const rev   = visible(state.estimates)
+        .filter(e => e.status === 'Accepted' && e.updatedAt >= start && e.updatedAt < end)
+        .reduce((s, e) => s + calc(e).total, 0);
+      months.push({ label, rev });
+    }
+    const max = Math.max(...months.map(m => m.rev), 1);
+    el.innerHTML = months.map(m => {
+      const h = Math.max(Math.round((m.rev / max) * 80), m.rev > 0 ? 4 : 0);
+      const amt = m.rev > 0 ? '$' + Math.round(m.rev / 1000) + 'k' : '';
+      return `<div class="rev-bar-col">
+        ${amt ? `<div class="rev-amt">${amt}</div>` : ''}
+        <div class="rev-bar" style="height:${h}px"></div>
+        <div class="rev-month">${m.label}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── Invoice generator ──────────────────────────────────────────
+  function invoiceHTML(e) {
+    if (!e) return '';
+    const c    = client(e.clientId) || {};
+    const tax  = calc(e);
+    const invNum  = 'INV-' + (1001 + Math.max(state.estimates.findIndex(x => x.id === e.id), 0));
+    const deposit = Number(e.deposit || 0);
+    const pmts    = (e.payments || []).reduce((s, p) => s + Number(p.amount || 0), 0);
+    const paid    = deposit + pmts;
+    const amtDue  = Math.max(tax.total - paid, 0);
+    const logo    = state.settings.logo ? `<img src="${state.settings.logo}" alt="logo">` : '';
+    return `
+      <div class="estimate-doc">
+        <div class="estimate-head">
+          <div class="estimate-brand">
+            <div>${logo || `<div class="estimate-brand-title">${esc(state.settings.company)}</div>`}</div>
+            <div>
+              <div class="estimate-brand-title">${esc(state.settings.company)}</div>
+              <div class="estimate-brand-meta">${esc(state.settings.address)}<br>${esc(state.settings.phone)} • ${esc(state.settings.email)}</div>
+            </div>
+          </div>
+          <div style="text-align:right">
+            <div class="estimate-brand-title" style="font-size:22px">Invoice</div>
+            <div class="estimate-brand-meta">Invoice #: ${invNum}<br>Date: ${date(new Date().toISOString())}${e.approvedAt ? '<br>Approved: ' + date(e.approvedAt) : ''}</div>
+            <div style="margin-top:10px"><span class="estimate-badge" style="background:#ecfdf5;color:#065f46;border-color:#bbf7d0">Accepted</span></div>
+          </div>
+        </div>
+        <div class="estimate-blocks">
+          <div class="estimate-box"><h4>Bill to</h4><p><strong>${esc(c.name || '')}</strong><br>${esc(c.address || '')}<br>${esc(c.phone || '')}<br>${esc(c.email || '')}</p></div>
+          <div class="estimate-box"><h4>Project</h4><p><strong>${esc(e.title)}</strong><br>Based on ${estimateNumber(e)}.<br>Approved by ${esc(e.approvedBy || c.name || '')}.</p></div>
+        </div>
+        <div class="estimate-scope"><h4>Description of work</h4><p>${esc(e.scope || 'See attached estimate.')}</p></div>
+        <div class="estimate-pricing">
+          <table>
+            ${(e.line_items && e.line_items.length) ? '<tr><th style="text-align:left;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0">Description</th><th style="text-align:center;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0">Qty</th><th style="text-align:right;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0">Unit</th><th style="text-align:right;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0">Total</th></tr>' + e.line_items.map(function(i){ return '<tr><td style="padding:6px 8px">' + esc(i.desc) + '</td><td style="text-align:center;padding:6px 8px">' + i.qty + '</td><td style="text-align:right;padding:6px 8px">' + money(i.price) + '</td><td style="text-align:right;padding:6px 8px;font-weight:600">' + money(i.qty * i.price) + '</td></tr>'; }).join('') + '<tr><td colspan="3" style="text-align:right;padding:8px;border-top:1px solid #e2e8f0;font-weight:600">Subtotal</td><td style="text-align:right;padding:8px;border-top:1px solid #e2e8f0;font-weight:600">' + money(e.subtotal) + '</td></tr>' : '<tr><td>Subtotal</td><td style="text-align:right">' + money(e.subtotal) + '</td></tr>'}
+            <tr><td>TPS (${esc(state.settings.tps)}%)</td><td style="text-align:right">${money(tax.tps)}</td></tr>
+            <tr><td>TVQ (${esc(state.settings.tvq)}%)</td><td style="text-align:right">${money(tax.tvq)}</td></tr>
+            <tr class="total-row"><td>Total</td><td style="text-align:right">${money(tax.total)}</td></tr>
+          </table>
+        </div>
+        <div class="estimate-payment">
+          <div class="pay-card"><span>Total</span><strong>${money(tax.total)}</strong></div>
+          <div class="pay-card"><span>Paid to date</span><strong style="color:var(--green)">${money(paid)}</strong></div>
+          <div class="pay-card"><span>Amount due</span><strong style="color:${amtDue > 0 ? 'var(--danger)' : 'var(--green)'}">${money(amtDue)}</strong></div>
+        </div>
+        ${amtDue > 0 ? `<div class="estimate-scope"><h4>Payment instructions</h4><p>${esc(e.paymentNotes || 'Please remit payment at your earliest convenience. Thank you.')}</p></div>` : '<div class="estimate-scope"><h4>Payment status</h4><p>✅ Paid in full. Thank you for your business!</p></div>'}
+        <div class="estimate-footer"><div>Thank you — ${esc(state.settings.company)}</div><div>Invoice #: ${invNum}</div></div>
+      </div>`;
+  }
+
+  function printInvoice() {
+    const e = currentEstimate();
+    if (!e) { toast('Select an estimate first'); return; }
+    if (e.status !== 'Accepted') { toast('Only accepted estimates can be invoiced'); return; }
+    const win = window.open('', '_blank');
+    win.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Invoice</title><style>' + printStyles() + '</style></head><body>' + invoiceHTML(e) + '<script>window.print()<\/script></body></html>');
+    win.document.close();
+    log('Printed invoice', user + ' printed invoice for ' + e.title);
+  }
+
+  // ── Client history timeline ────────────────────────────────────
+  function openClientHistory(id) {
+    const c = client(id);
+    if (!c) return;
+    const ests  = state.estimates.filter(e => e.clientId === id).sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const appts = state.appointments.filter(a => a.clientId === id).sort((a,b) => new Date(b.start) - new Date(a.start));
+    const pics  = state.photos.filter(p => p.clientId === id);
+    const totalAccepted = ests.filter(e => e.status === 'Accepted').reduce((s,e) => s + calc(e).total, 0);
+
+    let html = `
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+        <div>
+          <h3 style="margin:0;color:var(--navy)">${esc(c.name)}</h3>
+          <p class="muted" style="margin:4px 0 0">${esc(c.project || '')}${c.phone ? ' • ' + esc(c.phone) : ''}${c.email ? ' • ' + esc(c.email) : ''}</p>
+        </div>
+        <button onclick="closeClientHistory()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#64748b;padding:4px 8px">✕</button>
+      </div>
+      <div class="grid3" style="margin-bottom:20px">
+        <div class="card" style="padding:14px;text-align:center"><div class="muted" style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.4px">Estimates</div><strong style="font-size:22px;color:var(--navy)">${ests.length}</strong></div>
+        <div class="card" style="padding:14px;text-align:center"><div class="muted" style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.4px">Total accepted</div><strong style="font-size:22px;color:#047857">${money(totalAccepted)}</strong></div>
+        <div class="card" style="padding:14px;text-align:center"><div class="muted" style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.4px">Appointments</div><strong style="font-size:22px;color:var(--navy)">${appts.length}</strong></div>
+      </div>`;
+
+    if (ests.length) {
+      html += '<h4 style="color:var(--navy);margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.6px">Estimates</h4><div style="display:grid;gap:8px;margin-bottom:20px">';
+      ests.forEach(e => {
+        const tax = calc(e);
+        const dep = Number(e.deposit||0);
+        const pmts = (e.payments||[]).reduce((s,p) => s + Number(p.amount||0), 0);
+        const owing = Math.max(tax.total - dep - pmts, 0);
+        html += `<div class="history-item" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+          <div><h4>${esc(e.title)}</h4><p class="muted" style="margin:0;font-size:13px">${date(e.createdAt)}</p></div>
+          <div style="text-align:right;flex-shrink:0">
+            <span class="pill ${statusClass(e.status)}" style="font-size:11px">${esc(e.status)}</span>
+            <div style="font-weight:700;color:var(--navy);margin-top:4px">${money(tax.total)}</div>
+            ${owing > 0 ? `<div style="font-size:12px;color:var(--danger)">Owing ${money(owing)}</div>` : ''}
+          </div>
+        </div>`;
+      });
+      html += '</div>';
+    }
+
+    if (appts.length) {
+      html += '<h4 style="color:var(--navy);margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.6px">Appointments</h4><div style="display:grid;gap:8px;margin-bottom:20px">';
+      appts.forEach(a => {
+        html += `<div class="history-item"><h4>${esc(a.title)}</h4><p class="muted" style="margin:0;font-size:13px">${date(a.start)}${a.location ? ' • ' + esc(a.location) : ''}${a.reminderSent ? ' <span class="pill green" style="padding:2px 7px;font-size:10px">Reminded ✓</span>' : ''}</p></div>`;
+      });
+      html += '</div>';
+    }
+
+    if (pics.length) {
+      html += `<h4 style="color:var(--navy);margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.6px">Photos (${pics.length})</h4><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">`;
+      pics.forEach(p => {
+        html += `<div style="border-radius:12px;overflow:hidden;background:var(--soft);border:1px solid var(--line)">
+          ${p.data ? `<img src="${p.data}" style="width:100%;height:80px;object-fit:cover;display:block" alt="">` : '<div style="height:80px;display:flex;align-items:center;justify-content:center;font-size:24px">📷</div>'}
+          <div style="padding:5px 8px;font-size:11px;color:var(--muted);font-weight:700">${esc(p.type)}</div>
+        </div>`;
+      });
+      html += '</div>';
+    }
+
+    $('historyPanel').innerHTML = html;
+    $('historyOverlay').classList.add('open');
+  }
+
+  function closeClientHistory() {
+    $('historyOverlay').classList.remove('open');
   }
 
   function copyClientLink(id) {
@@ -2100,6 +2339,7 @@ Date: ${date(e.createdAt)}`;
   window.showStatDetail = showStatDetail;
   window.closeStatDetail = closeStatDetail;
   window.submitApproval = submitApproval;
+  window.closeClientHistory = closeClientHistory;
   window.removeLineItem = removeLineItem;
   window.calcLineItems = calcLineItems;
   init();
@@ -2113,6 +2353,10 @@ Date: ${date(e.createdAt)}`;
   });
 })();
 </script>
+  <div id="historyOverlay" class="history-overlay" onclick="if(event.target===this)closeClientHistory()">
+    <div class="history-panel" id="historyPanel"></div>
+  </div>
+
   <div id="statDetailOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeStatDetail()">
   <div id="statDetailPanel" style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:640px;max-height:80vh;overflow-y:auto;padding:24px;box-shadow:0 -4px 32px rgba(0,0,0,.15)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
