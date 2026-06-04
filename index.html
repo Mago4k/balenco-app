@@ -2274,7 +2274,7 @@ Date: ${date(e.createdAt)}`;
             '<p>By entering your name and clicking Approve, you agree to the terms above and authorize <strong>' + esc(cfg.company || 'the contractor') + '</strong> to proceed with the described work.</p>' +
             '<div class="sign-row">' +
               '<input id="approveNameInput" placeholder="Your full name" autocomplete="name">' +
-              '<button class="btn approve" id="approveSubmitBtn" onclick="submitApproval(\'' + est.id + '\')">Approve estimate</button>' +
+              '<button class="btn approve" id="approveSubmitBtn" onclick="submitApproval(\'' + est.id + '\', ' + (Number(est.deposit) || 0) + ')">Approve & pay deposit</button>' +
             '</div>' +
           '</div>';
       }
@@ -2284,7 +2284,7 @@ Date: ${date(e.createdAt)}`;
     return true;
   }
 
-  async function submitApproval(estimateId) {
+  async function submitApproval(estimateId, depositAmount) {
     const nameInput = document.getElementById('approveNameInput');
     const name = (nameInput ? nameInput.value : '').trim();
     if (!name) { if (nameInput) nameInput.focus(); toast('Please enter your full name to approve.'); return; }
@@ -2302,6 +2302,13 @@ Date: ${date(e.createdAt)}`;
 
       if (error) throw new Error(error.message);
 
+      if (depositAmount && Number(depositAmount) > 0) {
+        btn.textContent = 'Redirecting to payment…';
+        const { data, error: fnErr } = await sb.functions.invoke('create-checkout', { body: { estimate_id: estimateId } });
+        if (fnErr) throw new Error(fnErr.message);
+        if (data && data.url) { window.location.href = data.url; return; }
+      }
+
       document.getElementById('approveSignBox').outerHTML =
         '<div class="approve-success">' +
           '<h3>Estimate approved!</h3>' +
@@ -2309,7 +2316,7 @@ Date: ${date(e.createdAt)}`;
         '</div>';
     } catch (err) {
       btn.disabled = false;
-      btn.textContent = 'Approve estimate';
+      btn.textContent = depositAmount && Number(depositAmount) > 0 ? 'Approve & pay deposit' : 'Approve estimate';
       toast('Error: ' + err.message);
     }
   }
