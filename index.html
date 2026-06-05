@@ -527,6 +527,15 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
             <input id="apptLocation" placeholder="Location">
             <textarea id="apptNotes" rows="4" placeholder="Appointment notes"></textarea>
             <label class="notice" style="display:flex;gap:10px;align-items:center"><input id="apptReminder24" type="checkbox" style="width:auto" checked> Prepare 24h client reminder message</label>
+            <label style="display:flex;gap:10px;align-items:center;cursor:pointer;padding:10px 14px;background:rgba(79,195,247,0.06);border:1px solid rgba(79,195,247,0.15);border-radius:14px"><input id="apptRecurring" type="checkbox" style="width:auto" onchange="document.getElementById('recurringOptions').style.display=this.checked?'grid':'none'"> <span style="font-size:14px;color:var(--text)">↻ &nbsp;Recurring appointment</span></label>
+            <div id="recurringOptions" class="form2" style="display:none">
+              <select id="apptRecurringFreq">
+                <option value="weekly">Weekly</option>
+                <option value="biweekly">Every 2 weeks</option>
+                <option value="monthly">Monthly</option>
+              </select>
+              <input id="apptRecurringEnd" type="date" placeholder="End date (optional)">
+            </div>
             <button class="btn" type="submit">Save appointment</button>
           </form>
         </div>
@@ -666,7 +675,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       clients: (clients||[]).map(function(r){ return { id:r.id, name:r.name, phone:r.phone||'', email:r.email||'', address:r.address||'', project:r.project||'', status:r.status||'Active', balance:r.balance||0, createdBy:r.created_by||'', createdAt:r.created_at }; }),
       leads: (leads||[]).map(function(r){ return { id:r.id, name:r.name, phone:r.phone||'', email:r.email||'', source:r.source||'', project:r.project||'', status:r.status||'New', notes:r.notes||'', createdBy:r.created_by||'', createdAt:r.created_at }; }),
       estimates: (estimates||[]).map(function(r){ return { id:r.id, clientId:r.client_id, title:r.title||'', subtotal:r.subtotal||0, line_items:r.line_items||[], deposit:r.deposit||0, paymentSchedule:r.payment_schedule||'', paymentNotes:r.payment_notes||'', approvedBy:r.approved_by||'', approvedAt:r.approved_at||'', status:r.status||'Draft', scope:r.scope||'', expiry:r.expiry||'', payments:r.payments||[], followupSent:r.followup_sent||false, createdBy:r.created_by||'', createdAt:r.created_at, updatedBy:r.updated_by||'', updatedAt:r.updated_at }; }),
-      appointments: (appointments||[]).map(function(r){ return { id:r.id, title:r.title||'', clientId:r.client_id, start:r.start_time||'', end:r.end_time||'', location:r.location||'', notes:r.notes||'', reminder24:r.reminder24!==false, reminderSent:r.reminder_sent||false, createdBy:r.created_by||'', createdAt:r.created_at }; }),
+      appointments: (appointments||[]).map(function(r){ return { id:r.id, title:r.title||'', clientId:r.client_id, start:r.start_time||'', end:r.end_time||'', location:r.location||'', notes:r.notes||'', reminder24:r.reminder24!==false, reminderSent:r.reminder_sent||false, recurring:r.recurring||'', recurringEnd:r.recurring_end||'', recurringParentId:r.recurring_parent_id||null, createdBy:r.created_by||'', createdAt:r.created_at }; }),
       photos: (photos||[]).map(function(r){ return { id:r.id, clientId:r.client_id, type:r.type||'', notes:r.notes||'', data:r.storage_path||'', createdBy:r.created_by||'', createdAt:r.created_at }; }),
       logs: (logs||[]).map(function(r){ return { id:r.id, action:r.action||'', detail:r.detail||'', user:r.user_name||'', at:r.created_at }; })
     };
@@ -1116,13 +1125,19 @@ Date: ${date(e.createdAt)}`;
           <strong>${esc(a.title)}</strong>
           <span class="muted">${esc(clientName(a.clientId))} • ${date(a.start)} • ${esc(a.location)}</span>
           <p class="muted">${esc(a.notes)}</p>
-          <div style="margin-top:6px">
-            ${a.reminder24 && a.reminderSent ? '<span class="pill green" style="font-size:11px">Email reminder sent ✓</span>' : ''}
+          <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">
+            ${a.recurring ? '<span class="pill blue" style="font-size:11px">↻ ' + (a.recurring === 'biweekly' ? 'Every 2 weeks' : a.recurring.charAt(0).toUpperCase() + a.recurring.slice(1)) + '</span>' : ''}
+            ${a.reminder24 && a.reminderSent ? '<span class="pill green" style="font-size:11px">Reminder sent ✓</span>' : ''}
             ${a.reminder24 && !a.reminderSent ? '<span class="pill amber" style="font-size:11px">Reminder pending</span>' : ''}
           </div>
           <div class="audit owner-only">Created by ${esc(a.createdBy)} • ${date(a.createdAt)}</div>
         </div>
-        <div class="actions"><button class="btn small" type="button" data-action="ics" data-id="${a.id}">ICS</button><button class="btn out small" type="button" data-action="googleCal" data-id="${a.id}">Google</button><button class="btn out small" type="button" data-action="delete" data-col="appointments" data-id="${a.id}">Delete</button></div>
+        <div class="actions">
+          <button class="btn small" type="button" data-action="ics" data-id="${a.id}">ICS</button>
+          <button class="btn out small" type="button" data-action="googleCal" data-id="${a.id}">Google</button>
+          <button class="btn out small" type="button" data-action="delete" data-col="appointments" data-id="${a.id}">Delete</button>
+          ${a.recurring ? `<button class="btn out small" style="color:#fca5a5;border-color:rgba(239,68,68,0.3)" type="button" data-action="deleteSeries" data-id="${a.id}" data-parent="${a.recurringParentId || a.id}">Delete series</button>` : ''}
+        </div>
       </div>
     `).join('') || '<div class="empty">No appointments yet.</div>';
   }
@@ -1426,14 +1441,48 @@ Date: ${date(e.createdAt)}`;
 
   function addAppointment(event) {
     event.preventDefault();
-    const a = { id:uid(), title:$('apptTitle').value, clientId:$('apptClient').value, start:$('apptStart').value, end:$('apptEnd').value, location:$('apptLocation').value, notes:$('apptNotes').value, reminder24:$('apptReminder24').checked, reminderSent:false, createdBy:user, createdAt:new Date().toISOString() };
+    const recurring    = $('apptRecurring').checked ? $('apptRecurringFreq').value : '';
+    const recurringEnd = recurring ? ($('apptRecurringEnd').value || '') : '';
+    const a = { id:uid(), title:$('apptTitle').value, clientId:$('apptClient').value, start:$('apptStart').value, end:$('apptEnd').value, location:$('apptLocation').value, notes:$('apptNotes').value, reminder24:$('apptReminder24').checked, reminderSent:false, recurring, recurringEnd, recurringParentId:null, createdBy:user, createdAt:new Date().toISOString() };
     state.appointments.unshift(a);
-    sb.from('appointments').insert({ id:a.id, title:a.title, client_id:a.clientId, start_time:a.start, end_time:a.end||null, location:a.location, notes:a.notes, reminder24:a.reminder24, reminder_sent:false, created_by:a.createdBy, created_at:a.createdAt, org_id:orgId });
+    sb.from('appointments').insert({ id:a.id, title:a.title, client_id:a.clientId, start_time:a.start, end_time:a.end||null, location:a.location, notes:a.notes, reminder24:a.reminder24, reminder_sent:false, recurring:a.recurring||null, recurring_end:a.recurringEnd||null, recurring_parent_id:null, created_by:a.createdBy, created_at:a.createdAt, org_id:orgId });
+    if (recurring) generateRecurringInstances(a, recurring, recurringEnd);
     log('Created appointment', `${user} created appointment ${a.title} for ${clientName(a.clientId)}.`);
     save();
     event.target.reset();
+    document.getElementById('recurringOptions').style.display = 'none';
     renderAll();
-    toast('Appointment saved');
+    toast('Appointment saved' + (recurring ? ' + recurring series' : ''));
+  }
+
+  function generateRecurringInstances(parent, freq, endDate) {
+    const maxInstances = { weekly:52, biweekly:26, monthly:12 }[freq] || 12;
+    const stepMs = { weekly:7, biweekly:14, monthly:0 }[freq];
+    const limit = endDate ? new Date(endDate) : null;
+    const rows = [];
+    let base = new Date(parent.start);
+    const baseEnd = parent.end ? new Date(parent.end) : null;
+    const durationMs = baseEnd ? (baseEnd - base) : 0;
+
+    for (let i = 0; i < maxInstances; i++) {
+      // advance by one step
+      if (freq === 'monthly') {
+        base = new Date(base);
+        base.setMonth(base.getMonth() + 1);
+      } else {
+        base = new Date(base.getTime() + stepMs * 86400000);
+      }
+      if (limit && base > limit) break;
+
+      const newStart = base.toISOString().slice(0, 16); // datetime-local format
+      const newEnd   = durationMs ? new Date(base.getTime() + durationMs).toISOString().slice(0, 16) : '';
+      const inst = { id:uid(), title:parent.title, clientId:parent.clientId, start:newStart, end:newEnd, location:parent.location, notes:parent.notes, reminder24:parent.reminder24, reminderSent:false, recurring:parent.recurring, recurringEnd:parent.recurringEnd, recurringParentId:parent.id, createdBy:parent.createdBy, createdAt:new Date().toISOString() };
+      state.appointments.push(inst);
+      rows.push({ id:inst.id, title:inst.title, client_id:inst.clientId, start_time:inst.start, end_time:inst.end||null, location:inst.location, notes:inst.notes, reminder24:inst.reminder24, reminder_sent:false, recurring:inst.recurring||null, recurring_end:inst.recurringEnd||null, recurring_parent_id:inst.recurringParentId, created_by:inst.createdBy, created_at:inst.createdAt, org_id:orgId });
+    }
+    if (rows.length) {
+      sb.from('appointments').insert(rows).then(({ error }) => { if (error) toast('Recurring save error: ' + error.message); });
+    }
   }
 
   function compressImage(file, maxPx, quality) {
@@ -1853,6 +1902,26 @@ Date: ${date(e.createdAt)}`;
     if (action === 'markReminderSent') markReminderSent(id);
     if (action === 'copyClientLink') copyClientLink(id);
     if (action === 'clientHistory') openClientHistory(id);
+    if (action === 'deleteSeries') deleteSeries(btn.dataset.parent);
+  }
+
+  function deleteSeries(parentId) {
+    if (!parentId) return;
+    if (!confirm('Delete this appointment AND all others in the series?')) return;
+    // Remove from local state: parent itself + all children
+    state.appointments = state.appointments.filter(a => a.id !== parentId && a.recurringParentId !== parentId);
+    // Remove from DB: parent row + all child rows
+    Promise.all([
+      sb.from('appointments').delete().eq('id', parentId),
+      sb.from('appointments').delete().eq('recurring_parent_id', parentId)
+    ]).then(results => {
+      const err = results.find(r => r.error);
+      if (err) toast('Delete series error: ' + err.error.message);
+    });
+    log('Deleted series', `${user} deleted recurring series (parent ${parentId}).`);
+    save();
+    renderAll();
+    toast('Series deleted');
   }
 
   function bindEvents() {
