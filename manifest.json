@@ -4,8 +4,8 @@
   "description": "Contractor management app",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#0f172a",
+  "background_color": "#062A5E",
+  "theme_color": "#062A5E",
   "orientation": "portrait-primary",
   "icons": [
     {
