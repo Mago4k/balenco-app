@@ -270,6 +270,10 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 .rev-bar { width:100%; background:linear-gradient(180deg,#4fc3f7,#0d3a7a); border-radius:6px 6px 0 0; min-height:3px; }
 .rev-month { font-size:10px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.4px; }
 .rev-amt { font-size:10px; color:#93c5fd; font-weight:900; white-space:nowrap; }
+/* ── Booking settings day-checkboxes ── */
+.bk-day-check { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; background:#0a1628; border:1px solid var(--line); border-radius:10px; cursor:pointer; font-size:13px; font-weight:700; color:var(--text); transition:border-color .15s; }
+.bk-day-check:has(input:checked) { border-color:rgba(79,195,247,0.45); background:rgba(79,195,247,0.08); color:#4fc3f7; }
+.bk-day-check input { accent-color:#4fc3f7; width:14px; height:14px; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
@@ -620,8 +624,138 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
           <div id="teamList" class="list"><div class="empty">Loading team…</div></div>
         </div>
       </div>
+      <!-- Online Booking settings card (full width below grid) -->
+      <div class="card owner-only" style="margin-top:20px">
+        <div class="title"><div><h3>📅 Online Booking</h3><p>Let clients book appointments directly from a shareable link — no phone tag.</p></div></div>
+        <div class="form">
+          <label style="display:flex;align-items:center;gap:14px;background:rgba(79,195,247,0.06);border:1px solid rgba(79,195,247,0.18);border-radius:14px;padding:14px 16px;cursor:pointer">
+            <input id="bkEnabled" type="checkbox" style="width:18px;height:18px;accent-color:#4fc3f7;flex-shrink:0">
+            <div><strong style="display:block;font-size:14px">Enable online booking</strong><span class="muted" style="font-size:13px">When on, clients can request appointments from your booking link</span></div>
+          </label>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.4px">Working days</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <label class="bk-day-check"><input type="checkbox" id="bkDay1"> Mon</label>
+              <label class="bk-day-check"><input type="checkbox" id="bkDay2"> Tue</label>
+              <label class="bk-day-check"><input type="checkbox" id="bkDay3"> Wed</label>
+              <label class="bk-day-check"><input type="checkbox" id="bkDay4"> Thu</label>
+              <label class="bk-day-check"><input type="checkbox" id="bkDay5"> Fri</label>
+              <label class="bk-day-check"><input type="checkbox" id="bkDay6"> Sat</label>
+              <label class="bk-day-check"><input type="checkbox" id="bkDay0"> Sun</label>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div>
+              <label style="display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px">Start time</label>
+              <input id="bkStartTime" type="time">
+            </div>
+            <div>
+              <label style="display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px">End time</label>
+              <input id="bkEndTime" type="time">
+            </div>
+            <div>
+              <label style="display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px">Slot length</label>
+              <select id="bkSlotMin">
+                <option value="30">30 min</option>
+                <option value="60">1 hour</option>
+                <option value="90">90 min</option>
+                <option value="120">2 hours</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label style="display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px">Your booking link — share this with clients</label>
+            <div style="display:flex;gap:8px">
+              <input id="bkLink" type="text" readonly style="flex:1;background:rgba(255,255,255,0.04);cursor:text;font-size:13px" placeholder="Enable booking and save to generate link">
+              <button type="button" class="btn out" onclick="copyBkLink()" style="white-space:nowrap;flex-shrink:0">Copy link</button>
+            </div>
+          </div>
+          <button class="btn" type="button" onclick="saveBookingSettings()">Save booking settings</button>
+        </div>
+      </div>
     </section>
   </main>
+</div>
+
+<!-- ── Online Booking Page (shown when ?book=ORG_ID) ── -->
+<div id="bookingPage" style="display:none">
+  <div style="min-height:100vh;background:linear-gradient(135deg,#080f1e 0%,#0c1a32 100%);padding:24px 16px">
+    <div style="max-width:660px;margin:0 auto">
+      <!-- Header -->
+      <div style="text-align:center;padding:36px 0 28px">
+        <div id="bkLogo" style="width:80px;height:80px;background:linear-gradient(135deg,#0d3a7a,#041228);border-radius:22px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:36px">🐋</div>
+        <h1 id="bkCompanyName" style="font-size:26px;font-weight:800;color:#fff;margin:0 0 6px;letter-spacing:-0.5px">Book an Appointment</h1>
+        <p style="color:#5b7ca8;font-size:14px;margin:0">Select a date and time below</p>
+      </div>
+      <!-- Error -->
+      <div id="bkError" style="display:none;text-align:center;padding:28px 20px;color:#ef4444;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:16px;margin-bottom:20px;font-size:15px"></div>
+      <!-- Loading -->
+      <div id="bkLoading" style="text-align:center;padding:60px 20px;color:#5b7ca8;font-size:15px">Loading availability…</div>
+      <!-- Calendar UI -->
+      <div id="bkCalUI" style="display:none">
+        <!-- Week nav -->
+        <div style="display:flex;align-items:center;justify-content:space-between;background:#0c1a32;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:10px 18px;margin-bottom:18px">
+          <button onclick="bkPrevWeek()" style="background:transparent;border:none;color:#4fc3f7;font-size:14px;font-weight:700;padding:4px 2px;cursor:pointer">← Prev</button>
+          <span id="bkWeekLabel" style="color:#fff;font-weight:700;font-size:14px"></span>
+          <button onclick="bkNextWeek()" style="background:transparent;border:none;color:#4fc3f7;font-size:14px;font-weight:700;padding:4px 2px;cursor:pointer">Next →</button>
+        </div>
+        <!-- Day tabs -->
+        <div id="bkDayTabs" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:18px"></div>
+        <!-- Time slots -->
+        <div id="bkSlots" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:22px"></div>
+        <!-- Booking form (shown after slot selected) -->
+        <div id="bkFormWrap" style="display:none">
+          <div style="background:rgba(79,195,247,0.08);border:1px solid rgba(79,195,247,0.2);border-radius:12px;padding:12px 16px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:8px">
+            <span style="color:#4fc3f7;font-weight:700;font-size:14px">📅 <span id="bkSelectedLabel"></span></span>
+            <button onclick="bkClearSlot()" style="background:transparent;border:none;color:#5b7ca8;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0">Change ✕</button>
+          </div>
+          <form id="bkForm" onsubmit="submitBooking(event)" style="display:grid;gap:14px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div>
+                <label style="display:block;font-size:12px;font-weight:700;color:#5b7ca8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Full name *</label>
+                <input id="bkName" type="text" required placeholder="Your name" style="width:100%;background:#0a1628;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px 12px;color:#dce8ff;font-size:14px">
+              </div>
+              <div>
+                <label style="display:block;font-size:12px;font-weight:700;color:#5b7ca8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Phone</label>
+                <input id="bkPhone" type="tel" placeholder="(514) 000-0000" style="width:100%;background:#0a1628;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px 12px;color:#dce8ff;font-size:14px">
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div>
+                <label style="display:block;font-size:12px;font-weight:700;color:#5b7ca8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Email</label>
+                <input id="bkEmail" type="email" placeholder="your@email.com" style="width:100%;background:#0a1628;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px 12px;color:#dce8ff;font-size:14px">
+              </div>
+              <div>
+                <label style="display:block;font-size:12px;font-weight:700;color:#5b7ca8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Type of service</label>
+                <select id="bkService" style="width:100%;background:#0a1628;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px 12px;color:#dce8ff;font-size:14px">
+                  <option value="">Select…</option>
+                  <option value="Interior Painting">Interior Painting</option>
+                  <option value="Exterior Painting">Exterior Painting</option>
+                  <option value="Free Estimate Visit">Free Estimate Visit</option>
+                  <option value="Touch-ups">Touch-ups</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label style="display:block;font-size:12px;font-weight:700;color:#5b7ca8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Notes</label>
+              <textarea id="bkNotes" rows="3" placeholder="Tell us about your project…" style="width:100%;background:#0a1628;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px 12px;color:#dce8ff;font-size:14px;resize:vertical"></textarea>
+            </div>
+            <button id="bkSubmitBtn" class="btn" type="submit" style="padding:15px;font-size:16px;font-weight:800;border-radius:12px;width:100%">Request Appointment →</button>
+          </form>
+        </div>
+      </div>
+      <!-- Success screen -->
+      <div id="bkSuccess" style="display:none;text-align:center;padding:60px 20px">
+        <div style="font-size:56px">✅</div>
+        <h2 style="font-size:28px;color:#10b981;margin:16px 0 8px">Request Sent!</h2>
+        <p id="bkSuccessMsg" style="color:#dce8ff;font-size:16px;line-height:1.5;margin:0 0 8px"></p>
+        <p style="color:#5b7ca8;font-size:14px;margin:0">We'll confirm your appointment within 24 hours.</p>
+        <button onclick="bkReset()" style="margin-top:28px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:#fff;padding:12px 28px;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer">Book another time</button>
+      </div>
+      <p style="text-align:center;color:rgba(255,255,255,0.12);font-size:12px;margin-top:40px;padding-bottom:24px">Powered by Balenco</p>
+    </div>
+  </div>
 </div>
 
 <div id="toast"></div>
@@ -656,7 +790,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     const [
       { data: clients },  { data: leads },   { data: estimates },
       { data: appointments }, { data: photos }, { data: logs },
-      { data: settingsRows }
+      { data: settingsRows }, { data: availRows }
     ] = await Promise.all([
       sb.from('clients').select('*').order('created_at', { ascending: false }),
       sb.from('leads').select('*').order('created_at', { ascending: false }),
@@ -664,7 +798,8 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       sb.from('appointments').select('*').order('created_at', { ascending: false }),
       sb.from('photos').select('*').order('created_at', { ascending: false }),
       sb.from('logs').select('*').order('created_at', { ascending: false }),
-      sb.from('settings').select('*').limit(1)
+      sb.from('settings').select('*').limit(1),
+      sb.from('availability').select('*').limit(1)
     ]);
     const sr = settingsRows && settingsRows[0];
     if (!sr) {
@@ -675,9 +810,10 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       clients: (clients||[]).map(function(r){ return { id:r.id, name:r.name, phone:r.phone||'', email:r.email||'', address:r.address||'', project:r.project||'', status:r.status||'Active', balance:r.balance||0, createdBy:r.created_by||'', createdAt:r.created_at }; }),
       leads: (leads||[]).map(function(r){ return { id:r.id, name:r.name, phone:r.phone||'', email:r.email||'', source:r.source||'', project:r.project||'', status:r.status||'New', notes:r.notes||'', createdBy:r.created_by||'', createdAt:r.created_at }; }),
       estimates: (estimates||[]).map(function(r){ return { id:r.id, clientId:r.client_id, title:r.title||'', subtotal:r.subtotal||0, line_items:r.line_items||[], deposit:r.deposit||0, paymentSchedule:r.payment_schedule||'', paymentNotes:r.payment_notes||'', approvedBy:r.approved_by||'', approvedAt:r.approved_at||'', status:r.status||'Draft', scope:r.scope||'', expiry:r.expiry||'', payments:r.payments||[], followupSent:r.followup_sent||false, createdBy:r.created_by||'', createdAt:r.created_at, updatedBy:r.updated_by||'', updatedAt:r.updated_at }; }),
-      appointments: (appointments||[]).map(function(r){ return { id:r.id, title:r.title||'', clientId:r.client_id, start:r.start_time||'', end:r.end_time||'', location:r.location||'', notes:r.notes||'', reminder24:r.reminder24!==false, reminderSent:r.reminder_sent||false, recurring:r.recurring||'', recurringEnd:r.recurring_end||'', recurringParentId:r.recurring_parent_id||null, createdBy:r.created_by||'', createdAt:r.created_at }; }),
+      appointments: (appointments||[]).map(function(r){ return { id:r.id, title:r.title||'', clientId:r.client_id, start:r.start_time||'', end:r.end_time||'', location:r.location||'', notes:r.notes||'', reminder24:r.reminder24!==false, reminderSent:r.reminder_sent||false, recurring:r.recurring||'', recurringEnd:r.recurring_end||'', recurringParentId:r.recurring_parent_id||null, bookingStatus:r.booking_status||'confirmed', bookerName:r.booker_name||'', bookerEmail:r.booker_email||'', bookerPhone:r.booker_phone||'', bookedOnline:r.booked_online||false, createdBy:r.created_by||'', createdAt:r.created_at }; }),
       photos: (photos||[]).map(function(r){ return { id:r.id, clientId:r.client_id, type:r.type||'', notes:r.notes||'', data:r.storage_path||'', createdBy:r.created_by||'', createdAt:r.created_at }; }),
-      logs: (logs||[]).map(function(r){ return { id:r.id, action:r.action||'', detail:r.detail||'', user:r.user_name||'', at:r.created_at }; })
+      logs: (logs||[]).map(function(r){ return { id:r.id, action:r.action||'', detail:r.detail||'', user:r.user_name||'', at:r.created_at }; }),
+      availability: (function(){ const a = availRows && availRows[0]; return a ? { id:a.id, enabled:a.booking_enabled||false, workingDays:a.working_days||[1,2,3,4,5], startTime:a.start_time||'08:00', endTime:a.end_time||'17:00', slotMinutes:a.slot_minutes||60 } : null; })()
     };
   }
 
@@ -1127,12 +1263,17 @@ Date: ${date(e.createdAt)}`;
           <p class="muted">${esc(a.notes)}</p>
           <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px">
             ${a.recurring ? '<span class="pill blue" style="font-size:11px">↻ ' + (a.recurring === 'biweekly' ? 'Every 2 weeks' : a.recurring.charAt(0).toUpperCase() + a.recurring.slice(1)) + '</span>' : ''}
+            ${a.bookedOnline ? '<span class="pill blue" style="font-size:11px">🌐 Online booking</span>' : ''}
+            ${a.bookingStatus === 'pending' ? '<span class="pill amber" style="font-size:11px">⏳ Awaiting confirmation</span>' : ''}
+            ${a.bookingStatus === 'declined' ? '<span class="pill redpill" style="font-size:11px">Declined</span>' : ''}
             ${a.reminder24 && a.reminderSent ? '<span class="pill green" style="font-size:11px">Reminder sent ✓</span>' : ''}
             ${a.reminder24 && !a.reminderSent ? '<span class="pill amber" style="font-size:11px">Reminder pending</span>' : ''}
           </div>
+          ${a.bookingStatus === 'pending' ? `<div style="margin-top:10px;padding:10px 12px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:10px;font-size:13px;color:var(--muted)">Booked by <strong style="color:var(--text)">${esc(a.bookerName)}</strong>${a.bookerPhone ? ' · ' + esc(a.bookerPhone) : ''}${a.bookerEmail ? ' · ' + esc(a.bookerEmail) : ''}</div>` : ''}
           <div class="audit owner-only">Created by ${esc(a.createdBy)} • ${date(a.createdAt)}</div>
         </div>
         <div class="actions">
+          ${a.bookingStatus === 'pending' ? `<button class="btn small" style="background:#10b981;border-color:#10b981" type="button" data-action="confirmBooking" data-id="${a.id}">✓ Confirm</button><button class="btn out small" style="color:#fca5a5;border-color:rgba(239,68,68,0.3)" type="button" data-action="declineBooking" data-id="${a.id}">✕ Decline</button>` : ''}
           <button class="btn small" type="button" data-action="ics" data-id="${a.id}">ICS</button>
           <button class="btn out small" type="button" data-action="googleCal" data-id="${a.id}">Google</button>
           <button class="btn out small" type="button" data-action="delete" data-col="appointments" data-id="${a.id}">Delete</button>
@@ -1328,6 +1469,7 @@ Date: ${date(e.createdAt)}`;
 
   function renderSettings() {
     renderTeam();
+    renderBookingSettings();
     $('setCompany').value = state.settings.company || '';
     $('setEmail').value = state.settings.email || '';
     $('setPhone').value = state.settings.phone || '';
@@ -1903,6 +2045,8 @@ Date: ${date(e.createdAt)}`;
     if (action === 'copyClientLink') copyClientLink(id);
     if (action === 'clientHistory') openClientHistory(id);
     if (action === 'deleteSeries') deleteSeries(btn.dataset.parent);
+    if (action === 'confirmBooking') respondBooking(id, 'confirm');
+    if (action === 'declineBooking') respondBooking(id, 'decline');
   }
 
   function deleteSeries(parentId) {
@@ -1922,6 +2066,72 @@ Date: ${date(e.createdAt)}`;
     save();
     renderAll();
     toast('Series deleted');
+  }
+
+  async function respondBooking(id, action) {
+    const a = state.appointments.find(x => x.id === id);
+    if (!a) return;
+    const who = a.bookerName || clientName(a.clientId);
+    const verb = action === 'confirm' ? 'Confirm' : 'Decline';
+    if (!confirm(verb + ' booking from ' + who + '? The client will be notified by email.')) return;
+    // Optimistic update
+    a.bookingStatus = action === 'confirm' ? 'confirmed' : 'declined';
+    renderAll();
+    const { error } = await sb.functions.invoke('booking-response', { body: { appointment_id:id, action } });
+    if (error) {
+      toast('Error: ' + error.message);
+      a.bookingStatus = 'pending';
+      renderAll();
+    } else {
+      toast(action === 'confirm' ? '✓ Confirmed — client notified' : 'Declined — client notified');
+      log('Booking ' + action, `${user} ${action === 'confirm' ? 'confirmed' : 'declined'} booking from ${who}.`);
+    }
+  }
+
+  function renderBookingSettings() {
+    const avail = state.availability;
+    const bkEnabled = $('bkEnabled');
+    if (!bkEnabled) return;
+    bkEnabled.checked = avail ? avail.enabled : false;
+    [0,1,2,3,4,5,6].forEach(d => {
+      const cb = $('bkDay' + d);
+      if (cb) cb.checked = avail ? (avail.workingDays||[]).includes(d) : [1,2,3,4,5].includes(d);
+    });
+    const bkStart = $('bkStartTime'); if (bkStart) bkStart.value = avail ? avail.startTime : '08:00';
+    const bkEnd = $('bkEndTime'); if (bkEnd) bkEnd.value = avail ? avail.endTime : '17:00';
+    const bkSlot = $('bkSlotMin'); if (bkSlot) bkSlot.value = avail ? String(avail.slotMinutes) : '60';
+    const bkLink = $('bkLink');
+    if (bkLink) bkLink.value = orgId ? (window.location.origin + window.location.pathname + '?book=' + orgId) : '';
+  }
+
+  async function saveBookingSettings() {
+    if (!orgId) { toast('Save company settings first'); return; }
+    const enabled = $('bkEnabled').checked;
+    const days = [0,1,2,3,4,5,6].filter(d => { const cb = $('bkDay' + d); return cb && cb.checked; });
+    const startTime = $('bkStartTime').value || '08:00';
+    const endTime = $('bkEndTime').value || '17:00';
+    const slotMinutes = Number($('bkSlotMin').value) || 60;
+    const rec = { org_id:orgId, working_days:days, start_time:startTime, end_time:endTime, slot_minutes:slotMinutes, booking_enabled:enabled, updated_at:new Date().toISOString() };
+    let newId;
+    if (state.availability && state.availability.id) {
+      const { error } = await sb.from('availability').update(rec).eq('id', state.availability.id);
+      if (error) { toast('Error: ' + error.message); return; }
+      newId = state.availability.id;
+    } else {
+      newId = uid();
+      const { error } = await sb.from('availability').insert({ id:newId, ...rec, created_at:new Date().toISOString() });
+      if (error) { toast('Error: ' + error.message); return; }
+    }
+    state.availability = { id:newId, enabled, workingDays:days, startTime, endTime, slotMinutes };
+    renderBookingSettings();
+    log('Booking settings', `${user} updated online booking settings.`);
+    toast('Booking settings saved ✓');
+  }
+
+  function copyBkLink() {
+    const link = $('bkLink') && $('bkLink').value;
+    if (!link) { toast('Enable booking first'); return; }
+    navigator.clipboard.writeText(link).then(() => toast('Booking link copied ✓'));
   }
 
   function bindEvents() {
@@ -2437,6 +2647,8 @@ Date: ${date(e.createdAt)}`;
     if (isApprovalPage) return;
     const isClientPortal = await clientPortalInit();
     if (isClientPortal) return;
+    const isBookingPage = await bookingPageInit();
+    if (isBookingPage) return;
     bindEvents();
     const { data: { session } } = await sb.auth.getSession();
     if (session) await startSession(session.user);
@@ -2501,6 +2713,185 @@ Date: ${date(e.createdAt)}`;
     document.getElementById('statDetailOverlay').classList.remove('open');
   }
 
+  // ── Online Booking Page ──────────────────────────────────────────────────────
+  let _bkOrgId = null, _bkWeekStart = null, _bkSlots = {}, _bkSelectedDay = null, _bkSelectedSlot = null;
+
+  async function bookingPageInit() {
+    const params = new URLSearchParams(window.location.search);
+    const bid = params.get('book');
+    if (!bid) return false;
+    _bkOrgId = bid;
+    document.getElementById('bookingPage').style.display = 'block';
+    const now = new Date();
+    const dow = now.getDay();
+    const monday = new Date(now);
+    monday.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1));
+    monday.setHours(0, 0, 0, 0);
+    _bkWeekStart = monday;
+    await bkLoadWeek();
+    return true;
+  }
+
+  function bkFmt(d) {
+    return d.toLocaleDateString('en-CA', { month:'short', day:'numeric' });
+  }
+
+  async function bkLoadWeek() {
+    const loading = document.getElementById('bkLoading');
+    const calUI  = document.getElementById('bkCalUI');
+    const errEl  = document.getElementById('bkError');
+    const success= document.getElementById('bkSuccess');
+    loading.style.display = 'block';
+    calUI.style.display = 'none';
+    errEl.style.display = 'none';
+    if (success) success.style.display = 'none';
+    document.getElementById('bkDayTabs').innerHTML = '';
+    document.getElementById('bkSlots').innerHTML = '';
+    document.getElementById('bkFormWrap').style.display = 'none';
+    _bkSelectedSlot = null; _bkSelectedDay = null;
+
+    const weekStr = _bkWeekStart.toISOString().slice(0, 10);
+    const { data, error } = await sb.functions.invoke('get-slots', { body: { org_id:_bkOrgId, week_start:weekStr } });
+    loading.style.display = 'none';
+
+    if (error || (data && data.error)) {
+      errEl.textContent = (data && data.error) || (error && error.message) || 'Unable to load availability.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    if (data.settings && data.settings.company) {
+      document.getElementById('bkCompanyName').textContent = 'Book with ' + data.settings.company;
+      document.title = 'Book with ' + data.settings.company;
+      if (data.settings.logo) {
+        document.getElementById('bkLogo').innerHTML = '<img src="' + data.settings.logo + '" style="width:100%;height:100%;object-fit:contain">';
+      }
+    }
+
+    const weekEnd = new Date(_bkWeekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+    document.getElementById('bkWeekLabel').textContent = bkFmt(_bkWeekStart) + ' – ' + bkFmt(weekEnd) + ' ' + _bkWeekStart.getFullYear();
+
+    _bkSlots = data.slots || {};
+    calUI.style.display = 'block';
+
+    const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    let tabsHtml = '';
+    let firstDay = null;
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(_bkWeekStart);
+      d.setDate(d.getDate() + i);
+      const dk = d.toISOString().slice(0, 10);
+      const cnt = (_bkSlots[dk] || []).length;
+      const none = cnt === 0;
+      if (!none && !firstDay) firstDay = dk;
+      tabsHtml += `<div id="bkTab_${dk}"
+        onclick="${none ? '' : `bkSelectDay('${dk}')`}"
+        style="background:#0a1628;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:8px 3px;text-align:center;cursor:${none?'default':'pointer'};opacity:${none?'0.3':'1'};transition:all .15s;user-select:none">
+        <div style="font-size:10px;font-weight:700;color:#5b7ca8;text-transform:uppercase;letter-spacing:.5px">${dayNames[d.getDay()]}</div>
+        <div style="font-size:16px;font-weight:800;color:#fff;margin:2px 0">${d.getDate()}</div>
+        <div style="font-size:10px;color:#4fc3f7">${none ? '—' : cnt + ' open'}</div>
+      </div>`;
+    }
+    document.getElementById('bkDayTabs').innerHTML = tabsHtml;
+
+    if (firstDay) bkSelectDay(firstDay);
+    else document.getElementById('bkSlots').innerHTML = '<p style="text-align:center;color:#5b7ca8;padding:30px;grid-column:1/-1">No availability this week — try next week →</p>';
+  }
+
+  function bkSelectDay(dk) {
+    _bkSelectedDay = dk;
+    document.getElementById('bkFormWrap').style.display = 'none';
+    _bkSelectedSlot = null;
+
+    document.querySelectorAll('[id^="bkTab_"]').forEach(el => {
+      el.style.background = '#0a1628';
+      el.style.borderColor = 'rgba(255,255,255,0.08)';
+    });
+    const tab = document.getElementById('bkTab_' + dk);
+    if (tab) { tab.style.background = 'rgba(79,195,247,0.12)'; tab.style.borderColor = 'rgba(79,195,247,0.4)'; }
+
+    const slots = _bkSlots[dk] || [];
+    const dayLabel = new Date(dk + 'T12:00:00').toLocaleDateString('en-CA', { weekday:'long', month:'long', day:'numeric' });
+    let html = '';
+    if (!slots.length) {
+      html = `<p style="text-align:center;color:#5b7ca8;padding:30px;grid-column:1/-1">No open times on ${dayLabel}</p>`;
+    } else {
+      html = `<div style="grid-column:1/-1;font-size:13px;font-weight:700;color:#5b7ca8;margin-bottom:2px">${dayLabel}</div>`;
+      slots.forEach(function(t) {
+        const parts = t.split(':').map(Number);
+        const h = parts[0], m = parts[1];
+        const ap = h >= 12 ? 'PM' : 'AM';
+        const h12 = (h % 12) || 12;
+        const label = h12 + ':' + String(m).padStart(2, '0') + ' ' + ap;
+        const sid = 'bkSlot_' + dk + '_' + t.replace(':', '-');
+        html += `<button id="${sid}" type="button" onclick="bkSelectSlot('${dk}','${t}')"
+          style="background:#0a1628;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px 8px;color:#dce8ff;font-weight:700;font-size:14px;cursor:pointer;transition:all .15s"
+          onmouseover="this.style.background='rgba(79,195,247,0.10)';this.style.borderColor='rgba(79,195,247,0.3)'"
+          onmouseout="if(!this.dataset.sel){this.style.background='#0a1628';this.style.borderColor='rgba(255,255,255,0.08)'}">${label}</button>`;
+      });
+    }
+    document.getElementById('bkSlots').innerHTML = html;
+  }
+
+  function bkSelectSlot(dk, t) {
+    _bkSelectedSlot = { date:dk, time:t };
+    document.querySelectorAll('[id^="bkSlot_"]').forEach(function(el) {
+      el.style.background = '#0a1628'; el.style.borderColor = 'rgba(255,255,255,0.08)'; el.style.color = '#dce8ff'; delete el.dataset.sel;
+    });
+    const btn = document.getElementById('bkSlot_' + dk + '_' + t.replace(':', '-'));
+    if (btn) { btn.style.background = 'rgba(79,195,247,0.18)'; btn.style.borderColor = '#4fc3f7'; btn.style.color = '#4fc3f7'; btn.dataset.sel = '1'; }
+    const parts = t.split(':').map(Number);
+    const h = parts[0], m = parts[1];
+    const ap = h >= 12 ? 'PM' : 'AM';
+    const h12 = (h % 12) || 12;
+    const dayLabel = new Date(dk + 'T12:00:00').toLocaleDateString('en-CA', { weekday:'long', month:'long', day:'numeric' });
+    document.getElementById('bkSelectedLabel').textContent = dayLabel + ' at ' + h12 + ':' + String(m).padStart(2, '0') + ' ' + ap;
+    document.getElementById('bkFormWrap').style.display = 'block';
+    setTimeout(function(){ document.getElementById('bkFormWrap').scrollIntoView({ behavior:'smooth', block:'nearest' }); }, 50);
+  }
+
+  function bkClearSlot() {
+    _bkSelectedSlot = null;
+    document.getElementById('bkFormWrap').style.display = 'none';
+    document.querySelectorAll('[id^="bkSlot_"]').forEach(function(el) {
+      el.style.background = '#0a1628'; el.style.borderColor = 'rgba(255,255,255,0.08)'; el.style.color = '#dce8ff'; delete el.dataset.sel;
+    });
+  }
+
+  function bkPrevWeek() { _bkWeekStart = new Date(_bkWeekStart.getTime() - 7*86400000); bkLoadWeek(); }
+  function bkNextWeek() { _bkWeekStart = new Date(_bkWeekStart.getTime() + 7*86400000); bkLoadWeek(); }
+  function bkReset()    { document.getElementById('bkSuccess').style.display = 'none'; bkLoadWeek(); }
+
+  async function submitBooking(event) {
+    event.preventDefault();
+    if (!_bkSelectedSlot) return;
+    const btn = document.getElementById('bkSubmitBtn');
+    btn.disabled = true; btn.textContent = 'Sending…';
+    try {
+      const { data, error } = await sb.functions.invoke('create-booking', {
+        body: { org_id:_bkOrgId, date:_bkSelectedSlot.date, time:_bkSelectedSlot.time,
+          name:document.getElementById('bkName').value, email:document.getElementById('bkEmail').value,
+          phone:document.getElementById('bkPhone').value, service_type:document.getElementById('bkService').value,
+          notes:document.getElementById('bkNotes').value }
+      });
+      if (error || (data && data.error)) throw new Error((data && data.error) || (error && error.message));
+      const parts = _bkSelectedSlot.time.split(':').map(Number);
+      const h = parts[0], m = parts[1];
+      const ap = h >= 12 ? 'PM' : 'AM';
+      const h12 = (h % 12) || 12;
+      const dayLabel = new Date(_bkSelectedSlot.date + 'T12:00:00').toLocaleDateString('en-CA', { weekday:'long', month:'long', day:'numeric' });
+      document.getElementById('bkSuccessMsg').textContent = 'Your request for ' + dayLabel + ' at ' + h12 + ':' + String(m).padStart(2,'0') + ' ' + ap + ' has been sent.';
+      document.getElementById('bkCalUI').style.display = 'none';
+      document.getElementById('bkSuccess').style.display = 'block';
+      document.getElementById('bkSuccess').scrollIntoView({ behavior:'smooth' });
+    } catch(err) {
+      alert('Error: ' + err.message);
+      btn.disabled = false; btn.textContent = 'Request Appointment →';
+    }
+  }
+
   window.addLineItem = addLineItem;
   window.recordPayment = recordPayment;
   window.showStatDetail = showStatDetail;
@@ -2510,6 +2901,15 @@ Date: ${date(e.createdAt)}`;
   window.payDeposit = payDeposit;
   window.removeLineItem = removeLineItem;
   window.calcLineItems = calcLineItems;
+  window.saveBookingSettings = saveBookingSettings;
+  window.copyBkLink = copyBkLink;
+  window.bkPrevWeek = bkPrevWeek;
+  window.bkNextWeek = bkNextWeek;
+  window.bkSelectDay = bkSelectDay;
+  window.bkSelectSlot = bkSelectSlot;
+  window.bkClearSlot = bkClearSlot;
+  window.bkReset = bkReset;
+  window.submitBooking = submitBooking;
 
   // PWA install prompt
   let _installPrompt = null;
