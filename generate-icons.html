@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head><title>Balenco Icon Generator</title></head>
+<body style="background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:28px;font-family:Arial,sans-serif;color:#fff">
+
+<h2 style="margin:0;letter-spacing:2px;font-size:16px;color:#888;text-transform:uppercase">Balenco · App Icon</h2>
+
+<!-- Show 3 sizes side by side so you can see how it looks small -->
+<div style="display:flex;align-items:flex-end;gap:20px">
+  <div style="text-align:center">
+    <canvas id="c512" width="200" height="200" style="border-radius:18%;box-shadow:0 12px 50px rgba(0,100,255,0.2)"></canvas>
+    <div style="margin-top:8px;font-size:12px;color:#555">512px</div>
+  </div>
+  <div style="text-align:center">
+    <canvas id="c192" width="80" height="80" style="border-radius:18%;box-shadow:0 8px 24px rgba(0,100,255,0.15)"></canvas>
+    <div style="margin-top:8px;font-size:12px;color:#555">192px</div>
+  </div>
+  <div style="text-align:center">
+    <canvas id="c60" width="60" height="60" style="border-radius:14px;box-shadow:0 4px 16px rgba(0,0,0,0.4)"></canvas>
+    <div style="margin-top:8px;font-size:12px;color:#555">60px</div>
+  </div>
+  <div style="text-align:center">
+    <canvas id="c29" width="29" height="29" style="border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,0.4)"></canvas>
+    <div style="margin-top:8px;font-size:12px;color:#555">29px</div>
+  </div>
+</div>
+
+<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+  <button onclick="dl(192)" style="padding:11px 22px;background:#062A5E;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:700">⬇ icon-192.png</button>
+  <button onclick="dl(512)" style="padding:11px 22px;background:#062A5E;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:700">⬇ icon-512.png</button>
+  <button onclick="dl(180,'apple-touch-icon.png')" style="padding:11px 22px;background:#062A5E;color:#fff;border:none;border-radius:8px;font-size:14px;cursor:pointer;font-weight:700">⬇ apple-touch-icon.png</button>
+</div>
+<p style="color:#444;font-size:12px;margin:0">Drop all 3 into your balenco-app folder, replacing the old ones</p>
+
+<script>
+function drawIcon(size) {
+  const c = document.createElement('canvas');
+  c.width = c.height = size;
+  const ctx = c.getContext('2d');
+  const s = size;
+
+  /* ── Background: very dark navy, barely-there gradient ── */
+  const bg = ctx.createLinearGradient(0, 0, s * 0.6, s);
+  bg.addColorStop(0, '#0b2d66');
+  bg.addColorStop(1, '#020c1e');
+  ctx.fillStyle = bg;
+  ctx.beginPath();
+  ctx.roundRect(0, 0, s, s, s * 0.22);
+  ctx.fill();
+
+  /* ── Soft blue halo in the centre ── */
+  const halo = ctx.createRadialGradient(s*0.5, s*0.48, 0, s*0.5, s*0.48, s*0.46);
+  halo.addColorStop(0, 'rgba(80,150,255,0.10)');
+  halo.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = halo;
+  ctx.beginPath();
+  ctx.roundRect(0, 0, s, s, s * 0.22);
+  ctx.fill();
+
+  /* ── Whale tail ──
+     Two bold symmetric flukes meeting at a V-notch below centre.
+     Taller, wider, more geometric than before.            ── */
+  const cx  = s * 0.500;   // horizontal centre
+  const top = s * 0.230;   // fluke tips reach here
+  const mid = s * 0.490;   // inner notch height
+  const bot = s * 0.710;   // bottom notch (deepest point of V)
+  const lx  = s * 0.110;   // leftmost x
+  const rx  = s * 0.890;   // rightmost x
+  const lox = s * 0.280;   // left outer peak x
+  const rox = s * 0.720;   // right outer peak x
+  const lix = s * 0.350;   // left inner curve x
+  const rix = s * 0.650;   // right inner curve x
+
+  /* tail fill: crisp white shading to very pale blue */
+  const tf = ctx.createLinearGradient(cx, top, cx, bot);
+  tf.addColorStop(0.0, '#ffffff');
+  tf.addColorStop(1.0, '#cde4ff');
+  ctx.fillStyle = tf;
+
+  ctx.beginPath();
+  /* bottom notch */
+  ctx.moveTo(cx, bot);
+
+  /* ── left side, going counter-clockwise ── */
+  /* inner left curve up to notch dip */
+  ctx.bezierCurveTo(cx - s*0.04, bot - s*0.06,  lix, mid + s*0.04,  lix, mid);
+  /* sweep left and up toward tip */
+  ctx.bezierCurveTo(lix - s*0.04, mid - s*0.06,  lx + s*0.02, top + s*0.09,  lox, top);
+  /* left tip — sharp curve */
+  ctx.bezierCurveTo(lx, top + s*0.04,  lx, top + s*0.14,  lx + s*0.04, mid - s*0.05);
+  /* sweep back inward toward notch */
+  ctx.bezierCurveTo(lx + s*0.10, mid + s*0.04,  lix - s*0.02, mid + s*0.12,  cx, bot);
+
+  ctx.closePath();
+
+  /* RIGHT side is a perfect mirror — draw as separate fill */
+  ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(cx, bot);
+  ctx.bezierCurveTo(cx + s*0.04, bot - s*0.06,  rix, mid + s*0.04,  rix, mid);
+  ctx.bezierCurveTo(rix + s*0.04, mid - s*0.06,  rx - s*0.02, top + s*0.09,  rox, top);
+  ctx.bezierCurveTo(rx, top + s*0.04,  rx, top + s*0.14,  rx - s*0.04, mid - s*0.05);
+  ctx.bezierCurveTo(rx - s*0.10, mid + s*0.04,  rix + s*0.02, mid + s*0.12,  cx, bot);
+  ctx.closePath();
+  ctx.fill();
+
+  /* ── highlight streak along top edge of each fluke ── */
+  ctx.globalAlpha = 0.35;
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = s * 0.012;
+  ctx.lineCap = 'round';
+  /* left */
+  ctx.beginPath();
+  ctx.moveTo(cx - s*0.03, bot - s*0.08);
+  ctx.bezierCurveTo(lix, mid - s*0.02,  lx + s*0.04, top + s*0.10,  lox, top + s*0.005);
+  ctx.stroke();
+  /* right */
+  ctx.beginPath();
+  ctx.moveTo(cx + s*0.03, bot - s*0.08);
+  ctx.bezierCurveTo(rix, mid - s*0.02,  rx - s*0.04, top + s*0.10,  rox, top + s*0.005);
+  ctx.stroke();
+  ctx.globalAlpha = 1.0;
+
+  return c;
+}
+
+/* ── render all previews ── */
+function renderTo(id, displaySize) {
+  const native = drawIcon(512);
+  const cv = document.getElementById(id);
+  const ctx = cv.getContext('2d');
+  ctx.drawImage(native, 0, 0, displaySize, displaySize);
+}
+renderTo('c512', 200);
+renderTo('c192',  80);
+renderTo('c60',   60);
+renderTo('c29',   29);
+
+function dl(size, name) {
+  const c = drawIcon(size);
+  const a = document.createElement('a');
+  a.download = name || `icon-${size}.png`;
+  a.href = c.toDataURL('image/png');
+  a.click();
+}
+</script>
+</body>
+</html>
