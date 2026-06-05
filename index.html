@@ -598,6 +598,11 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
               <div class="form"><label class="btn out" style="justify-content:flex-start">Upload logo<input id="companyLogoInput" type="file" accept="image/*" style="display:none"></label><div id="logoStatus" class="muted">No custom logo uploaded.</div><div class="actions"><button type="button" class="btn out small" id="clearLogoBtn">Remove logo</button></div></div>
             </div>
             <textarea id="setTerms" rows="5" placeholder="Default estimate terms"></textarea>
+            <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);border:1px solid var(--line);border-radius:14px;padding:12px 14px">
+              <div style="flex:1"><strong style="display:block;font-size:14px;color:var(--text)">Auto follow-up</strong><span class="muted" style="font-size:13px">Send a follow-up email to clients with unanswered estimates after this many days</span></div>
+              <input id="setFollowupDays" type="number" min="1" max="30" style="width:70px;text-align:center" placeholder="3">
+              <span class="muted" style="font-size:13px;white-space:nowrap">days</span>
+            </div>
             <button class="btn" type="submit">Save settings</button>
           </form>
         </div>
@@ -657,10 +662,10 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       await sb.from('settings').insert({ id:'global', company:'Your Company Name', email:'info@company.com', phone:'514-000-0000', address:'Montreal, Quebec', tps:5, tvq:9.975, logo:'', terms:'Estimate valid for 15 days. Deposit required before scheduling. Hidden conditions, permits, and extra work are not included unless stated.' });
     }
     state = {
-      settings: sr ? { company:sr.company, email:sr.email, phone:sr.phone, address:sr.address, tps:sr.tps, tvq:sr.tvq, logo:sr.logo||'', terms:sr.terms } : { company:'Your Company Name', email:'info@company.com', phone:'514-000-0000', address:'Montreal, Quebec', tps:5, tvq:9.975, logo:'', terms:'' },
+      settings: sr ? { company:sr.company, email:sr.email, phone:sr.phone, address:sr.address, tps:sr.tps, tvq:sr.tvq, logo:sr.logo||'', terms:sr.terms, followupDays:sr.followup_days||3 } : { company:'Your Company Name', email:'info@company.com', phone:'514-000-0000', address:'Montreal, Quebec', tps:5, tvq:9.975, logo:'', terms:'', followupDays:3 },
       clients: (clients||[]).map(function(r){ return { id:r.id, name:r.name, phone:r.phone||'', email:r.email||'', address:r.address||'', project:r.project||'', status:r.status||'Active', balance:r.balance||0, createdBy:r.created_by||'', createdAt:r.created_at }; }),
       leads: (leads||[]).map(function(r){ return { id:r.id, name:r.name, phone:r.phone||'', email:r.email||'', source:r.source||'', project:r.project||'', status:r.status||'New', notes:r.notes||'', createdBy:r.created_by||'', createdAt:r.created_at }; }),
-      estimates: (estimates||[]).map(function(r){ return { id:r.id, clientId:r.client_id, title:r.title||'', subtotal:r.subtotal||0, line_items:r.line_items||[], deposit:r.deposit||0, paymentSchedule:r.payment_schedule||'', paymentNotes:r.payment_notes||'', approvedBy:r.approved_by||'', approvedAt:r.approved_at||'', status:r.status||'Draft', scope:r.scope||'', expiry:r.expiry||'', payments:r.payments||[], createdBy:r.created_by||'', createdAt:r.created_at, updatedBy:r.updated_by||'', updatedAt:r.updated_at }; }),
+      estimates: (estimates||[]).map(function(r){ return { id:r.id, clientId:r.client_id, title:r.title||'', subtotal:r.subtotal||0, line_items:r.line_items||[], deposit:r.deposit||0, paymentSchedule:r.payment_schedule||'', paymentNotes:r.payment_notes||'', approvedBy:r.approved_by||'', approvedAt:r.approved_at||'', status:r.status||'Draft', scope:r.scope||'', expiry:r.expiry||'', payments:r.payments||[], followupSent:r.followup_sent||false, createdBy:r.created_by||'', createdAt:r.created_at, updatedBy:r.updated_by||'', updatedAt:r.updated_at }; }),
       appointments: (appointments||[]).map(function(r){ return { id:r.id, title:r.title||'', clientId:r.client_id, start:r.start_time||'', end:r.end_time||'', location:r.location||'', notes:r.notes||'', reminder24:r.reminder24!==false, reminderSent:r.reminder_sent||false, createdBy:r.created_by||'', createdAt:r.created_at }; }),
       photos: (photos||[]).map(function(r){ return { id:r.id, clientId:r.client_id, type:r.type||'', notes:r.notes||'', data:r.storage_path||'', createdBy:r.created_by||'', createdAt:r.created_at }; }),
       logs: (logs||[]).map(function(r){ return { id:r.id, action:r.action||'', detail:r.detail||'', user:r.user_name||'', at:r.created_at }; })
@@ -950,11 +955,14 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       const tax = calc(e);
       const daysOld = Math.floor((now - new Date(e.createdAt)) / 86400000);
       const needsFollowUp = ['Draft','Sent'].includes(e.status);
-      const followUpBadge = needsFollowUp && daysOld >= 14
-        ? '<br><span class="pill redpill" style="font-size:10px;margin-top:3px">Overdue ' + daysOld + 'd</span>'
-        : needsFollowUp && daysOld >= 7
-          ? '<br><span class="pill amber" style="font-size:10px;margin-top:3px">Follow up ' + daysOld + 'd</span>'
-          : '';
+      const followupDays = state.settings.followupDays || 3;
+      const followUpBadge = e.followupSent
+        ? '<br><span class="pill green" style="font-size:10px;margin-top:3px">✓ Followed up</span>'
+        : needsFollowUp && daysOld >= followupDays * 2
+          ? '<br><span class="pill redpill" style="font-size:10px;margin-top:3px">Overdue ' + daysOld + 'd</span>'
+          : needsFollowUp && daysOld >= followupDays
+            ? '<br><span class="pill amber" style="font-size:10px;margin-top:3px">Follow up ' + daysOld + 'd</span>'
+            : '';
       return `
         <tr>
           <td><strong>${esc(e.title)}</strong><br><span class="muted">${esc(e.scope)}</span></td>
@@ -1312,6 +1320,7 @@ Date: ${date(e.createdAt)}`;
     $('setTPS').value = state.settings.tps ?? 5;
     $('setTVQ').value = state.settings.tvq ?? 9.975;
     $('setTerms').value = state.settings.terms || '';
+    $('setFollowupDays').value = state.settings.followupDays ?? 3;
     $('logoStatus').textContent = state.settings.logo ? 'Custom logo uploaded and ready for estimates.' : 'No custom logo uploaded.';
   }
 
@@ -1489,10 +1498,10 @@ Date: ${date(e.createdAt)}`;
       tps:Number($('setTPS').value || 0),
       tvq:Number($('setTVQ').value || 0),
       logo:state.settings.logo || '',
-      terms:$('setTerms').value
+      terms:$('setTerms').value,
+      followupDays:Number($('setFollowupDays').value || 3)
     };
-    sb.from('settings').upsert({ id:'global', company:state.settings.company, email:state.settings.email, phone:state.settings.phone, address:state.settings.address, tps:state.settings.tps, tvq:state.settings.tvq, logo:state.settings.logo, terms:state.settings.terms });
-    sb.from('settings').upsert({ id:'global', company:state.settings.company, email:state.settings.email, phone:state.settings.phone, address:state.settings.address, tps:state.settings.tps, tvq:state.settings.tvq, logo:state.settings.logo, terms:state.settings.terms });
+    sb.from('settings').upsert({ id:'global', company:state.settings.company, email:state.settings.email, phone:state.settings.phone, address:state.settings.address, tps:state.settings.tps, tvq:state.settings.tvq, logo:state.settings.logo, terms:state.settings.terms, followup_days:state.settings.followupDays });
     log('Updated settings', `${user} updated company settings.`);
     save();
     renderAll();
