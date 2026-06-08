@@ -1828,6 +1828,104 @@ Date: ${date(e.createdAt)}`;
     }
   }
 
+  function buildEstimateEmail(e, clientObj) {
+    const s = state.settings;
+    const company = s.company || 'Balenco';
+    const sub = Number(e.subtotal || 0);
+    const tpsRate = Number(s.tps || 5);
+    const tvqRate = Number(s.tvq || 9.975);
+    const tpsAmt = sub * tpsRate / 100;
+    const tvqAmt = sub * tvqRate / 100;
+    const total = sub + tpsAmt + tvqAmt;
+    const dep = Number(e.deposit || 0);
+    const fmt = function(n) { return '$' + Number(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); };
+    const portalLink = e.clientId ? 'https://balenco.app/?client=' + e.clientId : null;
+
+    const items = e.line_items || [];
+    let itemRows = '';
+    items.forEach(function(item) {
+      const lineTotal = Number(item.qty || 1) * Number(item.price || 0);
+      itemRows += '<tr>' +
+        '<td style="padding:10px 14px;border-top:1px solid #eef2f7;font-size:14px;color:#334155">' + esc(item.description || '') + '</td>' +
+        '<td style="padding:10px 14px;border-top:1px solid #eef2f7;font-size:14px;text-align:center;color:#64748b">' + (item.qty || 1) + '</td>' +
+        '<td style="padding:10px 14px;border-top:1px solid #eef2f7;font-size:14px;text-align:right;color:#64748b">' + fmt(item.price || 0) + '</td>' +
+        '<td style="padding:10px 14px;border-top:1px solid #eef2f7;font-size:14px;text-align:right;font-weight:700;color:#0f172a">' + fmt(lineTotal) + '</td>' +
+      '</tr>';
+    });
+
+    return '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff">' +
+
+      // Header
+      '<div style="background:#062A5E;padding:28px 32px;border-radius:12px 12px 0 0">' +
+        (s.logo ? '<img src="' + s.logo + '" style="max-height:50px;margin-bottom:12px;display:block" alt="' + esc(company) + '">' : '') +
+        '<div style="color:#fff;font-size:22px;font-weight:900">' + esc(company) + '</div>' +
+        (s.address ? '<div style="color:#93c5fd;font-size:13px;margin-top:4px">' + esc(s.address) + '</div>' : '') +
+        (s.phone ? '<div style="color:#93c5fd;font-size:13px">' + esc(s.phone) + '</div>' : '') +
+      '</div>' +
+
+      // Body
+      '<div style="padding:28px 32px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px">' +
+        '<p style="font-size:16px;color:#334155;margin:0 0 6px">Hi <strong>' + esc(clientObj.name || 'there') + '</strong>,</p>' +
+        '<p style="font-size:15px;color:#64748b;margin:0 0 24px">Please find your estimate below. Use the button at the bottom to review and approve it.</p>' +
+
+        // Title
+        '<div style="margin-bottom:20px">' +
+          '<div style="font-size:20px;font-weight:900;color:#062A5E">' + esc(e.title) + '</div>' +
+          (e.scope ? '<div style="font-size:14px;color:#64748b;margin-top:6px;white-space:pre-wrap">' + esc(e.scope) + '</div>' : '') +
+        '</div>' +
+
+        // Line items
+        (items.length ? '<div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:20px">' +
+          '<table style="width:100%;border-collapse:collapse">' +
+            '<thead><tr style="background:#f8fafc">' +
+              '<th style="padding:10px 14px;text-align:left;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px">Description</th>' +
+              '<th style="padding:10px 14px;text-align:center;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px">Qty</th>' +
+              '<th style="padding:10px 14px;text-align:right;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px">Price</th>' +
+              '<th style="padding:10px 14px;text-align:right;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px">Total</th>' +
+            '</tr></thead>' +
+            '<tbody>' + itemRows + '</tbody>' +
+          '</table>' +
+        '</div>' : '') +
+
+        // Totals
+        '<div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:24px">' +
+          '<table style="width:100%;border-collapse:collapse">' +
+            '<tr><td style="padding:11px 16px;font-size:14px;color:#64748b">Subtotal</td><td style="padding:11px 16px;font-size:14px;text-align:right">' + fmt(sub) + '</td></tr>' +
+            '<tr><td style="padding:11px 16px;font-size:14px;color:#64748b;border-top:1px solid #f1f5f9">TPS (' + tpsRate + '%)</td><td style="padding:11px 16px;font-size:14px;text-align:right;border-top:1px solid #f1f5f9">' + fmt(tpsAmt) + '</td></tr>' +
+            '<tr><td style="padding:11px 16px;font-size:14px;color:#64748b;border-top:1px solid #f1f5f9">TVQ (' + tvqRate + '%)</td><td style="padding:11px 16px;font-size:14px;text-align:right;border-top:1px solid #f1f5f9">' + fmt(tvqAmt) + '</td></tr>' +
+            '<tr style="background:#062A5E"><td style="padding:13px 16px;font-size:15px;color:#fff;font-weight:900">Total</td><td style="padding:13px 16px;font-size:15px;color:#fff;font-weight:900;text-align:right">' + fmt(total) + '</td></tr>' +
+          '</table>' +
+        '</div>' +
+
+        // Deposit
+        (dep > 0 ? '<div style="background:#eff6ff;border:1px solid #dbeafe;border-radius:10px;padding:14px 18px;margin-bottom:24px">' +
+          '<div style="font-size:12px;color:#3b82f6;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Deposit to confirm</div>' +
+          '<div style="font-size:22px;font-weight:900;color:#1d4ed8;margin:4px 0">' + fmt(dep) + '</div>' +
+          (e.paymentSchedule ? '<div style="font-size:13px;color:#64748b">' + esc(e.paymentSchedule) + '</div>' : '') +
+        '</div>' : '') +
+
+        // Terms
+        (s.terms ? '<div style="background:#f8fafc;border-radius:10px;padding:14px 18px;margin-bottom:24px">' +
+          '<div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Terms &amp; Notes</div>' +
+          '<div style="font-size:13px;color:#64748b;white-space:pre-wrap">' + esc(s.terms) + '</div>' +
+        '</div>' : '') +
+
+        // CTA button
+        (portalLink ? '<div style="text-align:center;margin:28px 0">' +
+          '<a href="' + portalLink + '" style="background:#062A5E;color:#fff;text-decoration:none;padding:16px 36px;border-radius:10px;font-size:16px;font-weight:800;display:inline-block">' +
+          (dep > 0 ? 'Review, Approve &amp; Pay Deposit →' : 'Review &amp; Approve Your Estimate →') +
+          '</a>' +
+          '<div style="margin-top:10px;font-size:12px;color:#94a3b8">Secure client portal &middot; No account required</div>' +
+        '</div>' : '') +
+
+        // Footer
+        '<div style="margin-top:20px;padding-top:16px;border-top:1px solid #e2e8f0;font-size:13px;color:#94a3b8;text-align:center">' +
+          (s.email || '') + (s.email && s.phone ? ' &nbsp;&middot;&nbsp; ' : '') + (s.phone || '') +
+        '</div>' +
+
+      '</div></div>';
+  }
+
   async function emailEstimate() {
     const e = currentEstimate();
     if (!e) return;
@@ -1837,17 +1935,8 @@ Date: ${date(e.createdAt)}`;
     btn.textContent = 'Sending…';
     btn.disabled = true;
     try {
-      const portalLink = e.clientId ? 'https://balenco.app/?client=' + e.clientId : null;
-      const portalBtn = portalLink
-        ? '<div style="text-align:center;margin:28px 0">' +
-            '<a href="' + portalLink + '" style="background:#062A5E;color:#fff;text-decoration:none;padding:16px 36px;border-radius:10px;font-size:16px;font-weight:800;display:inline-block">' +
-            (Number(e.deposit) > 0 ? 'Review, Approve &amp; Pay Deposit →' : 'Review &amp; Approve Your Estimate →') +
-            '</a>' +
-            '<div style="margin-top:10px;font-size:12px;color:#94a3b8">Secure client portal · No account required</div>' +
-          '</div>'
-        : '';
       const subject = 'Your estimate from ' + esc(state.settings.company || 'Balenco') + ' — ' + esc(e.title);
-      const html = '<div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;background:#fff;padding:24px">' + estimateHTML(e) + portalBtn + '</div>';
+      const html = buildEstimateEmail(e, c);
       const { data: { session } } = await sb.auth.getSession();
       const token = session?.access_token || SUPA_KEY;
       const res = await fetch('https://wvqqazdzejjksjcjdbcm.supabase.co/functions/v1/send-estimate', {
@@ -1857,7 +1946,6 @@ Date: ${date(e.createdAt)}`;
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      // Mark as Sent
       e.status = 'Sent';
       sb.from('estimates').update({ status: 'Sent', updated_at: new Date().toISOString() }).eq('id', e.id).neq('status', 'Accepted');
       save();
