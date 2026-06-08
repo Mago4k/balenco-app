@@ -1935,14 +1935,12 @@ Date: ${date(e.createdAt)}`;
     btn.textContent = 'Sending…';
     btn.disabled = true;
     try {
-      const subject = 'Your estimate from ' + esc(state.settings.company || 'Balenco') + ' — ' + esc(e.title);
-      const html = buildEstimateEmail(e, c);
       const { data: { session } } = await sb.auth.getSession();
       const token = session?.access_token || SUPA_KEY;
       const res = await fetch('https://wvqqazdzejjksjcjdbcm.supabase.co/functions/v1/send-estimate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ to: c.email, subject, html })
+        body: JSON.stringify({ estimate_id: e.id })
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);

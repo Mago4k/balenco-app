@@ -1,3 +1,5 @@
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
 const cors = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -6,13 +8,147 @@ const cors = {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
 
-  const { to, subject, html } = await req.json()
-
-  if (!to || !subject || !html) {
-    return new Response(JSON.stringify({ error: 'Missing to, subject, or html' }), {
+  const { estimate_id } = await req.json()
+  if (!estimate_id) {
+    return new Response(JSON.stringify({ error: 'Missing estimate_id' }), {
       status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
     })
   }
+
+  const sb = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  )
+
+  const { data: est } = await sb.from('estimates').select('*').eq('id', estimate_id).single()
+  if (!est) {
+    return new Response(JSON.stringify({ error: 'Estimate not found' }), {
+      status: 404, headers: { ...cors, 'Content-Type': 'application/json' }
+    })
+  }
+
+  if (!est.client_id) {
+    return new Response(JSON.stringify({ error: 'No client linked to this estimate' }), {
+      status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
+    })
+  }
+
+  const [clientRes, cfgRes] = await Promise.all([
+    sb.from('clients').select('*').eq('id', est.client_id).single(),
+    sb.from('settings').select('*').eq('org_id', est.org_id).maybeSingle(),
+  ])
+
+  const client = clientRes.data
+  const cfg = cfgRes.data || {}
+
+  if (!client?.email) {
+    return new Response(JSON.stringify({ error: 'Client has no email address on file' }), {
+      status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
+    })
+  }
+
+  const fmt = (n: number) => '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+  const subtotal  = Number(est.subtotal || 0)
+  const tpsRate   = Number(cfg.tps ?? 5)
+  const tvqRate   = Number(cfg.tvq ?? 9.975)
+  const tps       = subtotal * tpsRate / 100
+  const tvq       = subtotal * tvqRate / 100
+  const total     = subtotal + tps + tvq
+  const deposit   = Number(est.deposit || 0)
+  const company   = cfg.company || 'Balenco'
+  const portalLink = `https://balenco.app/?client=${est.client_id}`
+
+  const items: any[] = est.items || []
+  const itemRows = items.map((item: any) => `
+    <tr>
+      <td style="padding:10px 14px;border-top:1px solid #eef2f7;font-size:14px;color:#334155">${item.description || ''}</td>
+      <td style="padding:10px 14px;border-top:1px solid #eef2f7;font-size:14px;text-align:center;color:#64748b">${item.qty || 1}</td>
+      <td style="padding:10px 14px;border-top:1px solid #eef2f7;font-size:14px;text-align:right;color:#64748b">${fmt(Number(item.price || 0))}</td>
+      <td style="padding:10px 14px;border-top:1px solid #eef2f7;font-size:14px;text-align:right;font-weight:700;color:#0f172a">${fmt(Number(item.qty || 1) * Number(item.price || 0))}</td>
+    </tr>`).join('')
+
+  const html = `
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff">
+
+  <div style="background:#062A5E;padding:28px 32px;border-radius:12px 12px 0 0">
+    ${cfg.logo ? `<img src="${cfg.logo}" style="max-height:50px;margin-bottom:12px;display:block" alt="${company}">` : ''}
+    <div style="color:#ffffff;font-size:22px;font-weight:900">${company}</div>
+    ${cfg.address ? `<div style="color:#93c5fd;font-size:13px;margin-top:4px">${cfg.address}</div>` : ''}
+    ${cfg.phone   ? `<div style="color:#93c5fd;font-size:13px">${cfg.phone}</div>` : ''}
+  </div>
+
+  <div style="padding:28px 32px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px">
+
+    <p style="font-size:16px;color:#334155;margin:0 0 6px">Hi <strong>${client.name}</strong>,</p>
+    <p style="font-size:15px;color:#64748b;margin:0 0 24px">Please find your estimate below. Use the button at the bottom to review and approve it.</p>
+
+    <div style="margin-bottom:20px">
+      <div style="font-size:20px;font-weight:900;color:#062A5E">${est.title}</div>
+      ${est.scope ? `<div style="font-size:14px;color:#64748b;margin-top:6px;white-space:pre-wrap">${est.scope}</div>` : ''}
+    </div>
+
+    ${items.length ? `
+    <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:20px">
+      <table style="width:100%;border-collapse:collapse">
+        <thead>
+          <tr style="background:#f8fafc">
+            <th style="padding:10px 14px;text-align:left;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px">Description</th>
+            <th style="padding:10px 14px;text-align:center;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px">Qty</th>
+            <th style="padding:10px 14px;text-align:right;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px">Price</th>
+            <th style="padding:10px 14px;text-align:right;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px">Total</th>
+          </tr>
+        </thead>
+        <tbody>${itemRows}</tbody>
+      </table>
+    </div>` : ''}
+
+    <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:24px">
+      <table style="width:100%;border-collapse:collapse">
+        <tr>
+          <td style="padding:11px 16px;font-size:14px;color:#64748b">Subtotal</td>
+          <td style="padding:11px 16px;font-size:14px;text-align:right;color:#0f172a">${fmt(subtotal)}</td>
+        </tr>
+        <tr>
+          <td style="padding:11px 16px;font-size:14px;color:#64748b;border-top:1px solid #f1f5f9">TPS (${tpsRate}%)</td>
+          <td style="padding:11px 16px;font-size:14px;text-align:right;color:#0f172a;border-top:1px solid #f1f5f9">${fmt(tps)}</td>
+        </tr>
+        <tr>
+          <td style="padding:11px 16px;font-size:14px;color:#64748b;border-top:1px solid #f1f5f9">TVQ (${tvqRate}%)</td>
+          <td style="padding:11px 16px;font-size:14px;text-align:right;color:#0f172a;border-top:1px solid #f1f5f9">${fmt(tvq)}</td>
+        </tr>
+        <tr style="background:#062A5E">
+          <td style="padding:13px 16px;font-size:15px;color:#ffffff;font-weight:900">Total</td>
+          <td style="padding:13px 16px;font-size:15px;color:#ffffff;font-weight:900;text-align:right">${fmt(total)}</td>
+        </tr>
+      </table>
+    </div>
+
+    ${deposit > 0 ? `
+    <div style="background:#eff6ff;border:1px solid #dbeafe;border-radius:10px;padding:14px 18px;margin-bottom:24px">
+      <div style="font-size:12px;color:#3b82f6;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Deposit required to confirm</div>
+      <div style="font-size:26px;font-weight:900;color:#1d4ed8;margin:6px 0">${fmt(deposit)}</div>
+      <div style="font-size:13px;color:#64748b">${est.payment_schedule || 'Due upon acceptance'}</div>
+    </div>` : ''}
+
+    ${est.terms ? `
+    <div style="background:#f8fafc;border-radius:10px;padding:14px 18px;margin-bottom:24px">
+      <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Terms &amp; Notes</div>
+      <div style="font-size:13px;color:#64748b;white-space:pre-wrap">${est.terms}</div>
+    </div>` : ''}
+
+    <div style="text-align:center;margin:32px 0">
+      <a href="${portalLink}" style="background:#062A5E;color:#ffffff;text-decoration:none;padding:18px 40px;border-radius:10px;font-size:16px;font-weight:800;display:inline-block">
+        ${deposit > 0 ? `Review, Approve &amp; Pay Deposit &rarr;` : `Review &amp; Approve Your Estimate &rarr;`}
+      </a>
+      <div style="margin-top:10px;font-size:12px;color:#94a3b8">Secure client portal &middot; No account required</div>
+    </div>
+
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e2e8f0;font-size:13px;color:#94a3b8;text-align:center">
+      ${cfg.email ? cfg.email : ''}${cfg.email && cfg.phone ? ' &nbsp;&middot;&nbsp; ' : ''}${cfg.phone ? cfg.phone : ''}
+    </div>
+
+  </div>
+</div>`
 
   const sendRes = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -22,8 +158,8 @@ Deno.serve(async (req) => {
     },
     body: JSON.stringify({
       from: 'Balenco <notifications@mail.balenco.app>',
-      to,
-      subject,
+      to: client.email,
+      subject: `Your estimate from ${company} — ${est.title}`,
       html,
     }),
   })
@@ -34,6 +170,11 @@ Deno.serve(async (req) => {
       status: 500, headers: { ...cors, 'Content-Type': 'application/json' }
     })
   }
+
+  await sb.from('estimates')
+    .update({ status: 'Sent', updated_at: new Date().toISOString() })
+    .eq('id', estimate_id)
+    .neq('status', 'Accepted')
 
   return new Response(JSON.stringify({ success: true }), {
     headers: { ...cors, 'Content-Type': 'application/json' }
