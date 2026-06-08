@@ -1817,8 +1817,15 @@ Date: ${date(e.createdAt)}`;
 
   function copyEstimate() {
     const e = currentEstimate();
-    navigator.clipboard.writeText(estimateText(e));
-    toast('Estimate copied');
+    if (!e) { toast('Select an estimate first'); return; }
+    const text = estimateText(e);
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text)
+        .then(() => toast('Estimate copied to clipboard'))
+        .catch(() => { prompt('Copy this estimate text:', text); });
+    } else {
+      prompt('Copy this estimate text:', text);
+    }
   }
 
   async function emailEstimate() {
@@ -1883,8 +1890,9 @@ Date: ${date(e.createdAt)}`;
 
   function printEstimate() {
     const e = currentEstimate();
-    if (!e) return;
+    if (!e) { toast('Select an estimate first'); return; }
     const win = window.open('', '_blank');
+    if (!win) { toast('Popup blocked — please allow popups for balenco.app and try again'); return; }
     win.document.write(estimatePageHTML(e) + '<script>window.print()<\/script>');
     win.document.close();
   }
@@ -2273,6 +2281,7 @@ Date: ${date(e.createdAt)}`;
     if (!e) { toast('Select an estimate first'); return; }
     if (e.status !== 'Accepted') { toast('Only accepted estimates can be invoiced'); return; }
     const win = window.open('', '_blank');
+    if (!win) { toast('Popup blocked — please allow popups for balenco.app and try again'); return; }
     win.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Invoice</title><style>' + printStyles() + '</style></head><body>' + invoiceHTML(e) + '<script>window.print()<\/script></body></html>');
     win.document.close();
     log('Printed invoice', user + ' printed invoice for ' + e.title);
@@ -2358,9 +2367,15 @@ Date: ${date(e.createdAt)}`;
     try {
       const { data, error } = await sb.functions.invoke('create-checkout', { body: { estimate_id: e.id } });
       if (error) throw new Error(error.message);
-      if (data.error) throw new Error(data.error);
-      await navigator.clipboard.writeText(data.url);
-      toast('Payment link copied — send it to your client');
+      if (data && data.error) throw new Error(data.error);
+      const url = data.url;
+      if (!url) throw new Error('No checkout URL returned');
+      try {
+        await navigator.clipboard.writeText(url);
+        toast('Payment link copied — paste it and send to your client');
+      } catch {
+        prompt('Your payment link (copy it):', url);
+      }
       log('Created payment link', user + ' created Stripe payment link for ' + e.title);
     } catch (err) {
       toast('Error: ' + err.message);
@@ -2586,8 +2601,13 @@ Date: ${date(e.createdAt)}`;
     const e = currentEstimate();
     if (!e) { toast('Select an estimate first'); return; }
     const link = 'https://balenco.app/?approve=' + e.id;
-    navigator.clipboard.writeText(link);
-    toast('Approval link copied');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(link)
+        .then(() => toast('Approval link copied — send it to your client'))
+        .catch(() => { prompt('Copy this approval link:', link); });
+    } else {
+      prompt('Copy this approval link:', link);
+    }
   }
 
   async function approvalPageInit() {
