@@ -2420,8 +2420,13 @@ Date: ${date(e.createdAt)}`;
 
   function copyClientLink(id) {
     const link = 'https://balenco.app/?client=' + id;
-    navigator.clipboard.writeText(link);
-    toast('Client link copied');
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(link)
+        .then(() => toast('Client portal link copied — send it to your client'))
+        .catch(() => { prompt('Copy this client portal link:', link); });
+    } else {
+      prompt('Copy this client portal link:', link);
+    }
   }
 
   function exportCSV() {
