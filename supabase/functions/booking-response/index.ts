@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        from: 'Balenco <notifications@balenco.app>',
+        from: 'Balenco <notifications@mail.balenco.app>',
         to: appt.booker_email,
         subject: isConfirm
           ? `✅ Appointment Confirmed — ${company}`

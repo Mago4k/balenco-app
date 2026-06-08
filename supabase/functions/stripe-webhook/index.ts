@@ -76,7 +76,7 @@ Deno.serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'Balenco <notifications@balenco.app>',
+          from: 'Balenco <notifications@mail.balenco.app>',
           to:   cfg.email,
           subject: `💳 Payment received — ${est.title}`,
           html: `
@@ -129,7 +129,7 @@ Deno.serve(async (req) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          from: 'Balenco <notifications@balenco.app>',
+          from: 'Balenco <notifications@mail.balenco.app>',
           to:   clientRow.email,
           subject: `✅ Deposit received — ${est.title}`,
           html: `
@@ -173,7 +173,7 @@ Deno.serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: 'Balenco <notifications@balenco.app>',
+        from: 'Balenco <notifications@mail.balenco.app>',
         to:   cfg.email,
         subject: `💳 Deposit received — ${est.title}`,
         html: `
