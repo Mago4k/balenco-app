@@ -1833,25 +1833,36 @@ Date: ${date(e.createdAt)}`;
     if (!e) return;
     const c = client(e.clientId) || {};
     if (!c.email) { toast('No email on file for this client. Add one in their profile first.'); return; }
-    if (!e.clientId) { toast('Link a client to this estimate first.'); return; }
     const btn = $('emailEstimateBtn');
     btn.textContent = 'Sending…';
     btn.disabled = true;
     try {
+      const portalLink = e.clientId ? 'https://balenco.app/?client=' + e.clientId : null;
+      const portalBtn = portalLink
+        ? '<div style="text-align:center;margin:28px 0">' +
+            '<a href="' + portalLink + '" style="background:#062A5E;color:#fff;text-decoration:none;padding:16px 36px;border-radius:10px;font-size:16px;font-weight:800;display:inline-block">' +
+            (Number(e.deposit) > 0 ? 'Review, Approve &amp; Pay Deposit →' : 'Review &amp; Approve Your Estimate →') +
+            '</a>' +
+            '<div style="margin-top:10px;font-size:12px;color:#94a3b8">Secure client portal · No account required</div>' +
+          '</div>'
+        : '';
+      const subject = 'Your estimate from ' + esc(state.settings.company || 'Balenco') + ' — ' + esc(e.title);
+      const html = '<div style="font-family:Arial,sans-serif;max-width:640px;margin:0 auto;background:#fff;padding:24px">' + estimateHTML(e) + portalBtn + '</div>';
       const { data: { session } } = await sb.auth.getSession();
       const token = session?.access_token || SUPA_KEY;
       const res = await fetch('https://wvqqazdzejjksjcjdbcm.supabase.co/functions/v1/send-estimate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ estimate_id: e.id })
+        body: JSON.stringify({ to: c.email, subject, html })
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      // Mark as Sent locally
+      // Mark as Sent
       e.status = 'Sent';
+      sb.from('estimates').update({ status: 'Sent', updated_at: new Date().toISOString() }).eq('id', e.id).neq('status', 'Accepted');
       save();
       renderAll();
-      toast('Estimate sent to ' + c.email + ' with portal link');
+      toast('Estimate sent to ' + c.email);
       log('Sent estimate', user + ' emailed estimate to ' + c.email);
     } catch (err) {
       toast('Send failed: ' + err.message);
