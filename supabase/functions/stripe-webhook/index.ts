@@ -108,14 +108,64 @@ Deno.serve(async (req) => {
   if (!est) return new Response('Estimate not found', { status: 404 })
 
   await sb.from('estimates')
-    .update({ status: 'Accepted', updated_at: new Date().toISOString() })
+    .update({ status: 'Accepted', approved_by: 'Client (Stripe)', approved_at: new Date().toISOString(), updated_at: new Date().toISOString() })
     .eq('id', estimateId)
     .neq('status', 'Accepted')
 
-  // Notify owner
-  const { data: cfg } = await sb.from('settings').select('email,company').eq('org_id', est.org_id).maybeSingle()
+  const amtPaid = session.amount_total ? session.amount_total / 100 : 0
+  const fmt = (n: number) => '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+
+  const { data: cfg } = await sb.from('settings').select('email,company,phone').eq('org_id', est.org_id).maybeSingle()
+
+  // ── Email client confirmation ─────────────────────────────────
+  if (est.client_id) {
+    const { data: clientRow } = await sb.from('clients').select('name,email').eq('id', est.client_id).single()
+    if (clientRow?.email) {
+      const portalLink = `https://balenco.app/?client=${est.client_id}`
+      await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${Deno.env.get('RESEND_API_KEY')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from: 'Balenco <notifications@balenco.app>',
+          to:   clientRow.email,
+          subject: `✅ Deposit received — ${est.title}`,
+          html: `
+<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#fff">
+  <div style="background:#062A5E;padding:28px 32px;border-radius:12px 12px 0 0;text-align:center">
+    <div style="font-size:52px;margin-bottom:8px">✅</div>
+    <h2 style="color:#fff;margin:0;font-size:22px">Deposit Received!</h2>
+    <p style="color:#93c5fd;margin:8px 0 0;font-size:14px">${cfg?.company || 'Balenco'}</p>
+  </div>
+  <div style="padding:28px 32px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px">
+    <p style="font-size:16px;color:#334155;margin:0 0 8px">Hi <strong>${clientRow.name}</strong>,</p>
+    <p style="font-size:15px;color:#64748b;margin:0 0 24px">Your deposit for <strong>${est.title}</strong> has been received and your estimate is now confirmed. 🎉</p>
+    <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:24px">
+      <table style="width:100%;border-collapse:collapse">
+        <tr><td style="padding:12px 16px;font-size:14px;color:#64748b">Estimate</td><td style="padding:12px 16px;font-size:14px;font-weight:700;text-align:right;color:#0f172a">${est.title}</td></tr>
+        <tr><td style="padding:12px 16px;font-size:14px;color:#64748b;border-top:1px solid #f1f5f9">Deposit paid</td><td style="padding:12px 16px;font-size:15px;font-weight:900;color:#10b981;text-align:right;border-top:1px solid #f1f5f9">${fmt(amtPaid)}</td></tr>
+      </table>
+    </div>
+    <div style="text-align:center;margin:24px 0">
+      <a href="${portalLink}" style="background:#062A5E;color:#fff;text-decoration:none;padding:15px 32px;border-radius:10px;font-size:15px;font-weight:800;display:inline-block">
+        View Your Client Portal →
+      </a>
+      <div style="margin-top:8px;font-size:12px;color:#94a3b8">Track your balance &amp; upcoming appointments</div>
+    </div>
+    <div style="font-size:13px;color:#94a3b8;text-align:center;margin-top:16px;padding-top:16px;border-top:1px solid #f1f5f9">
+      Questions? ${cfg?.email || ''}${cfg?.email && cfg?.phone ? ' · ' : ''}${cfg?.phone || ''}
+    </div>
+  </div>
+</div>`,
+        }),
+      })
+    }
+  }
+
+  // ── Notify owner ──────────────────────────────────────────────
   if (cfg?.email) {
-    const amtPaid = session.amount_total ? session.amount_total / 100 : 0
     await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -131,7 +181,7 @@ Deno.serve(async (req) => {
   <div style="background:#062A5E;border-radius:12px;padding:20px 24px;margin-bottom:24px">
     <h2 style="color:#fff;margin:0;font-size:20px">💳 Deposit Received</h2>
   </div>
-  <p style="font-size:15px;color:#333">A deposit of <strong style="color:#10b981">$${amtPaid.toFixed(2)}</strong> was paid for <strong>${est.title}</strong>.</p>
+  <p style="font-size:15px;color:#333">A deposit of <strong style="color:#10b981">${fmt(amtPaid)}</strong> was paid for <strong>${est.title}</strong>.</p>
   <p style="font-size:14px;color:#666">The estimate has been marked as Accepted in Balenco.</p>
 </div>`,
       }),

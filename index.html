@@ -1833,25 +1833,21 @@ Date: ${date(e.createdAt)}`;
     if (!e) return;
     const c = client(e.clientId) || {};
     if (!c.email) { toast('No email on file for this client. Add one in their profile first.'); return; }
+    if (!e.clientId) { toast('Link a client to this estimate first.'); return; }
     const btn = $('emailEstimateBtn');
     btn.textContent = 'Sending…';
     btn.disabled = true;
     try {
-      const subject = 'Estimate – ' + e.title;
-      const html = estimateHTML(e);
-      const { data: { session } } = await sb.auth.getSession();
-      const token = session?.access_token || SUPA_KEY;
-      const res = await fetch('https://wvqqazdzejjksjcjdbcm.supabase.co/functions/v1/send-estimate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token
-        },
-        body: JSON.stringify({ to: c.email, subject, html })
+      const { data, error } = await sb.functions.invoke('send-estimate', {
+        body: { estimate_id: e.id }
       });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      toast('Estimate sent to ' + c.email);
+      if (error) throw new Error(error.message);
+      if (data && data.error) throw new Error(data.error);
+      // Mark as Sent locally
+      e.status = 'Sent';
+      save();
+      renderAll();
+      toast('Estimate sent to ' + c.email + ' with portal link');
       log('Sent estimate', user + ' emailed estimate to ' + c.email);
     } catch (err) {
       toast('Send failed: ' + err.message);
@@ -2410,11 +2406,27 @@ Date: ${date(e.createdAt)}`;
     try {
       const { data, error } = await sb.functions.invoke('create-checkout', { body: { estimate_id: estimateId } });
       if (error) throw new Error(error.message);
-      if (data.error) throw new Error(data.error);
+      if (data && data.error) throw new Error(data.error);
       window.location.href = data.url;
     } catch (err) {
-      toast('Error: ' + err.message);
+      alert('Error: ' + err.message);
       if (btn) { btn.textContent = 'Pay deposit'; btn.disabled = false; }
+    }
+  }
+
+  async function approveEstimatePortal(estimateId, clientId) {
+    const btn = document.getElementById('approveBtn-' + estimateId);
+    if (btn) { btn.textContent = 'Approving…'; btn.disabled = true; }
+    try {
+      const { data, error } = await sb.functions.invoke('approve-estimate', {
+        body: { estimate_id: estimateId, client_id: clientId }
+      });
+      if (error || (data && data.error)) throw new Error((data && data.error) || error.message);
+      // Reload portal to show updated state + payment section
+      window.location.reload();
+    } catch (err) {
+      alert('Error: ' + err.message);
+      if (btn) { btn.textContent = '✅ Approve Estimate'; btn.disabled = false; }
     }
   }
 
@@ -2561,7 +2573,32 @@ Date: ${date(e.createdAt)}`;
             '</div>';
           } else if (est.status === 'Accepted' && remaining === 0) {
             paySection = '<div style="margin-top:14px;text-align:center;padding:12px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:10px;color:#10b981;font-weight:700;font-size:14px">✅ Paid in full — thank you!</div>';
+          } else if (est.status !== 'Lost') {
+            // Pending approval — inline approve + deposit
+            var depositLine = deposit > 0
+              ? '<div style="margin-bottom:14px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:12px 14px">' +
+                  '<div style="font-size:11px;font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:.5px">Deposit to confirm</div>' +
+                  '<div style="font-size:20px;font-weight:900;color:#fff;margin-top:2px">' + money(deposit) + '</div>' +
+                  (est.payment_schedule ? '<div style="font-size:12px;color:#5b7ca8;margin-top:2px">' + esc(est.payment_schedule) + '</div>' : '') +
+                '</div>'
+              : '';
+            var approveBtn = deposit > 0
+              ? '<button id="payBtn-' + est.id + '" onclick="payDeposit(\'' + est.id + '\')" ' +
+                  'style="width:100%;background:#062A5E;color:#fff;border:none;border-radius:10px;padding:14px;font-weight:800;font-size:15px;cursor:pointer;letter-spacing:-.2px">' +
+                  'Approve &amp; Pay ' + money(deposit) + ' Deposit →' +
+                '</button>'
+              : '<button id="approveBtn-' + est.id + '" onclick="approveEstimatePortal(\'' + est.id + '\',\'' + clientId + '\')" ' +
+                  'style="width:100%;background:#10b981;color:#fff;border:none;border-radius:10px;padding:14px;font-weight:800;font-size:15px;cursor:pointer">' +
+                  '✅ Approve Estimate' +
+                '</button>';
+            paySection = '<div style="margin-top:16px;background:rgba(251,191,36,0.06);border:1px solid rgba(251,191,36,0.2);border-radius:12px;padding:16px">' +
+              '<div style="font-size:13px;font-weight:700;color:#fbbf24;margin-bottom:12px">⏳ Awaiting your approval</div>' +
+              depositLine +
+              approveBtn +
+              '<div style="font-size:12px;color:#5b7ca8;margin-top:10px;text-align:center">Secure payment powered by Stripe</div>' +
+            '</div>';
           }
+
           html += '<div class="portal-est-card">' +
             '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">' +
               '<div><h4>' + esc(est.title) + '</h4><p class="muted" style="margin:0;font-size:13px">' + esc(est.scope || '') + '</p></div>' +
@@ -2573,7 +2610,6 @@ Date: ${date(e.createdAt)}`;
               '<div class="pay-card"><span>Balance</span><strong style="color:' + (remaining > 0 ? '#ef4444' : '#10b981') + '">' + money(remaining) + '</strong></div>' +
             '</div>' +
             histBlock +
-            (est.status !== 'Accepted' && est.status !== 'Lost' ? '<div style="margin-top:12px"><a class="btn approve" style="text-decoration:none;display:inline-flex" href="/?approve=' + est.id + '">Review &amp; approve estimate</a></div>' : '') +
             paySection +
           '</div>';
         });
@@ -2979,6 +3015,7 @@ Date: ${date(e.createdAt)}`;
   window.closeClientHistory = closeClientHistory;
   window.payDeposit = payDeposit;
   window.payBalance = payBalance;
+  window.approveEstimatePortal = approveEstimatePortal;
   window.removeLineItem = removeLineItem;
   window.calcLineItems = calcLineItems;
   window.saveBookingSettings = saveBookingSettings;
