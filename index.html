@@ -616,6 +616,10 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
               <input id="setFollowupDays" type="number" min="1" max="30" style="width:70px;text-align:center" placeholder="3">
               <span class="muted" style="font-size:13px;white-space:nowrap">days</span>
             </div>
+            <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);border:1px solid var(--line);border-radius:14px;padding:12px 14px">
+              <div style="flex:1"><strong style="display:block;font-size:14px;color:var(--text)">🔔 Push notifications</strong><span class="muted" id="pushStatus" style="font-size:13px">Get an alert on this device when a client books online</span></div>
+              <button type="button" class="btn small" id="pushToggleBtn" onclick="togglePush()">Enable</button>
+            </div>
             <button class="btn" type="submit">Save settings</button>
           </form>
         </div>
@@ -1479,6 +1483,86 @@ Date: ${date(e.createdAt)}`;
     $('setTerms').value = state.settings.terms || '';
     $('setFollowupDays').value = state.settings.followupDays ?? 3;
     $('logoStatus').textContent = state.settings.logo ? 'Custom logo uploaded and ready for estimates.' : 'No custom logo uploaded.';
+    refreshPushUI();
+  }
+
+  // ===== Push notifications (booking alerts on this device) =====
+  const VAPID_PUBLIC_KEY = 'BNn3Ccpt_8GntTE2yPj3UN0IuwuP0_IOA6yfgbKlEsYFbcDIjE3OCdtRiXWeGTKXcX4rV9LK1DNBh429NwZxPOg';
+
+  function urlBase64ToUint8Array(base64) {
+    const padding = '='.repeat((4 - base64.length % 4) % 4);
+    const b64 = (base64 + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(b64);
+    const arr = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) arr[i] = raw.charCodeAt(i);
+    return arr;
+  }
+
+  function pushSupported() {
+    return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+  }
+
+  async function refreshPushUI() {
+    const btn = $('pushToggleBtn'), status = $('pushStatus');
+    if (!btn) return;
+    if (!pushSupported()) {
+      btn.style.display = 'none';
+      status.textContent = 'Not supported on this browser. On iPhone: add Balenco to your Home Screen first (Share → Add to Home Screen).';
+      return;
+    }
+    if (Notification.permission === 'denied') {
+      btn.style.display = 'none';
+      status.textContent = 'Blocked — allow notifications for this site in your browser settings, then reload.';
+      return;
+    }
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      btn.style.display = '';
+      if (sub) {
+        btn.textContent = 'Disable';
+        btn.classList.add('out');
+        status.textContent = 'Enabled on this device — you\'ll get an alert when a client books online.';
+      } else {
+        btn.textContent = 'Enable';
+        btn.classList.remove('out');
+        status.textContent = 'Get an alert on this device when a client books online';
+      }
+    } catch (e) { /* service worker not ready yet — leave defaults */ }
+  }
+
+  async function togglePush() {
+    if (!pushSupported()) return;
+    const btn = $('pushToggleBtn');
+    btn.disabled = true;
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const existing = await reg.pushManager.getSubscription();
+      if (existing) {
+        await sb.from('push_subscriptions').delete().eq('endpoint', existing.endpoint);
+        await existing.unsubscribe();
+        toast('Push notifications disabled');
+      } else {
+        const perm = await Notification.requestPermission();
+        if (perm !== 'granted') { toast('Notifications not allowed'); btn.disabled = false; refreshPushUI(); return; }
+        const sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+        });
+        const j = sub.toJSON();
+        const { error } = await sb.from('push_subscriptions').upsert({
+          endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth,
+          org_id: orgId, user_name: user
+        }, { onConflict: 'endpoint' });
+        if (error) { await sub.unsubscribe(); throw error; }
+        toast('Push notifications enabled 🔔');
+        log('Push enabled', `${user} turned on booking alerts on a device.`);
+      }
+    } catch (e) {
+      toast('Could not update notifications: ' + (e.message || e));
+    }
+    btn.disabled = false;
+    refreshPushUI();
   }
 
   function addLead(event) {
@@ -2501,6 +2585,24 @@ Date: ${date(e.createdAt)}`;
     }
   }
 
+  function viewInvoicePortal(estimateId) {
+    const est = state.estimates.find(function(e) { return e.id === estimateId; });
+    if (!est || est.status !== 'Accepted') return;
+    // Portal estimates are raw DB rows — adapt to the shape invoiceHTML expects
+    const e = Object.assign({}, est, {
+      clientId: est.client_id,
+      approvedAt: est.approved_at || '',
+      approvedBy: est.approved_by || '',
+      paymentNotes: est.payment_notes || ''
+    });
+    const win = window.open('', '_blank');
+    if (!win) { alert('Popup blocked — please allow popups to view your invoice.'); return; }
+    win.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Invoice — ' + esc(est.title || '') + '</title><style>' + printStyles() +
+      '.print-bar{position:fixed;top:14px;right:14px}.print-bar button{background:#062A5E;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.18)}@media print{.print-bar{display:none}}' +
+      '</style></head><body><div class="print-bar"><button onclick="window.print()">Print / Save as PDF</button></div>' + invoiceHTML(e) + '</body></html>');
+    win.document.close();
+  }
+
   async function payDeposit(estimateId) {
     const btn = document.getElementById('payBtn-' + estimateId);
     if (btn) { btn.textContent = 'Loading…'; btn.disabled = true; }
@@ -2700,6 +2802,13 @@ Date: ${date(e.createdAt)}`;
             '</div>';
           }
 
+          var invoiceBtn = est.status === 'Accepted'
+            ? '<button onclick="viewInvoicePortal(\'' + est.id + '\')" ' +
+                'style="width:100%;margin-top:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.14);color:#dce8ff;border-radius:10px;padding:11px;font-weight:700;font-size:14px;cursor:pointer">' +
+                '🧾 View invoice — print or save as PDF' +
+              '</button>'
+            : '';
+
           html += '<div class="portal-est-card">' +
             '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">' +
               '<div><h4>' + esc(est.title) + '</h4><p class="muted" style="margin:0;font-size:13px">' + esc(est.scope || '') + '</p></div>' +
@@ -2712,6 +2821,7 @@ Date: ${date(e.createdAt)}`;
             '</div>' +
             histBlock +
             paySection +
+            invoiceBtn +
           '</div>';
         });
         html += '</div>';
@@ -3116,6 +3226,8 @@ Date: ${date(e.createdAt)}`;
   window.closeClientHistory = closeClientHistory;
   window.payDeposit = payDeposit;
   window.payBalance = payBalance;
+  window.viewInvoicePortal = viewInvoicePortal;
+  window.togglePush = togglePush;
   window.approveEstimatePortal = approveEstimatePortal;
   window.removeLineItem = removeLineItem;
   window.calcLineItems = calcLineItems;

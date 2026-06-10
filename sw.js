@@ -1,4 +1,4 @@
-const CACHE = 'balenco-v2';
+const CACHE = 'balenco-v3';
 const SHELL = ['/', '/index.html', '/icon-192.png', '/icon-512.png', '/apple-touch-icon.png'];
 
 // Install — cache the app shell
@@ -38,6 +38,34 @@ self.addEventListener('fetch', e => {
         return res;
       }).catch(() => cached);
       return cached || network;
+    })
+  );
+});
+
+// Push — show a notification when the server sends one
+self.addEventListener('push', e => {
+  let data = {};
+  try { data = e.data ? e.data.json() : {}; } catch { data = { body: e.data ? e.data.text() : '' }; }
+  const title = data.title || 'Balenco';
+  e.waitUntil(self.registration.showNotification(title, {
+    body: data.body || '',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    tag: data.tag || 'balenco',
+    data: { url: data.url || '/' }
+  }));
+});
+
+// Notification click — focus the app if open, otherwise open it
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || '/';
+  e.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(wins => {
+      for (const w of wins) {
+        if (w.url.startsWith(self.location.origin) && 'focus' in w) return w.focus();
+      }
+      return self.clients.openWindow(url);
     })
   );
 });
