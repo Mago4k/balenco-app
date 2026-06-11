@@ -8,7 +8,7 @@ const cors = {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
 
-  const { estimate_id, client_id } = await req.json()
+  const { estimate_id, client_id, approved_by } = await req.json()
   if (!estimate_id || !client_id) {
     return new Response(JSON.stringify({ error: 'Missing fields' }), {
       status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
   const now = new Date().toISOString()
   await sb.from('estimates').update({
     status: 'Accepted',
-    approved_by: 'Client',
+    approved_by: approved_by || 'Client',
     approved_at: now,
     updated_at: now,
   }).eq('id', estimate_id)

@@ -39,21 +39,20 @@ Deno.serve(async (req) => {
     const amount    = Number(meta.amount || 0)
     const clientId  = meta.client_id || ''
 
-    // Fetch current payments array and estimate info
-    const { data: est } = await sb.from('estimates').select('payments,title,org_id').eq('id', estimateId).single()
-    if (!est) return new Response('Estimate not found', { status: 404 })
-
-    const payments = est.payments || []
-    payments.push({
-      id:     crypto.randomUUID(),
-      amount,
-      note:   'Online payment',
-      date:   new Date().toISOString(),
-      by:     'Client (Stripe)',
-      stripe_session: session.id,
+    // Atomic + idempotent: locks the estimate row, and skips if this Stripe
+    // session was already recorded (handles Stripe retries / double delivery).
+    const { data: rpc, error: rpcErr } = await sb.rpc('record_stripe_payment', {
+      p_estimate_id: estimateId,
+      p_amount:      amount,
+      p_session:     session.id,
     })
+    if (rpcErr)        return new Response(JSON.stringify({ error: rpcErr.message }), { status: 500, headers: { 'Content-Type': 'application/json' } })
+    if (!rpc?.ok)      return new Response('Estimate not found', { status: 404 })
+    if (rpc.duplicate) return new Response(JSON.stringify({ received: true, duplicate: true }), { headers: { 'Content-Type': 'application/json' } })
 
-    await sb.from('estimates').update({ payments }).eq('id', estimateId)
+    // Estimate info for the owner notification
+    const { data: est } = await sb.from('estimates').select('title,org_id').eq('id', estimateId).single()
+    if (!est) return new Response(JSON.stringify({ received: true }), { headers: { 'Content-Type': 'application/json' } })
 
     // Notify owner by email
     const { data: cfg } = await sb.from('settings').select('email,company,tps,tvq').eq('org_id', est.org_id).maybeSingle()

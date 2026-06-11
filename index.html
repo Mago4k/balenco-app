@@ -2690,23 +2690,18 @@ Date: ${date(e.createdAt)}`;
 
     const content = document.getElementById('portalContent');
     try {
-      const [clientRes, settingsRes, estimatesRes, apptsRes] = await Promise.all([
-        sb.from('clients').select('*').eq('id', clientId).single(),
-        sb.from('settings').select('*').eq('id', 'global').single(),
-        sb.from('estimates').select('*').eq('client_id', clientId).order('created_at', { ascending: false }),
-        sb.from('appointments').select('*').eq('client_id', clientId).order('start_time', { ascending: true })
-      ]);
+      const { data: pd, error: pdErr } = await sb.functions.invoke('portal-data', { body: { mode: 'client', client_id: clientId } });
 
-      if (clientRes.error || !clientRes.data) {
+      if (pdErr || !pd || pd.error || !pd.client) {
         content.innerHTML = '<div style="text-align:center;padding:40px;color:#b91c1c"><strong>Client not found.</strong></div>';
         return true;
       }
 
-      const c = clientRes.data;
-      const cfg = settingsRes.data || {};
-      const estimates = estimatesRes.data || [];
+      const c = pd.client;
+      const cfg = pd.settings || {};
+      const estimates = pd.estimates || [];
       const nowStr = new Date().toISOString();
-      const upcoming = (apptsRes.data || []).filter(a => (a.start_time || '') >= nowStr);
+      const upcoming = (pd.appointments || []).filter(a => (a.start_time || '') >= nowStr);
 
       state = {
         settings: { tps: cfg.tps || 5, tvq: cfg.tvq || 9.975, company: cfg.company || '', logo: cfg.logo || '', address: cfg.address || '', phone: cfg.phone || '', email: cfg.email || '', terms: cfg.terms || '' },
@@ -2872,20 +2867,16 @@ Date: ${date(e.createdAt)}`;
 
     const content = document.getElementById('approveContent');
     try {
-      const [estRes, settingsRes] = await Promise.all([
-        sb.from('estimates').select('*').eq('id', estimateId).single(),
-        sb.from('settings').select('*').eq('id', 'global').single()
-      ]);
+      const { data: pd, error: pdErr } = await sb.functions.invoke('portal-data', { body: { mode: 'estimate', estimate_id: estimateId } });
 
-      if (estRes.error || !estRes.data) {
+      if (pdErr || !pd || pd.error || !pd.estimate) {
         content.innerHTML = '<div style="text-align:center;padding:40px"><strong style="color:#b91c1c">Estimate not found.</strong><br><span style="color:#64748b;font-size:14px">This link may be invalid or expired.</span></div>';
         return true;
       }
 
-      const est = estRes.data;
-      const cfg = settingsRes.data || {};
-      const clientRes = est.client_id ? await sb.from('clients').select('*').eq('id', est.client_id).single() : { data: null };
-      const clientData = clientRes.data || {};
+      const est = pd.estimate;
+      const cfg = pd.settings || {};
+      const clientData = pd.client || {};
 
       // Set a temporary state so estimateHTML can render
       state = {
@@ -2921,7 +2912,7 @@ Date: ${date(e.createdAt)}`;
             '<p>By entering your name and clicking Approve, you agree to the terms above and authorize <strong>' + esc(cfg.company || 'the contractor') + '</strong> to proceed with the described work.</p>' +
             '<div class="sign-row">' +
               '<input id="approveNameInput" placeholder="Your full name" autocomplete="name">' +
-              '<button class="btn approve" id="approveSubmitBtn" onclick="submitApproval(\'' + est.id + '\', ' + (Number(est.deposit) || 0) + ')">Approve & pay deposit</button>' +
+              '<button class="btn approve" id="approveSubmitBtn" onclick="submitApproval(\'' + est.id + '\', ' + (Number(est.deposit) || 0) + ', \'' + (est.client_id || '') + '\')">Approve & pay deposit</button>' +
             '</div>' +
           '</div>';
       }
@@ -2931,7 +2922,7 @@ Date: ${date(e.createdAt)}`;
     return true;
   }
 
-  async function submitApproval(estimateId, depositAmount) {
+  async function submitApproval(estimateId, depositAmount, clientId) {
     const nameInput = document.getElementById('approveNameInput');
     const name = (nameInput ? nameInput.value : '').trim();
     if (!name) { if (nameInput) nameInput.focus(); toast('Please enter your full name to approve.'); return; }
@@ -2941,13 +2932,8 @@ Date: ${date(e.createdAt)}`;
     btn.textContent = 'Approving…';
 
     try {
-      const now = new Date().toISOString();
-      const { error } = await sb.from('estimates')
-        .update({ status: 'Accepted', approved_by: name, approved_at: now, updated_at: now })
-        .eq('id', estimateId)
-        .neq('status', 'Accepted');
-
-      if (error) throw new Error(error.message);
+      const { data: appr, error } = await sb.functions.invoke('approve-estimate', { body: { estimate_id: estimateId, client_id: clientId || '', approved_by: name } });
+      if (error || (appr && appr.error)) throw new Error((appr && appr.error) || error.message);
 
       if (depositAmount && Number(depositAmount) > 0) {
         btn.textContent = 'Redirecting to payment…';

@@ -1,0 +1,31 @@
+# ── Throwaway one-off patch/upgrade scripts ──────────────────────────
+# These string-replace surgery on index.html. Kept on disk, out of git.
+/_check.js
+/fix-*.js
+/add-*.js
+/upgrade-*.js
+/mobile-upgrade.js
+/test-script.js
+
+# ── Secrets / environment (this is a payments app — never commit) ────
+.env
+.env.*
+*.env
+supabase/.env
+supabase/.env.*
+
+# ── Dependencies / build output ──────────────────────────────────────
+node_modules/
+dist/
+build/
+
+# ── Supabase local scratch ───────────────────────────────────────────
+supabase/.branches/
+supabase/.temp/
+
+# ── OS / editor cruft ────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/

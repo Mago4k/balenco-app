@@ -1,0 +1,23 @@
+-- ============================================================
+-- Estimate follow-up cron — ALREADY SCHEDULED, do not re-run
+-- ============================================================
+-- A pg_cron job named 'send-followups-daily' exists in production
+-- (created ~2026-06-04). It runs daily at 10:00 UTC (~6am Montreal)
+-- and POSTs to /functions/v1/send-followups with the project secret key.
+--
+-- There is also 'send-24h-reminders' running hourly (0 * * * *) for
+-- appointment reminders.
+--
+-- Maintenance (SQL Editor):
+--   see schedules:   select jobname, schedule, command from cron.job;
+--   see run history: select status, return_message, start_time
+--                    from cron.job_run_details
+--                    order by start_time desc limit 20;
+--   pause/remove:    select cron.unschedule('send-followups-daily');
+--
+-- Manual test without sending emails (PowerShell):
+--   POST /functions/v1/send-followups with body {"dry_run": true}
+--
+-- Manual single follow-up, ignores age/expiry (used for testing or
+-- a future "send follow-up now" button in the app):
+--   POST /functions/v1/send-followups with body {"estimate_id": "<uuid>"}
