@@ -837,7 +837,9 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 
   // ── Bilingual FR/EN ──────────────────────────────────────────────────
   // Default EN while the full translation is being rolled out; flip to auto/FR once every surface is done.
-  let lang = localStorage.getItem('balenco_lang') || 'en';
+  // App is fully bilingual now → new visitors default to their browser language
+  // (French for Québec) ; anyone who has picked a language keeps their choice.
+  let lang = localStorage.getItem('balenco_lang') || ((navigator.language || '').toLowerCase().indexOf('fr') === 0 ? 'fr' : 'en');
   const I18N = {
     en: {
       'login.signin':'Sign in','login.create':'Create account','login.welcome':'Welcome back','login.welcomeSub':'Enter your credentials to continue.','login.email':'Email address','login.password':'Password','login.forgot':'Forgot password?','login.createCompany':'Create your company','login.createCompanySub':'Sign up and get your own private Balenco workspace instantly.','login.name':'Your full name','login.company':'Company name','login.passMin':'Password (min 6 characters)','login.brandTitle':'Contractor management made simple.','login.brandSub':'Leads, clients, estimates with taxes, appointments, balances, photos, reminders, and owner/employee tracking.','login.secure':'Secure cloud storage powered by Supabase.',
