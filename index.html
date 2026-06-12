@@ -1021,11 +1021,94 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     sb.from('logs').insert({ action, detail, user_name:user, org_id:orgId });
   }
 
+  // Toast / confirm / alert messages are built as English string literals at
+  // ~70 call sites. Rather than wrap each one, tr() translates a message at
+  // display time: exact-match first, then known dynamic prefixes (errors etc.).
+  const UI_FR = {
+    'Account not set up yet. Please sign up again or contact support.':'Compte non configuré. Veuillez vous réinscrire ou contacter le soutien.',
+    'Enter your email above first, then tap Forgot password.':'Entrez d’abord votre courriel ci-dessus, puis touchez Mot de passe oublié.',
+    'If an account exists for that email, a reset link is on its way.':'Si un compte existe pour ce courriel, un lien de réinitialisation est en route.',
+    'Password updated — signing you in…':'Mot de passe mis à jour — connexion en cours…',
+    'Reminder copied':'Rappel copié',
+    'Error updating role':'Erreur de mise à jour du rôle',
+    'Promoted to admin':'Promu administrateur',
+    'Changed to employee':'Changé en employé',
+    'Link not ready yet — try again':'Lien pas encore prêt — réessayez',
+    'Invite link copied':'Lien d’invitation copié',
+    'Not supported on this browser':'Non pris en charge sur ce navigateur',
+    'New invite link generated':'Nouveau lien d’invitation généré',
+    'Push notifications disabled':'Notifications désactivées',
+    'Notifications not allowed':'Notifications non autorisées',
+    'Push notifications enabled 🔔':'Notifications activées 🔔',
+    'Lead saved':'Prospect enregistré',
+    'Client saved':'Client enregistré',
+    'Estimate saved':'Soumission enregistrée',
+    'Photo saved':'Photo enregistrée',
+    'Uploading…':'Téléversement…',
+    'Settings saved':'Paramètres enregistrés',
+    'Lead converted! Creating estimate…':'Prospect converti! Création de la soumission…',
+    'Enter a valid amount':'Entrez un montant valide',
+    'Select an estimate first':'Sélectionnez d’abord une soumission',
+    'Estimate approved':'Soumission approuvée',
+    'Estimate copied to clipboard':'Soumission copiée',
+    'No email on file for this client. Add one in their profile first.':'Aucun courriel pour ce client. Ajoutez-en un dans son profil d’abord.',
+    'Company logo uploaded':'Logo de l’entreprise téléversé',
+    'Company logo removed':'Logo de l’entreprise retiré',
+    'Backup imported and synced to Supabase':'Sauvegarde importée et synchronisée',
+    'Data refreshed':'Données actualisées',
+    'Series deleted':'Série supprimée',
+    'Save company settings first':'Enregistrez d’abord les paramètres de l’entreprise',
+    'Booking settings saved ✓':'Paramètres de réservation enregistrés ✓',
+    'Enable booking first':'Activez d’abord la réservation',
+    'Booking link copied ✓':'Lien de réservation copié ✓',
+    'Only accepted estimates can be invoiced':'Seules les soumissions acceptées peuvent être facturées',
+    'Add a deposit amount to this estimate first':'Ajoutez d’abord un montant d’acompte à cette soumission',
+    'Payment link copied — paste it and send to your client':'Lien de paiement copié — collez-le et envoyez-le à votre client',
+    'Client portal link copied — send it to your client':'Lien du portail client copié — envoyez-le à votre client',
+    'No estimates to export':'Aucune soumission à exporter',
+    'CSV exported':'CSV exporté',
+    'Approval link copied — send it to your client':'Lien d’approbation copié — envoyez-le à votre client',
+    'Please enter your full name to approve.':'Veuillez entrer votre nom complet pour approuver.',
+    'Balenco installed! Find it on your home screen.':'Balenco installé! Retrouvez-le sur votre écran d’accueil.',
+    'Popup blocked — please allow popups for balenco.app and try again':'Fenêtre bloquée — autorisez les fenêtres contextuelles pour balenco.app et réessayez',
+    '✓ Confirmed — client notified':'✓ Confirmé — client avisé',
+    'Declined — client notified':'Refusé — client avisé',
+    'Generate a new invite link? Your current link will stop working.':'Générer un nouveau lien d’invitation? Votre lien actuel cessera de fonctionner.',
+    'Delete this item?':'Supprimer cet élément?',
+    'Refresh all data from the server?':'Actualiser toutes les données depuis le serveur?',
+    'Delete this appointment AND all others in the series?':'Supprimer ce rendez-vous ET tous les autres de la série?',
+    'This client has no address.':'Ce client n’a pas d’adresse.',
+    'Invalid backup file':'Fichier de sauvegarde invalide',
+    'Please enter a valid amount.':'Veuillez entrer un montant valide.',
+    'Popup blocked — please allow popups to view your invoice.':'Fenêtre bloquée — autorisez les fenêtres contextuelles pour voir votre facture.'
+  };
+  const UI_PREFIX_FR = [
+    ['Estimate sent to ', 'Soumission envoyée à '],
+    ['Payment recorded — ', 'Paiement enregistré — '],
+    ['Save error: ', 'Erreur d’enregistrement : '],
+    ['Send failed: ', 'Échec de l’envoi : '],
+    ['PDF error: ', 'Erreur PDF : '],
+    ['Upload failed: ', 'Échec du téléversement : '],
+    ['Photo save error: ', 'Erreur d’enregistrement de la photo : '],
+    ['Recurring save error: ', 'Erreur d’enregistrement récurrent : '],
+    ['Delete series error: ', 'Erreur de suppression de la série : '],
+    ['Could not update notifications: ', 'Impossible de mettre à jour les notifications : '],
+    ['Error: ', 'Erreur : ']
+  ];
+  function tr(m) {
+    if (lang !== 'fr' || !m) return m;
+    if (UI_FR[m]) return UI_FR[m];
+    for (var i = 0; i < UI_PREFIX_FR.length; i++) {
+      if (m.indexOf(UI_PREFIX_FR[i][0]) === 0) return UI_PREFIX_FR[i][1] + m.slice(UI_PREFIX_FR[i][0].length);
+    }
+    return m;
+  }
+
   function toast(message) {
-    const t = $('toast');
-    t.textContent = message;
-    t.style.display = 'block';
-    setTimeout(() => { t.style.display = 'none'; }, 2200);
+    const el = $('toast');
+    el.textContent = tr(message);
+    el.style.display = 'block';
+    setTimeout(() => { el.style.display = 'none'; }, 2200);
   }
 
   function showSignIn() {
@@ -1569,13 +1652,13 @@ Date: ${date(e.createdAt)}`;
 
   function mapClient(id) {
     const c = client(id);
-    if (!c || !c.address) return alert('This client has no address.');
+    if (!c || !c.address) return alert(tr('This client has no address.'));
     window.open(mapsUrl(c.address), '_blank');
   }
 
   function directionsClient(id) {
     const c = client(id);
-    if (!c || !c.address) return alert('This client has no address.');
+    if (!c || !c.address) return alert(tr('This client has no address.'));
     window.open(directionsUrl(c.address), '_blank');
   }
 
@@ -1656,7 +1739,7 @@ Date: ${date(e.createdAt)}`;
 
   async function regenerateInvite() {
     if (!orgId) return;
-    if (!confirm('Generate a new invite link? Your current link will stop working.')) return;
+    if (!confirm(tr('Generate a new invite link? Your current link will stop working.'))) return;
     const newToken = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : null;
     if (!newToken) { toast('Not supported on this browser'); return; }
     const { error } = await sb.from('orgs').update({ join_token: newToken }).eq('id', orgId);
@@ -2211,7 +2294,7 @@ Date: ${date(e.createdAt)}`;
     const e = currentEstimate();
     if (!e) { toast('Select an estimate first'); return; }
     const name = clientName(e.clientId) || user;
-    if (!confirm('Mark "' + e.title + '" as Accepted?')) return;
+    if (!confirm(lang === 'fr' ? 'Marquer « ' + e.title + ' » comme acceptée?' : 'Mark "' + e.title + '" as Accepted?')) return;
     e.status = 'Accepted';
     e.approvedBy = name;
     e.approvedAt = new Date().toISOString();
@@ -2470,7 +2553,7 @@ Date: ${date(e.createdAt)}`;
   }
 
   function deleteItem(collection, id) {
-    if (!confirm('Delete this item?')) return;
+    if (!confirm(tr('Delete this item?'))) return;
     state[collection] = state[collection].filter(x => x.id !== id);
     const _tbl = { clients:'clients', leads:'leads', estimates:'estimates', appointments:'appointments', photos:'photos' }[collection];
     if (_tbl) sb.from(_tbl).delete().eq('id', id);
@@ -2524,13 +2607,13 @@ Date: ${date(e.createdAt)}`;
         if (state.estimates?.length) await sb.from('estimates').upsert(state.estimates.map(e => ({ id:e.id, client_id:e.clientId, title:e.title, subtotal:e.subtotal, deposit:e.deposit, payment_schedule:e.paymentSchedule, payment_notes:e.paymentNotes, approved_by:e.approvedBy||'', approved_at:e.approvedAt||null, status:e.status, scope:e.scope, created_by:e.createdBy, created_at:e.createdAt, updated_by:e.updatedBy, updated_at:e.updatedAt })));
         renderAll();
         toast('Backup imported and synced to Supabase');
-      } catch (err) { alert('Invalid backup file'); }
+      } catch (err) { alert(tr('Invalid backup file')); }
     };
     reader.readAsText(file);
   }
 
   function resetData() {
-    if (!confirm('Refresh all data from the server?')) return;
+    if (!confirm(tr('Refresh all data from the server?'))) return;
     fetchState().then(() => { renderAll(); toast('Data refreshed'); });
   }
 
@@ -2566,7 +2649,7 @@ Date: ${date(e.createdAt)}`;
 
   function deleteSeries(parentId) {
     if (!parentId) return;
-    if (!confirm('Delete this appointment AND all others in the series?')) return;
+    if (!confirm(tr('Delete this appointment AND all others in the series?'))) return;
     // Remove from local state: parent itself + all children
     state.appointments = state.appointments.filter(a => a.id !== parentId && a.recurringParentId !== parentId);
     // Remove from DB: parent row + all child rows
@@ -2588,7 +2671,10 @@ Date: ${date(e.createdAt)}`;
     if (!a) return;
     const who = a.bookerName || clientName(a.clientId);
     const verb = action === 'confirm' ? 'Confirm' : 'Decline';
-    if (!confirm(verb + ' booking from ' + who + '? The client will be notified by email.')) return;
+    const confirmMsg = lang === 'fr'
+      ? (action === 'confirm' ? 'Confirmer' : 'Refuser') + ' la réservation de ' + who + '? Le client sera avisé par courriel.'
+      : verb + ' booking from ' + who + '? The client will be notified by email.';
+    if (!confirm(confirmMsg)) return;
     // Optimistic update
     a.bookingStatus = action === 'confirm' ? 'confirmed' : 'declined';
     renderAll();
@@ -2899,7 +2985,7 @@ Date: ${date(e.createdAt)}`;
   async function payBalance(estimateId, clientId) {
     const input = document.getElementById('payAmt-' + estimateId);
     const amount = parseFloat(input ? input.value : '0');
-    if (!amount || amount <= 0) { alert('Please enter a valid amount.'); return; }
+    if (!amount || amount <= 0) { alert(tr('Please enter a valid amount.')); return; }
     const btn = input ? input.parentElement.nextElementSibling : null;
     if (btn) { btn.textContent = 'Loading…'; btn.disabled = true; }
     try {
@@ -2910,7 +2996,7 @@ Date: ${date(e.createdAt)}`;
       if (data && data.url) { window.location.href = data.url; return; }
       throw new Error('No checkout URL returned.');
     } catch (err) {
-      alert('Error: ' + err.message);
+      alert(tr('Error: ' + err.message));
       if (btn) { btn.textContent = 'Pay via card →'; btn.disabled = false; }
     }
   }
@@ -2926,7 +3012,7 @@ Date: ${date(e.createdAt)}`;
       paymentNotes: est.payment_notes || ''
     });
     const win = window.open('', '_blank');
-    if (!win) { alert('Popup blocked — please allow popups to view your invoice.'); return; }
+    if (!win) { alert(tr('Popup blocked — please allow popups to view your invoice.')); return; }
     win.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Invoice — ' + esc(est.title || '') + '</title><style>' + printStyles() +
       '.print-bar{position:fixed;top:14px;right:14px}.print-bar button{background:#062A5E;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.18)}@media print{.print-bar{display:none}}' +
       '</style></head><body><div class="print-bar"><button onclick="window.print()">Print / Save as PDF</button></div>' + invoiceHTML(e) + '</body></html>');
@@ -2942,7 +3028,7 @@ Date: ${date(e.createdAt)}`;
       if (data && data.error) throw new Error(data.error);
       window.location.href = data.url;
     } catch (err) {
-      alert('Error: ' + err.message);
+      alert(tr('Error: ' + err.message));
       if (btn) { btn.textContent = 'Pay deposit'; btn.disabled = false; }
     }
   }
@@ -2958,7 +3044,7 @@ Date: ${date(e.createdAt)}`;
       // Reload portal to show updated state + payment section
       window.location.reload();
     } catch (err) {
-      alert('Error: ' + err.message);
+      alert(tr('Error: ' + err.message));
       if (btn) { btn.textContent = '✅ Approve Estimate'; btn.disabled = false; }
     }
   }
@@ -3530,7 +3616,7 @@ Date: ${date(e.createdAt)}`;
       document.getElementById('bkSuccess').style.display = 'block';
       document.getElementById('bkSuccess').scrollIntoView({ behavior:'smooth' });
     } catch(err) {
-      alert('Error: ' + err.message);
+      alert(tr('Error: ' + err.message));
       btn.disabled = false; btn.textContent = 'Request Appointment →';
     }
   }
