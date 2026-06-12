@@ -5,6 +5,26 @@ const cors = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Wall-clock time in America/Montreal -> the matching UTC instant (DST-correct).
+function tzOffsetMs(utcMs: number, tz: string): number {
+  const dtf = new Intl.DateTimeFormat('en-US', { timeZone: tz, hour12: false, year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' })
+  const m: Record<string, string> = {}
+  for (const p of dtf.formatToParts(new Date(utcMs))) m[p.type] = p.value
+  const hh = m.hour === '24' ? '00' : m.hour
+  const asUTC = Date.UTC(+m.year, +m.month - 1, +m.day, +hh, +m.minute, +m.second)
+  return asUTC - utcMs
+}
+function montrealToUtc(dateStr: string, timeStr: string): Date {
+  const [y, mo, d] = dateStr.split('-').map(Number)
+  const [h, mi] = timeStr.split(':').map(Number)
+  const guess = Date.UTC(y, mo - 1, d, h, mi, 0)
+  const o1 = tzOffsetMs(guess, 'America/Montreal')
+  let ts = guess - o1
+  const o2 = tzOffsetMs(ts, 'America/Montreal')
+  if (o2 !== o1) ts = guess - o2
+  return new Date(ts)
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
 
@@ -27,7 +47,7 @@ Deno.serve(async (req) => {
     })
   }
 
-  const start = new Date(`${date}T${time}:00`)
+  const start = montrealToUtc(date, time)
   const slotMin: number = avail.slot_minutes
   const end = new Date(start.getTime() + slotMin * 60000)
 
