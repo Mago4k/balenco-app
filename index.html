@@ -289,6 +289,10 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 .bk-day-check { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; background:#0a1628; border:1px solid var(--line); border-radius:10px; cursor:pointer; font-size:13px; font-weight:700; color:var(--text); transition:border-color .15s; }
 .bk-day-check:has(input:checked) { border-color:rgba(79,195,247,0.45); background:rgba(79,195,247,0.08); color:#4fc3f7; }
 .bk-day-check input { accent-color:#4fc3f7; width:14px; height:14px; }
+/* ── Language toggle ── */
+.lang-toggle { display:flex; gap:4px; }
+.lang-toggle button { background:rgba(255,255,255,0.05); border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:4px 9px; font-size:12px; font-weight:800; cursor:pointer; line-height:1; }
+.lang-toggle button.active { background:rgba(79,195,247,0.15); color:var(--blue); border-color:rgba(79,195,247,0.4); }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
@@ -332,40 +336,41 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     <div class="login-brand">
       <div>
         <div class="logo"><img src="/logo.png" alt="Balenco"></div>
-        <h1>Contractor management made simple.</h1>
-        <p>Leads, clients, estimates with taxes, appointments, balances, photos, reminders, and owner/employee tracking.</p>
+        <h1 data-i18n="login.brandTitle">Contractor management made simple.</h1>
+        <p data-i18n="login.brandSub">Leads, clients, estimates with taxes, appointments, balances, photos, reminders, and owner/employee tracking.</p>
       </div>
-      <p style="font-size:13px">Secure cloud storage powered by Supabase.</p>
+      <p style="font-size:13px" data-i18n="login.secure">Secure cloud storage powered by Supabase.</p>
     </div>
     <div class="login-form">
+      <div class="lang-toggle" style="justify-content:flex-end;margin-bottom:8px"><button type="button" data-lang="en" onclick="setLang('en')">EN</button><button type="button" data-lang="fr" onclick="setLang('fr')">FR</button></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
-        <button id="tabSignIn" class="btn" type="button" style="border-radius:14px">Sign in</button>
-        <button id="tabSignUp" class="btn out" type="button" style="border-radius:14px">Create account</button>
+        <button id="tabSignIn" class="btn" type="button" style="border-radius:14px" data-i18n="login.signin">Sign in</button>
+        <button id="tabSignUp" class="btn out" type="button" style="border-radius:14px" data-i18n="login.create">Create account</button>
       </div>
       <div id="panelSignIn">
-        <div class="title" style="margin-top:8px"><div><h3>Welcome back</h3><p>Enter your credentials to continue.</p></div></div>
-        <input type="email" id="loginEmail" placeholder="Email address" autocomplete="username">
-        <div style="position:relative"><input type="password" id="loginPass" placeholder="Password" autocomplete="current-password" style="width:100%;padding-right:42px"><button type="button" onclick="togglePass('loginPass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;color:#64748b;display:flex;align-items:center"><i data-lucide="eye" style="width:18px;height:18px"></i></button></div>
+        <div class="title" style="margin-top:8px"><div><h3 data-i18n="login.welcome">Welcome back</h3><p data-i18n="login.welcomeSub">Enter your credentials to continue.</p></div></div>
+        <input type="email" id="loginEmail" data-i18n-ph="login.email" placeholder="Email address" autocomplete="username">
+        <div style="position:relative"><input type="password" id="loginPass" data-i18n-ph="login.password" placeholder="Password" autocomplete="current-password" style="width:100%;padding-right:42px"><button type="button" onclick="togglePass('loginPass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;color:#64748b;display:flex;align-items:center"><i data-lucide="eye" style="width:18px;height:18px"></i></button></div>
         <div id="loginError" style="color:var(--danger);font-size:13px;display:none;padding:8px 12px;background:#fef2f2;border-radius:12px;border:1px solid #fecaca;"></div>
-        <button class="btn" type="button" id="enterBtn">Sign in</button>
-        <button type="button" id="forgotBtn" style="background:none;border:none;color:var(--blue);font-size:13px;cursor:pointer;padding:4px 0;justify-self:start">Forgot password?</button>
+        <button class="btn" type="button" id="enterBtn" data-i18n="login.signin">Sign in</button>
+        <button type="button" id="forgotBtn" style="background:none;border:none;color:var(--blue);font-size:13px;cursor:pointer;padding:4px 0;justify-self:start" data-i18n="login.forgot">Forgot password?</button>
       </div>
       <div id="panelSignUp" style="display:none">
-        <div class="title" style="margin-top:8px"><div><h3 id="signupHeading">Create your company</h3><p id="signupSubtext">Sign up and get your own private Balenco workspace instantly.</p></div></div>
+        <div class="title" style="margin-top:8px"><div><h3 id="signupHeading" data-i18n="login.createCompany">Create your company</h3><p id="signupSubtext" data-i18n="login.createCompanySub">Sign up and get your own private Balenco workspace instantly.</p></div></div>
         <div id="joinBanner" style="display:none;background:rgba(79,195,247,0.1);border:1px solid rgba(79,195,247,0.3);border-radius:12px;padding:10px 14px;font-size:14px;color:var(--blue);font-weight:700;margin-bottom:4px"></div>
-        <input type="text" id="signupName" placeholder="Your full name">
-        <input type="text" id="signupCompany" placeholder="Company name">
-        <input type="email" id="signupEmail" placeholder="Email address" autocomplete="username">
-        <div style="position:relative"><input type="password" id="signupPass" placeholder="Password (min 6 characters)" autocomplete="new-password" style="width:100%;padding-right:42px"><button type="button" onclick="togglePass('signupPass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;color:#64748b;display:flex;align-items:center"><i data-lucide="eye" style="width:18px;height:18px"></i></button></div>
+        <input type="text" id="signupName" data-i18n-ph="login.name" placeholder="Your full name">
+        <input type="text" id="signupCompany" data-i18n-ph="login.company" placeholder="Company name">
+        <input type="email" id="signupEmail" data-i18n-ph="login.email" placeholder="Email address" autocomplete="username">
+        <div style="position:relative"><input type="password" id="signupPass" data-i18n-ph="login.passMin" placeholder="Password (min 6 characters)" autocomplete="new-password" style="width:100%;padding-right:42px"><button type="button" onclick="togglePass('signupPass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;color:#64748b;display:flex;align-items:center"><i data-lucide="eye" style="width:18px;height:18px"></i></button></div>
         <div id="signupError" style="color:var(--danger);font-size:13px;display:none;padding:8px 12px;background:#fef2f2;border-radius:12px;border:1px solid #fecaca;"></div>
         <div id="signupSuccess" style="color:#047857;font-size:13px;display:none;padding:8px 12px;background:#ecfdf5;border-radius:12px;border:1px solid #d1fae5;"></div>
-        <button class="btn" type="button" id="signupBtn">Create account</button>
+        <button class="btn" type="button" id="signupBtn" data-i18n="login.create">Create account</button>
       </div>
       <div id="panelReset" style="display:none">
-        <div class="title" style="margin-top:8px"><div><h3>Set a new password</h3><p>Choose a new password for your account.</p></div></div>
-        <input type="password" id="resetPass" placeholder="New password (min 6 characters)" autocomplete="new-password">
+        <div class="title" style="margin-top:8px"><div><h3 data-i18n="reset.title">Set a new password</h3><p data-i18n="reset.sub">Choose a new password for your account.</p></div></div>
+        <input type="password" id="resetPass" data-i18n-ph="reset.new" placeholder="New password (min 6 characters)" autocomplete="new-password">
         <div id="resetError" style="color:var(--danger);font-size:13px;display:none;padding:8px 12px;background:#fef2f2;border-radius:12px;border:1px solid #fecaca;"></div>
-        <button class="btn" type="button" id="resetBtn">Update password</button>
+        <button class="btn" type="button" id="resetBtn" data-i18n="reset.btn">Update password</button>
       </div>
     </div>
   </div>
@@ -381,15 +386,15 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
   <aside class="sidebar">
     <div class="logo"><img src="/logo.png" alt="Balenco"></div>
     <div class="nav">
-      <button class="active" data-tab="dashboard"><span class="nav-icon"><i data-lucide="layout-dashboard"></i></span> Dashboard</button>
-      <button data-tab="leads"><span class="nav-icon"><i data-lucide="target"></i></span> Leads</button>
-      <button data-tab="clients"><span class="nav-icon"><i data-lucide="users"></i></span> Clients</button>
-      <button data-tab="estimates"><span class="nav-icon"><i data-lucide="file-text"></i></span> Estimates</button>
-      <button data-tab="calendar"><span class="nav-icon"><i data-lucide="calendar-days"></i></span> Calendar</button>
-      <button data-tab="photos"><span class="nav-icon"><i data-lucide="image"></i></span> Photos</button>
-      <button data-tab="balances"><span class="nav-icon"><i data-lucide="circle-dollar-sign"></i></span> Balances</button>
-      <button data-tab="maps"><span class="nav-icon"><i data-lucide="map"></i></span> Map & Route</button>
-      <button data-tab="settings"><span class="nav-icon"><i data-lucide="settings"></i></span> Settings</button>
+      <button class="active" data-tab="dashboard"><span class="nav-icon"><i data-lucide="layout-dashboard"></i></span> <span data-i18n="nav.dashboard">Dashboard</span></button>
+      <button data-tab="leads"><span class="nav-icon"><i data-lucide="target"></i></span> <span data-i18n="nav.leads">Leads</span></button>
+      <button data-tab="clients"><span class="nav-icon"><i data-lucide="users"></i></span> <span data-i18n="nav.clients">Clients</span></button>
+      <button data-tab="estimates"><span class="nav-icon"><i data-lucide="file-text"></i></span> <span data-i18n="nav.estimates">Estimates</span></button>
+      <button data-tab="calendar"><span class="nav-icon"><i data-lucide="calendar-days"></i></span> <span data-i18n="nav.calendar">Calendar</span></button>
+      <button data-tab="photos"><span class="nav-icon"><i data-lucide="image"></i></span> <span data-i18n="nav.photos">Photos</span></button>
+      <button data-tab="balances"><span class="nav-icon"><i data-lucide="circle-dollar-sign"></i></span> <span data-i18n="nav.balances">Balances</span></button>
+      <button data-tab="maps"><span class="nav-icon"><i data-lucide="map"></i></span> <span data-i18n="nav.maps">Map & Route</span></button>
+      <button data-tab="settings"><span class="nav-icon"><i data-lucide="settings"></i></span> <span data-i18n="nav.settings">Settings</span></button>
     </div>
     <div class="tip"><strong style="color:var(--navy)">Lead connection idea:</strong><br>Facebook, website, or Google leads can be copied/imported here now. Later this can connect automatically with Zapier/Make + a database.</div>
   </aside>
@@ -398,7 +403,8 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     <div class="top">
       <div><span id="rolePill" class="pill blue">Employee account</span> <span id="userText" class="muted">Alex Martin</span></div>
       <div class="actions">
-        <button class="btn out" type="button" id="switchBtn">Switch account</button>
+        <div class="lang-toggle"><button type="button" data-lang="en" onclick="setLang('en')">EN</button><button type="button" data-lang="fr" onclick="setLang('fr')">FR</button></div>
+        <button class="btn out" type="button" id="switchBtn" data-i18n="top.switch">Switch account</button>
       </div>
     </div>
 
@@ -406,23 +412,23 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       <div class="hero-in">
         <div>
           <div class="logo"><img src="/logo.png" alt="Balenco"></div>
-          <h2>Run the job from lead to payment.</h2>
-          <p>Create tax-ready estimates, send polished quote emails, book appointments, track balances, and keep a clean client archive.</p>
+          <h2 data-i18n="hero.title">Run the job from lead to payment.</h2>
+          <p data-i18n="hero.sub">Create tax-ready estimates, send polished quote emails, book appointments, track balances, and keep a clean client archive.</p>
         </div>
-        <div class="actions"><button class="btn light" type="button" data-open="leads">+ Add lead</button><button class="btn light" type="button" data-open="estimates">+ New estimate</button></div>
+        <div class="actions"><button class="btn light" type="button" data-open="leads" data-i18n="hero.addLead">+ Add lead</button><button class="btn light" type="button" data-open="estimates" data-i18n="hero.newEstimate">+ New estimate</button></div>
       </div>
     </div>
 
     <nav class="mobile">
-      <button class="active" data-tab="dashboard"><span class="mob-icon" style="background:#3b82f6"><i data-lucide="layout-dashboard"></i></span><span>Home</span></button>
-      <button data-tab="leads"><span class="mob-icon" style="background:#f97316"><i data-lucide="target"></i></span><span>Leads</span></button>
-      <button data-tab="clients"><span class="mob-icon" style="background:#8b5cf6"><i data-lucide="users"></i></span><span>Clients</span></button>
-      <button data-tab="estimates"><span class="mob-icon" style="background:#0d9488"><i data-lucide="file-text"></i></span><span>Quotes</span></button>
-      <button data-tab="calendar"><span class="mob-icon" style="background:#0ea5e9"><i data-lucide="calendar-days"></i></span><span>Calendar</span></button>
-      <button data-tab="photos"><span class="mob-icon" style="background:#ec4899"><i data-lucide="image"></i></span><span>Photos</span></button>
-      <button data-tab="balances"><span class="mob-icon" style="background:#22c55e"><i data-lucide="circle-dollar-sign"></i></span><span>Money</span></button>
-      <button data-tab="maps"><span class="mob-icon" style="background:#f59e0b"><i data-lucide="map"></i></span><span>Map</span></button>
-      <button data-tab="settings"><span class="mob-icon" style="background:#64748b"><i data-lucide="settings"></i></span><span>Setup</span></button>
+      <button class="active" data-tab="dashboard"><span class="mob-icon" style="background:#3b82f6"><i data-lucide="layout-dashboard"></i></span><span data-i18n="mnav.home">Home</span></button>
+      <button data-tab="leads"><span class="mob-icon" style="background:#f97316"><i data-lucide="target"></i></span><span data-i18n="mnav.leads">Leads</span></button>
+      <button data-tab="clients"><span class="mob-icon" style="background:#8b5cf6"><i data-lucide="users"></i></span><span data-i18n="mnav.clients">Clients</span></button>
+      <button data-tab="estimates"><span class="mob-icon" style="background:#0d9488"><i data-lucide="file-text"></i></span><span data-i18n="mnav.quotes">Quotes</span></button>
+      <button data-tab="calendar"><span class="mob-icon" style="background:#0ea5e9"><i data-lucide="calendar-days"></i></span><span data-i18n="mnav.calendar">Calendar</span></button>
+      <button data-tab="photos"><span class="mob-icon" style="background:#ec4899"><i data-lucide="image"></i></span><span data-i18n="mnav.photos">Photos</span></button>
+      <button data-tab="balances"><span class="mob-icon" style="background:#22c55e"><i data-lucide="circle-dollar-sign"></i></span><span data-i18n="mnav.money">Money</span></button>
+      <button data-tab="maps"><span class="mob-icon" style="background:#f59e0b"><i data-lucide="map"></i></span><span data-i18n="mnav.map">Map</span></button>
+      <button data-tab="settings"><span class="mob-icon" style="background:#64748b"><i data-lucide="settings"></i></span><span data-i18n="mnav.setup">Setup</span></button>
     </nav>
 
     <section id="dashboard" class="tab active">
@@ -829,6 +835,43 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 
   const $ = (id) => document.getElementById(id);
 
+  // ── Bilingual FR/EN ──────────────────────────────────────────────────
+  // Default EN while the full translation is being rolled out; flip to auto/FR once every surface is done.
+  let lang = localStorage.getItem('balenco_lang') || 'en';
+  const I18N = {
+    en: {
+      'login.signin':'Sign in','login.create':'Create account','login.welcome':'Welcome back','login.welcomeSub':'Enter your credentials to continue.','login.email':'Email address','login.password':'Password','login.forgot':'Forgot password?','login.createCompany':'Create your company','login.createCompanySub':'Sign up and get your own private Balenco workspace instantly.','login.name':'Your full name','login.company':'Company name','login.passMin':'Password (min 6 characters)','login.brandTitle':'Contractor management made simple.','login.brandSub':'Leads, clients, estimates with taxes, appointments, balances, photos, reminders, and owner/employee tracking.','login.secure':'Secure cloud storage powered by Supabase.',
+      'reset.title':'Set a new password','reset.sub':'Choose a new password for your account.','reset.new':'New password (min 6 characters)','reset.btn':'Update password',
+      'nav.dashboard':'Dashboard','nav.leads':'Leads','nav.clients':'Clients','nav.estimates':'Estimates','nav.calendar':'Calendar','nav.photos':'Photos','nav.balances':'Balances','nav.maps':'Map & Route','nav.settings':'Settings',
+      'mnav.home':'Home','mnav.leads':'Leads','mnav.clients':'Clients','mnav.quotes':'Quotes','mnav.calendar':'Calendar','mnav.photos':'Photos','mnav.money':'Money','mnav.map':'Map','mnav.setup':'Setup',
+      'top.switch':'Switch account','top.owner':'Owner / Admin account','top.employee':'Employee account','top.loggedIn':'Logged in as ',
+      'hero.title':'Run the job from lead to payment.','hero.sub':'Create tax-ready estimates, send polished quote emails, book appointments, track balances, and keep a clean client archive.','hero.addLead':'+ Add lead','hero.newEstimate':'+ New estimate'
+    },
+    fr: {
+      'login.signin':'Se connecter','login.create':'Créer un compte','login.welcome':'Bon retour','login.welcomeSub':'Entrez vos identifiants pour continuer.','login.email':'Adresse courriel','login.password':'Mot de passe','login.forgot':'Mot de passe oublié?','login.createCompany':'Créez votre entreprise','login.createCompanySub':'Inscrivez-vous et obtenez instantanément votre espace Balenco privé.','login.name':'Votre nom complet','login.company':'Nom de l’entreprise','login.passMin':'Mot de passe (min. 6 caractères)','login.brandTitle':'La gestion d’entrepreneur, simplifiée.','login.brandSub':'Prospects, clients, soumissions avec taxes, rendez-vous, soldes, photos, rappels et suivi propriétaire/employé.','login.secure':'Stockage infonuagique sécurisé propulsé par Supabase.',
+      'reset.title':'Définir un nouveau mot de passe','reset.sub':'Choisissez un nouveau mot de passe pour votre compte.','reset.new':'Nouveau mot de passe (min. 6 caractères)','reset.btn':'Mettre à jour',
+      'nav.dashboard':'Tableau de bord','nav.leads':'Prospects','nav.clients':'Clients','nav.estimates':'Soumissions','nav.calendar':'Calendrier','nav.photos':'Photos','nav.balances':'Soldes','nav.maps':'Carte et trajet','nav.settings':'Réglages',
+      'mnav.home':'Accueil','mnav.leads':'Prospects','mnav.clients':'Clients','mnav.quotes':'Soumissions','mnav.calendar':'Calendrier','mnav.photos':'Photos','mnav.money':'Argent','mnav.map':'Carte','mnav.setup':'Config',
+      'top.switch':'Changer de compte','top.owner':'Compte propriétaire / admin','top.employee':'Compte employé','top.loggedIn':'Connecté : ',
+      'hero.title':'Gérez le chantier, du prospect au paiement.','hero.sub':'Créez des soumissions avec taxes, envoyez de beaux courriels, planifiez des rendez-vous, suivez les soldes et gardez un dossier client impeccable.','hero.addLead':'+ Ajouter un prospect','hero.newEstimate':'+ Nouvelle soumission'
+    }
+  };
+  function t(k) { return (I18N[lang] && I18N[lang][k]) || I18N.en[k] || k; }
+  function applyStaticI18n() {
+    try { document.documentElement.lang = lang; } catch (e) {}
+    document.querySelectorAll('[data-i18n]').forEach(function(el){ el.textContent = t(el.getAttribute('data-i18n')); });
+    document.querySelectorAll('[data-i18n-ph]').forEach(function(el){ el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph'))); });
+    document.querySelectorAll('[data-lang]').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-lang') === lang); });
+  }
+  function setLang(l) {
+    lang = (l === 'fr') ? 'fr' : 'en';
+    try { localStorage.setItem('balenco_lang', lang); } catch (e) {}
+    applyStaticI18n();
+    if (state) { try { renderAll(); } catch (e) {} }
+    if (typeof lucide !== 'undefined') { try { lucide.createIcons(); } catch (e) {} }
+  }
+  window.setLang = setLang;
+
   function uid() {
     return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2);
   }
@@ -894,8 +937,8 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     document.body.classList.add('app-visible');
     $('login').style.display = 'none';
     $('app').style.display = 'grid';
-    $('rolePill').textContent = role === 'owner' ? 'Owner / Admin account' : 'Employee account';
-    $('userText').textContent = 'Logged in as ' + user;
+    $('rolePill').textContent = role === 'owner' ? t('top.owner') : t('top.employee');
+    $('userText').textContent = t('top.loggedIn') + user;
     renderAll();
   }
 
@@ -3529,6 +3572,7 @@ Date: ${date(e.createdAt)}`;
     toast('Balenco installed! Find it on your home screen.');
   });
 
+  applyStaticI18n();
   init();
   if (typeof lucide !== 'undefined') lucide.createIcons();
   document.addEventListener('keydown', function(ev) {
