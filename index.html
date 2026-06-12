@@ -640,92 +640,92 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     <section id="settings" class="tab">
       <div class="grid2">
         <div class="card">
-          <div class="title"><div><h3>Company settings</h3><p>Anyone can put in their company name, tax rates, and logo.</p></div></div>
+          <div class="title"><div><h3 data-i18n="set.title">Company settings</h3><p data-i18n="set.sub">Anyone can put in their company name, tax rates, and logo.</p></div></div>
           <form id="settingsForm" class="form">
-            <input id="setCompany" placeholder="Company name">
-            <input id="setEmail" placeholder="Company email">
-            <input id="setPhone" placeholder="Company phone">
-            <input id="setAddress" placeholder="Company address">
-            <input id="setGST" placeholder="GST / TPS registration number">
-            <input id="setQST" placeholder="QST / TVQ registration number">
+            <input id="setCompany" data-i18n-ph="set.company" placeholder="Company name">
+            <input id="setEmail" data-i18n-ph="set.email" placeholder="Company email">
+            <input id="setPhone" data-i18n-ph="set.phone" placeholder="Company phone">
+            <input id="setAddress" data-i18n-ph="set.address" placeholder="Company address">
+            <input id="setGST" data-i18n-ph="set.gst" placeholder="GST / TPS registration number">
+            <input id="setQST" data-i18n-ph="set.qst" placeholder="QST / TVQ registration number">
             <div style="display:none"><input id="setTPS" type="number" step="0.001" placeholder="TPS rate %" value="5"><input id="setTVQ" type="number" step="0.001" placeholder="TVQ rate %" value="9.975"></div>
             <div class="card" style="padding:14px;border-radius:18px;background:#f8fafc">
-              <div class="title" style="margin-bottom:10px"><div><h3 style="font-size:16px">Estimate logo</h3><p>Optional: upload your own company logo for professional estimates.</p></div></div>
-              <div class="form"><label class="btn out" style="justify-content:flex-start">Upload logo<input id="companyLogoInput" type="file" accept="image/*" style="display:none"></label><div id="logoStatus" class="muted">No custom logo uploaded.</div><div class="actions"><button type="button" class="btn out small" id="clearLogoBtn">Remove logo</button></div></div>
+              <div class="title" style="margin-bottom:10px"><div><h3 style="font-size:16px" data-i18n="set.logoTitle">Estimate logo</h3><p data-i18n="set.logoSub">Optional: upload your own company logo for professional estimates.</p></div></div>
+              <div class="form"><label class="btn out" style="justify-content:flex-start"><span data-i18n="set.uploadLogo">Upload logo</span><input id="companyLogoInput" type="file" accept="image/*" style="display:none"></label><div id="logoStatus" class="muted">No custom logo uploaded.</div><div class="actions"><button type="button" class="btn out small" id="clearLogoBtn" data-i18n="set.removeLogo">Remove logo</button></div></div>
             </div>
-            <textarea id="setTerms" rows="5" placeholder="Default estimate terms"></textarea>
+            <textarea id="setTerms" rows="5" data-i18n-ph="set.terms" placeholder="Default estimate terms"></textarea>
             <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);border:1px solid var(--line);border-radius:14px;padding:12px 14px">
-              <div style="flex:1"><strong style="display:block;font-size:14px;color:var(--text)">Auto follow-up</strong><span class="muted" style="font-size:13px">Send a follow-up email to clients with unanswered estimates after this many days</span></div>
+              <div style="flex:1"><strong style="display:block;font-size:14px;color:var(--text)" data-i18n="set.followup">Auto follow-up</strong><span class="muted" style="font-size:13px" data-i18n="set.followupSub">Send a follow-up email to clients with unanswered estimates after this many days</span></div>
               <input id="setFollowupDays" type="number" min="1" max="30" style="width:70px;text-align:center" placeholder="3">
-              <span class="muted" style="font-size:13px;white-space:nowrap">days</span>
+              <span class="muted" style="font-size:13px;white-space:nowrap" data-i18n="set.days">days</span>
             </div>
             <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);border:1px solid var(--line);border-radius:14px;padding:12px 14px">
-              <div style="flex:1"><strong style="display:block;font-size:14px;color:var(--text)">🔔 Push notifications</strong><span class="muted" id="pushStatus" style="font-size:13px">Get an alert on this device when a client books online</span></div>
+              <div style="flex:1"><strong style="display:block;font-size:14px;color:var(--text)" data-i18n="set.push">🔔 Push notifications</strong><span class="muted" id="pushStatus" style="font-size:13px">Get an alert on this device when a client books online</span></div>
               <button type="button" class="btn small" id="pushToggleBtn" onclick="togglePush()">Enable</button>
             </div>
-            <button class="btn" type="submit">Save settings</button>
+            <button class="btn" type="submit" data-i18n="set.save">Save settings</button>
           </form>
         </div>
         <div class="card owner-only">
-          <div class="title"><div><h3>Team</h3><p>Invite your crew and manage roles.</p></div></div>
+          <div class="title"><div><h3 data-i18n="team.title">Team</h3><p data-i18n="team.sub">Invite your crew and manage roles.</p></div></div>
           <div style="background:#0a1628;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px">
-            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">🔗 Invite link — anyone who signs up through it joins your company as an employee</div>
+            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px" data-i18n="team.invite">🔗 Invite link — anyone who signs up through it joins your company as an employee</div>
             <div style="display:flex;gap:8px">
               <input id="inviteLink" readonly placeholder="Loading…" style="flex:1;font-size:13px">
-              <button type="button" class="btn out" onclick="copyInviteLink()" style="white-space:nowrap;flex-shrink:0">Copy</button>
+              <button type="button" class="btn out" onclick="copyInviteLink()" style="white-space:nowrap;flex-shrink:0" data-i18n="team.copy">Copy</button>
             </div>
-            <button type="button" class="btn out small" onclick="regenerateInvite()" style="margin-top:8px">Regenerate link</button>
+            <button type="button" class="btn out small" onclick="regenerateInvite()" style="margin-top:8px" data-i18n="team.regen">Regenerate link</button>
           </div>
           <div id="teamList" class="list"><div class="empty">Loading team…</div></div>
         </div>
       </div>
       <!-- Online Booking settings card (full width below grid) -->
       <div class="card owner-only" style="margin-top:20px">
-        <div class="title"><div><h3>📅 Online Booking</h3><p>Let clients book appointments directly from a shareable link — no phone tag.</p></div></div>
+        <div class="title"><div><h3 data-i18n="bk.title">📅 Online Booking</h3><p data-i18n="bk.sub">Let clients book appointments directly from a shareable link — no phone tag.</p></div></div>
         <div class="form">
           <label style="display:flex;align-items:center;gap:14px;background:rgba(79,195,247,0.06);border:1px solid rgba(79,195,247,0.18);border-radius:14px;padding:14px 16px;cursor:pointer">
             <input id="bkEnabled" type="checkbox" style="width:18px;height:18px;accent-color:#4fc3f7;flex-shrink:0">
-            <div><strong style="display:block;font-size:14px">Enable online booking</strong><span class="muted" style="font-size:13px">When on, clients can request appointments from your booking link</span></div>
+            <div><strong style="display:block;font-size:14px" data-i18n="bk.enable">Enable online booking</strong><span class="muted" style="font-size:13px" data-i18n="bk.enableSub">When on, clients can request appointments from your booking link</span></div>
           </label>
           <div>
-            <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.4px">Working days</div>
+            <div style="font-size:13px;font-weight:700;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:.4px" data-i18n="bk.workdays">Working days</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <label class="bk-day-check"><input type="checkbox" id="bkDay1"> Mon</label>
-              <label class="bk-day-check"><input type="checkbox" id="bkDay2"> Tue</label>
-              <label class="bk-day-check"><input type="checkbox" id="bkDay3"> Wed</label>
-              <label class="bk-day-check"><input type="checkbox" id="bkDay4"> Thu</label>
-              <label class="bk-day-check"><input type="checkbox" id="bkDay5"> Fri</label>
-              <label class="bk-day-check"><input type="checkbox" id="bkDay6"> Sat</label>
-              <label class="bk-day-check"><input type="checkbox" id="bkDay0"> Sun</label>
+              <label class="bk-day-check"><input type="checkbox" id="bkDay1"> <span data-i18n="d.mon">Mon</span></label>
+              <label class="bk-day-check"><input type="checkbox" id="bkDay2"> <span data-i18n="d.tue">Tue</span></label>
+              <label class="bk-day-check"><input type="checkbox" id="bkDay3"> <span data-i18n="d.wed">Wed</span></label>
+              <label class="bk-day-check"><input type="checkbox" id="bkDay4"> <span data-i18n="d.thu">Thu</span></label>
+              <label class="bk-day-check"><input type="checkbox" id="bkDay5"> <span data-i18n="d.fri">Fri</span></label>
+              <label class="bk-day-check"><input type="checkbox" id="bkDay6"> <span data-i18n="d.sat">Sat</span></label>
+              <label class="bk-day-check"><input type="checkbox" id="bkDay0"> <span data-i18n="d.sun">Sun</span></label>
             </div>
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
             <div>
-              <label style="display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px">Start time</label>
+              <label style="display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px" data-i18n="bk.start">Start time</label>
               <input id="bkStartTime" type="time">
             </div>
             <div>
-              <label style="display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px">End time</label>
+              <label style="display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px" data-i18n="bk.end">End time</label>
               <input id="bkEndTime" type="time">
             </div>
             <div>
-              <label style="display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px">Slot length</label>
+              <label style="display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px" data-i18n="bk.slot">Slot length</label>
               <select id="bkSlotMin">
-                <option value="30">30 min</option>
-                <option value="60">1 hour</option>
-                <option value="90">90 min</option>
-                <option value="120">2 hours</option>
+                <option value="30" data-i18n="bk.slot30">30 min</option>
+                <option value="60" data-i18n="bk.slot60">1 hour</option>
+                <option value="90" data-i18n="bk.slot90">90 min</option>
+                <option value="120" data-i18n="bk.slot120">2 hours</option>
               </select>
             </div>
           </div>
           <div>
-            <label style="display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px">Your booking link — share this with clients</label>
+            <label style="display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px" data-i18n="bk.link">Your booking link — share this with clients</label>
             <div style="display:flex;gap:8px">
-              <input id="bkLink" type="text" readonly style="flex:1;background:rgba(255,255,255,0.04);cursor:text;font-size:13px" placeholder="Enable booking and save to generate link">
-              <button type="button" class="btn out" onclick="copyBkLink()" style="white-space:nowrap;flex-shrink:0">Copy link</button>
+              <input id="bkLink" type="text" readonly style="flex:1;background:rgba(255,255,255,0.04);cursor:text;font-size:13px" data-i18n-ph="bk.linkPh" placeholder="Enable booking and save to generate link">
+              <button type="button" class="btn out" onclick="copyBkLink()" style="white-space:nowrap;flex-shrink:0" data-i18n="bk.copyLink">Copy link</button>
             </div>
           </div>
-          <button class="btn" type="button" onclick="saveBookingSettings()">Save booking settings</button>
+          <button class="btn" type="button" onclick="saveBookingSettings()" data-i18n="bk.save">Save booking settings</button>
         </div>
       </div>
     </section>
@@ -846,7 +846,8 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       'mnav.home':'Home','mnav.leads':'Leads','mnav.clients':'Clients','mnav.quotes':'Quotes','mnav.calendar':'Calendar','mnav.photos':'Photos','mnav.money':'Money','mnav.map':'Map','mnav.setup':'Setup',
       'top.switch':'Switch account','top.owner':'Owner / Admin account','top.employee':'Employee account','top.loggedIn':'Logged in as ',
       'hero.title':'Run the job from lead to payment.','hero.sub':'Create tax-ready estimates, send polished quote emails, book appointments, track balances, and keep a clean client archive.','hero.addLead':'+ Add lead','hero.newEstimate':'+ New estimate',
-      'doc.estimate':'Estimate','doc.quoteNo':'Quote #','doc.date':'Date','doc.validUntil':'Valid until','doc.preparedBy':'Prepared by','doc.client':'Client','doc.project':'Project','doc.taxesBelow':'Taxes shown below.','doc.scope':'Scope of work','doc.noScope':'No scope entered.','doc.description':'Description','doc.qty':'Qty','doc.unitPrice':'Unit price','doc.total':'Total','doc.subtotal':'Subtotal','doc.deposit':'Deposit','doc.balanceAfter':'Balance after deposit','doc.paymentPlan':'Payment plan','doc.notSpecified':'Not specified','doc.paymentNotesH':'Payment schedule notes','doc.terms':'Terms & notes','doc.clientSig':'Client signature','doc.approved':'Approved','doc.apprPre':'This estimate was approved by ','doc.apprMid':' on ','doc.thankYou':'Thank you for considering ','doc.invoice':'Invoice','doc.invoiceNo':'Invoice #','doc.billTo':'Bill to','doc.descWork':'Description of work','doc.seeEstimate':'See attached estimate.','doc.paidToDate':'Paid to date','doc.amountDue':'Amount due','doc.payInstr':'Payment instructions','doc.payDefault':'Please remit payment at your earliest convenience. Thank you.','doc.payStatus':'Payment status','doc.paidFull':'Paid in full. Thank you for your business!','doc.thankYouShort':'Thank you — ','doc.basedOn':'Based on ','doc.approvedByLbl':'Approved by ','doc.month':'','doc.invDate':'Date'
+      'doc.estimate':'Estimate','doc.quoteNo':'Quote #','doc.date':'Date','doc.validUntil':'Valid until','doc.preparedBy':'Prepared by','doc.client':'Client','doc.project':'Project','doc.taxesBelow':'Taxes shown below.','doc.scope':'Scope of work','doc.noScope':'No scope entered.','doc.description':'Description','doc.qty':'Qty','doc.unitPrice':'Unit price','doc.total':'Total','doc.subtotal':'Subtotal','doc.deposit':'Deposit','doc.balanceAfter':'Balance after deposit','doc.paymentPlan':'Payment plan','doc.notSpecified':'Not specified','doc.paymentNotesH':'Payment schedule notes','doc.terms':'Terms & notes','doc.clientSig':'Client signature','doc.approved':'Approved','doc.apprPre':'This estimate was approved by ','doc.apprMid':' on ','doc.thankYou':'Thank you for considering ','doc.invoice':'Invoice','doc.invoiceNo':'Invoice #','doc.billTo':'Bill to','doc.descWork':'Description of work','doc.seeEstimate':'See attached estimate.','doc.paidToDate':'Paid to date','doc.amountDue':'Amount due','doc.payInstr':'Payment instructions','doc.payDefault':'Please remit payment at your earliest convenience. Thank you.','doc.payStatus':'Payment status','doc.paidFull':'Paid in full. Thank you for your business!','doc.thankYouShort':'Thank you — ','doc.basedOn':'Based on ','doc.approvedByLbl':'Approved by ','doc.month':'','doc.invDate':'Date',
+      'set.title':'Company settings','set.sub':'Anyone can put in their company name, tax rates, and logo.','set.company':'Company name','set.email':'Company email','set.phone':'Company phone','set.address':'Company address','set.gst':'GST / TPS registration number','set.qst':'QST / TVQ registration number','set.logoTitle':'Estimate logo','set.logoSub':'Optional: upload your own company logo for professional estimates.','set.uploadLogo':'Upload logo','set.noLogo':'No custom logo uploaded.','set.logoReady':'Custom logo uploaded and ready for estimates.','set.removeLogo':'Remove logo','set.terms':'Default estimate terms','set.followup':'Auto follow-up','set.followupSub':'Send a follow-up email to clients with unanswered estimates after this many days','set.days':'days','set.push':'🔔 Push notifications','set.pushSub':'Get an alert on this device when a client books online','set.pushUnsupported':'Not supported on this browser. On iPhone: add Balenco to your Home Screen first (Share → Add to Home Screen).','set.pushBlocked':'Blocked — allow notifications for this site in your browser settings, then reload.','set.pushEnabled':'Enabled on this device — you’ll get an alert when a client books online.','set.enable':'Enable','set.disable':'Disable','set.save':'Save settings','team.title':'Team','team.sub':'Invite your crew and manage roles.','team.invite':'🔗 Invite link — anyone who signs up through it joins your company as an employee','team.copy':'Copy','team.regen':'Regenerate link','team.loading':'Loading team…','team.none':'No team members yet.','team.makeEmp':'Make employee','team.makeAdmin':'Make admin','team.admin':'Admin','team.employee':'Employee','team.you':'You','bk.title':'📅 Online Booking','bk.sub':'Let clients book appointments directly from a shareable link — no phone tag.','bk.enable':'Enable online booking','bk.enableSub':'When on, clients can request appointments from your booking link','bk.workdays':'Working days','bk.start':'Start time','bk.end':'End time','bk.slot':'Slot length','bk.slot30':'30 min','bk.slot60':'1 hour','bk.slot90':'90 min','bk.slot120':'2 hours','bk.link':'Your booking link — share this with clients','bk.linkPh':'Enable booking and save to generate link','bk.copyLink':'Copy link','bk.save':'Save booking settings','d.mon':'Mon','d.tue':'Tue','d.wed':'Wed','d.thu':'Thu','d.fri':'Fri','d.sat':'Sat','d.sun':'Sun'
     },
     fr: {
       'login.signin':'Se connecter','login.create':'Créer un compte','login.welcome':'Bon retour','login.welcomeSub':'Entrez vos identifiants pour continuer.','login.email':'Adresse courriel','login.password':'Mot de passe','login.forgot':'Mot de passe oublié?','login.createCompany':'Créez votre entreprise','login.createCompanySub':'Inscrivez-vous et obtenez instantanément votre espace Balenco privé.','login.name':'Votre nom complet','login.company':'Nom de l’entreprise','login.passMin':'Mot de passe (min. 6 caractères)','login.brandTitle':'La gestion d’entrepreneur, simplifiée.','login.brandSub':'Prospects, clients, soumissions avec taxes, rendez-vous, soldes, photos, rappels et suivi propriétaire/employé.','login.secure':'Stockage infonuagique sécurisé propulsé par Supabase.',
@@ -855,7 +856,8 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       'mnav.home':'Accueil','mnav.leads':'Prospects','mnav.clients':'Clients','mnav.quotes':'Soumissions','mnav.calendar':'Calendrier','mnav.photos':'Photos','mnav.money':'Argent','mnav.map':'Carte','mnav.setup':'Config',
       'top.switch':'Changer de compte','top.owner':'Compte propriétaire / admin','top.employee':'Compte employé','top.loggedIn':'Connecté : ',
       'hero.title':'Gérez le chantier, du prospect au paiement.','hero.sub':'Créez des soumissions avec taxes, envoyez de beaux courriels, planifiez des rendez-vous, suivez les soldes et gardez un dossier client impeccable.','hero.addLead':'+ Ajouter un prospect','hero.newEstimate':'+ Nouvelle soumission',
-      'doc.estimate':'Soumission','doc.quoteNo':'Soumission n°','doc.date':'Date','doc.validUntil':'Valide jusqu’au','doc.preparedBy':'Préparée par','doc.client':'Client','doc.project':'Projet','doc.taxesBelow':'Taxes indiquées ci-dessous.','doc.scope':'Description des travaux','doc.noScope':'Aucune description fournie.','doc.description':'Description','doc.qty':'Qté','doc.unitPrice':'Prix unitaire','doc.total':'Total','doc.subtotal':'Sous-total','doc.deposit':'Acompte','doc.balanceAfter':'Solde après acompte','doc.paymentPlan':'Modalités de paiement','doc.notSpecified':'Non spécifié','doc.paymentNotesH':'Notes sur le calendrier de paiement','doc.terms':'Conditions et notes','doc.clientSig':'Signature du client','doc.approved':'Approuvée','doc.apprPre':'Cette soumission a été approuvée par ','doc.apprMid':' le ','doc.thankYou':'Merci de considérer ','doc.invoice':'Facture','doc.invoiceNo':'Facture n°','doc.billTo':'Facturer à','doc.descWork':'Description des travaux','doc.seeEstimate':'Voir la soumission jointe.','doc.paidToDate':'Payé à ce jour','doc.amountDue':'Montant dû','doc.payInstr':'Instructions de paiement','doc.payDefault':'Veuillez effectuer le paiement dès que possible. Merci.','doc.payStatus':'Statut du paiement','doc.paidFull':'Payée en totalité. Merci de votre confiance!','doc.thankYouShort':'Merci — ','doc.basedOn':'Basée sur ','doc.approvedByLbl':'Approuvée par ','doc.month':'','doc.invDate':'Date'
+      'doc.estimate':'Soumission','doc.quoteNo':'Soumission n°','doc.date':'Date','doc.validUntil':'Valide jusqu’au','doc.preparedBy':'Préparée par','doc.client':'Client','doc.project':'Projet','doc.taxesBelow':'Taxes indiquées ci-dessous.','doc.scope':'Description des travaux','doc.noScope':'Aucune description fournie.','doc.description':'Description','doc.qty':'Qté','doc.unitPrice':'Prix unitaire','doc.total':'Total','doc.subtotal':'Sous-total','doc.deposit':'Acompte','doc.balanceAfter':'Solde après acompte','doc.paymentPlan':'Modalités de paiement','doc.notSpecified':'Non spécifié','doc.paymentNotesH':'Notes sur le calendrier de paiement','doc.terms':'Conditions et notes','doc.clientSig':'Signature du client','doc.approved':'Approuvée','doc.apprPre':'Cette soumission a été approuvée par ','doc.apprMid':' le ','doc.thankYou':'Merci de considérer ','doc.invoice':'Facture','doc.invoiceNo':'Facture n°','doc.billTo':'Facturer à','doc.descWork':'Description des travaux','doc.seeEstimate':'Voir la soumission jointe.','doc.paidToDate':'Payé à ce jour','doc.amountDue':'Montant dû','doc.payInstr':'Instructions de paiement','doc.payDefault':'Veuillez effectuer le paiement dès que possible. Merci.','doc.payStatus':'Statut du paiement','doc.paidFull':'Payée en totalité. Merci de votre confiance!','doc.thankYouShort':'Merci — ','doc.basedOn':'Basée sur ','doc.approvedByLbl':'Approuvée par ','doc.month':'','doc.invDate':'Date',
+      'set.title':'Paramètres de l’entreprise','set.sub':'Inscrivez le nom de votre entreprise, vos taux de taxe et votre logo.','set.company':'Nom de l’entreprise','set.email':'Courriel de l’entreprise','set.phone':'Téléphone de l’entreprise','set.address':'Adresse de l’entreprise','set.gst':'Numéro d’inscription TPS','set.qst':'Numéro d’inscription TVQ','set.logoTitle':'Logo de soumission','set.logoSub':'Optionnel : téléversez votre logo pour des soumissions professionnelles.','set.uploadLogo':'Téléverser un logo','set.noLogo':'Aucun logo personnalisé.','set.logoReady':'Logo personnalisé téléversé et prêt pour les soumissions.','set.removeLogo':'Retirer le logo','set.terms':'Conditions par défaut des soumissions','set.followup':'Relance automatique','set.followupSub':'Envoyer un courriel de relance aux clients sans réponse après ce nombre de jours','set.days':'jours','set.push':'🔔 Notifications','set.pushSub':'Recevez une alerte sur cet appareil quand un client réserve en ligne','set.pushUnsupported':'Non pris en charge sur ce navigateur. Sur iPhone : ajoutez d’abord Balenco à votre écran d’accueil (Partager → Ajouter à l’écran d’accueil).','set.pushBlocked':'Bloqué — autorisez les notifications pour ce site dans les réglages de votre navigateur, puis rechargez.','set.pushEnabled':'Activé sur cet appareil — vous recevrez une alerte quand un client réserve en ligne.','set.enable':'Activer','set.disable':'Désactiver','set.save':'Enregistrer','team.title':'Équipe','team.sub':'Invitez votre équipe et gérez les rôles.','team.invite':'🔗 Lien d’invitation — toute personne qui s’inscrit via ce lien rejoint votre entreprise comme employé','team.copy':'Copier','team.regen':'Régénérer le lien','team.loading':'Chargement de l’équipe…','team.none':'Aucun membre pour l’instant.','team.makeEmp':'Rendre employé','team.makeAdmin':'Rendre admin','team.admin':'Admin','team.employee':'Employé','team.you':'Vous','bk.title':'📅 Réservation en ligne','bk.sub':'Laissez les clients réserver directement via un lien partageable — fini les appels téléphoniques.','bk.enable':'Activer la réservation en ligne','bk.enableSub':'Quand c’est activé, les clients peuvent demander des rendez-vous via votre lien','bk.workdays':'Jours ouvrables','bk.start':'Heure de début','bk.end':'Heure de fin','bk.slot':'Durée du créneau','bk.slot30':'30 min','bk.slot60':'1 heure','bk.slot90':'90 min','bk.slot120':'2 heures','bk.link':'Votre lien de réservation — partagez-le avec vos clients','bk.linkPh':'Activez la réservation et enregistrez pour générer le lien','bk.copyLink':'Copier le lien','bk.save':'Enregistrer la réservation','d.mon':'Lun','d.tue':'Mar','d.wed':'Mer','d.thu':'Jeu','d.fri':'Ven','d.sat':'Sam','d.sun':'Dim'
     }
   };
   function t(k) { return (I18N[lang] && I18N[lang][k]) || I18N.en[k] || k; }
@@ -1603,13 +1605,13 @@ Date: ${date(e.createdAt)}`;
     if (!el) return;
     sb.from('profiles').select('*').order('created_at', { ascending: true }).then(function(res) {
       var profiles = res.data || [];
-      if (!profiles.length) { el.innerHTML = '<div class="empty">No team members yet.</div>'; return; }
+      if (!profiles.length) { el.innerHTML = '<div class="empty">' + t('team.none') + '</div>'; return; }
       el.innerHTML = profiles.map(function(p) {
         var isSelf = p.id === userId;
         var isOwner = p.role === 'owner';
         return '<div class="item"><div><strong>' + esc(p.name) + '</strong><div class="muted">' + esc(p.email || '') + '</div></div>' +
-          '<div class="actions"><span class="pill ' + (isOwner ? 'blue' : 'green') + '">' + (isOwner ? 'Admin' : 'Employee') + '</span>' +
-          (!isSelf ? '<button class="btn out small" onclick="toggleRole(\'' + p.id + '\',\'' + p.role + '\')">' + (isOwner ? 'Make employee' : 'Make admin') + '</button>' : '<span class="muted" style="font-size:12px">You</span>') +
+          '<div class="actions"><span class="pill ' + (isOwner ? 'blue' : 'green') + '">' + (isOwner ? t('team.admin') : t('team.employee')) + '</span>' +
+          (!isSelf ? '<button class="btn out small" onclick="toggleRole(\'' + p.id + '\',\'' + p.role + '\')">' + (isOwner ? t('team.makeEmp') : t('team.makeAdmin')) + '</button>' : '<span class="muted" style="font-size:12px">' + t('team.you') + '</span>') +
           '</div></div>';
       }).join('');
     });
@@ -1681,7 +1683,7 @@ Date: ${date(e.createdAt)}`;
     if ($('setGST')) $('setGST').value = state.settings.gstNumber || '';
     if ($('setQST')) $('setQST').value = state.settings.qstNumber || '';
     $('setFollowupDays').value = state.settings.followupDays ?? 3;
-    $('logoStatus').textContent = state.settings.logo ? 'Custom logo uploaded and ready for estimates.' : 'No custom logo uploaded.';
+    $('logoStatus').textContent = state.settings.logo ? t('set.logoReady') : t('set.noLogo');
     refreshPushUI();
   }
 
@@ -1706,12 +1708,12 @@ Date: ${date(e.createdAt)}`;
     if (!btn) return;
     if (!pushSupported()) {
       btn.style.display = 'none';
-      status.textContent = 'Not supported on this browser. On iPhone: add Balenco to your Home Screen first (Share → Add to Home Screen).';
+      status.textContent = t('set.pushUnsupported');
       return;
     }
     if (Notification.permission === 'denied') {
       btn.style.display = 'none';
-      status.textContent = 'Blocked — allow notifications for this site in your browser settings, then reload.';
+      status.textContent = t('set.pushBlocked');
       return;
     }
     try {
@@ -1719,13 +1721,13 @@ Date: ${date(e.createdAt)}`;
       const sub = await reg.pushManager.getSubscription();
       btn.style.display = '';
       if (sub) {
-        btn.textContent = 'Disable';
+        btn.textContent = t('set.disable');
         btn.classList.add('out');
-        status.textContent = 'Enabled on this device — you\'ll get an alert when a client books online.';
+        status.textContent = t('set.pushEnabled');
       } else {
-        btn.textContent = 'Enable';
+        btn.textContent = t('set.enable');
         btn.classList.remove('out');
-        status.textContent = 'Get an alert on this device when a client books online';
+        status.textContent = t('set.pushSub');
       }
     } catch (e) { /* service worker not ready yet — leave defaults */ }
   }
