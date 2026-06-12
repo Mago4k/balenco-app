@@ -1,0 +1,14 @@
+-- Rollback for migration 7
+drop index if exists public.idx_clients_org;
+drop index if exists public.idx_clients_email;
+drop index if exists public.idx_leads_org;
+drop index if exists public.idx_estimates_org;
+drop index if exists public.idx_estimates_client;
+drop index if exists public.idx_appointments_org;
+drop index if exists public.idx_appointments_client;
+drop index if exists public.idx_appointments_start;
+drop index if exists public.idx_photos_org;
+drop index if exists public.idx_photos_client;
+drop index if exists public.idx_logs_org;
+drop index if exists public.idx_profiles_org;
+drop index if exists public.idx_push_subs_org;
