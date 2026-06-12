@@ -165,6 +165,7 @@ Deno.serve(async (req) => {
 
     <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e2e8f0;font-size:13px;color:#94a3b8;text-align:center">
       ${cfg.email ? cfg.email : ''}${cfg.email && cfg.phone ? ' &nbsp;&middot;&nbsp; ' : ''}${cfg.phone ? cfg.phone : ''}
+      ${(cfg.gst_number || cfg.qst_number) ? `<div style="margin-top:6px;font-size:11px;color:#cbd5e1">${cfg.gst_number ? 'TPS/GST: ' + cfg.gst_number : ''}${cfg.gst_number && cfg.qst_number ? ' &middot; ' : ''}${cfg.qst_number ? 'TVQ/QST: ' + cfg.qst_number : ''}</div>` : ''}
     </div>
 
   </div>

@@ -348,6 +348,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
         <div style="position:relative"><input type="password" id="loginPass" placeholder="Password" autocomplete="current-password" style="width:100%;padding-right:42px"><button type="button" onclick="togglePass('loginPass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;color:#64748b;display:flex;align-items:center"><i data-lucide="eye" style="width:18px;height:18px"></i></button></div>
         <div id="loginError" style="color:var(--danger);font-size:13px;display:none;padding:8px 12px;background:#fef2f2;border-radius:12px;border:1px solid #fecaca;"></div>
         <button class="btn" type="button" id="enterBtn">Sign in</button>
+        <button type="button" id="forgotBtn" style="background:none;border:none;color:var(--blue);font-size:13px;cursor:pointer;padding:4px 0;justify-self:start">Forgot password?</button>
       </div>
       <div id="panelSignUp" style="display:none">
         <div class="title" style="margin-top:8px"><div><h3 id="signupHeading">Create your company</h3><p id="signupSubtext">Sign up and get your own private Balenco workspace instantly.</p></div></div>
@@ -359,6 +360,12 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
         <div id="signupError" style="color:var(--danger);font-size:13px;display:none;padding:8px 12px;background:#fef2f2;border-radius:12px;border:1px solid #fecaca;"></div>
         <div id="signupSuccess" style="color:#047857;font-size:13px;display:none;padding:8px 12px;background:#ecfdf5;border-radius:12px;border:1px solid #d1fae5;"></div>
         <button class="btn" type="button" id="signupBtn">Create account</button>
+      </div>
+      <div id="panelReset" style="display:none">
+        <div class="title" style="margin-top:8px"><div><h3>Set a new password</h3><p>Choose a new password for your account.</p></div></div>
+        <input type="password" id="resetPass" placeholder="New password (min 6 characters)" autocomplete="new-password">
+        <div id="resetError" style="color:var(--danger);font-size:13px;display:none;padding:8px 12px;background:#fef2f2;border-radius:12px;border:1px solid #fecaca;"></div>
+        <button class="btn" type="button" id="resetBtn">Update password</button>
       </div>
     </div>
   </div>
@@ -633,6 +640,8 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
             <input id="setEmail" placeholder="Company email">
             <input id="setPhone" placeholder="Company phone">
             <input id="setAddress" placeholder="Company address">
+            <input id="setGST" placeholder="GST / TPS registration number">
+            <input id="setQST" placeholder="QST / TVQ registration number">
             <div style="display:none"><input id="setTPS" type="number" step="0.001" placeholder="TPS rate %" value="5"><input id="setTVQ" type="number" step="0.001" placeholder="TVQ rate %" value="9.975"></div>
             <div class="card" style="padding:14px;border-radius:18px;background:#f8fafc">
               <div class="title" style="margin-bottom:10px"><div><h3 style="font-size:16px">Estimate logo</h3><p>Optional: upload your own company logo for professional estimates.</p></div></div>
@@ -807,6 +816,10 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
   const SUPA_URL = 'https://wvqqazdzejjksjcjdbcm.supabase.co';
   const SUPA_KEY = 'sb_publishable_qei2Dp6odRgkUhTSfgTBVw_g9Xp-_ou';
   const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+  let recoveryMode = false;
+  sb.auth.onAuthStateChange(function(event) {
+    if (event === 'PASSWORD_RECOVERY') { recoveryMode = true; showResetPanel(); }
+  });
   let role = 'employee';
   let user = 'Carlos Reyes';
   let userId = null;
@@ -845,7 +858,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     const sr = settingsRows && settingsRows[0];
     // Settings are provisioned per-company by the signup trigger — no client insert.
     state = {
-      settings: sr ? { company:sr.company, email:sr.email, phone:sr.phone, address:sr.address, tps:sr.tps, tvq:sr.tvq, logo:sr.logo||'', terms:sr.terms, followupDays:sr.followup_days||3 } : { company:'Your Company Name', email:'info@company.com', phone:'514-000-0000', address:'Montreal, Quebec', tps:5, tvq:9.975, logo:'', terms:'', followupDays:3 },
+      settings: sr ? { company:sr.company, email:sr.email, phone:sr.phone, address:sr.address, tps:sr.tps, tvq:sr.tvq, logo:sr.logo||'', terms:sr.terms, gstNumber:sr.gst_number||'', qstNumber:sr.qst_number||'', followupDays:sr.followup_days||3 } : { company:'Your Company Name', email:'info@company.com', phone:'514-000-0000', address:'Montreal, Quebec', tps:5, tvq:9.975, logo:'', terms:'', gstNumber:'', qstNumber:'', followupDays:3 },
       clients: (clients||[]).map(function(r){ return { id:r.id, name:r.name, phone:r.phone||'', email:r.email||'', address:r.address||'', project:r.project||'', status:r.status||'Active', balance:r.balance||0, createdBy:r.created_by||'', createdAt:r.created_at }; }),
       leads: (leads||[]).map(function(r){ return { id:r.id, name:r.name, phone:r.phone||'', email:r.email||'', source:r.source||'', project:r.project||'', status:r.status||'New', notes:r.notes||'', createdBy:r.created_by||'', createdAt:r.created_at }; }),
       estimates: (estimates||[]).map(function(r){ return { id:r.id, estimateNumber:r.estimate_number, clientId:r.client_id, title:r.title||'', subtotal:r.subtotal||0, line_items:r.line_items||[], deposit:r.deposit||0, paymentSchedule:r.payment_schedule||'', paymentNotes:r.payment_notes||'', approvedBy:r.approved_by||'', approvedAt:r.approved_at||'', status:r.status||'Draft', scope:r.scope||'', expiry:r.expiry||'', payments:r.payments||[], followupSent:r.followup_sent||false, createdBy:r.created_by||'', createdAt:r.created_at, updatedBy:r.updated_by||'', updatedAt:r.updated_at }; }),
@@ -939,6 +952,12 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     return { tps, tvq, total: subtotal + tps + tvq };
   }
 
+  function taxIds() {
+    const g = state.settings.gstNumber, q = state.settings.qstNumber;
+    if (!g && !q) return '';
+    return '<div style="font-size:11px;color:#64748b;margin-top:4px">' + (g ? 'TPS/GST: ' + esc(g) : '') + (g && q ? ' &middot; ' : '') + (q ? 'TVQ/QST: ' + esc(q) : '') + '</div>';
+  }
+
   function log(action, detail) {
     state.logs.unshift({ id:uid(), action, detail, user, at:new Date().toISOString() });
     sb.from('logs').insert({ action, detail, user_name:user, org_id:orgId });
@@ -1007,6 +1026,38 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     $('enterBtn').disabled = false;
     if (error) { errEl.textContent = 'Invalid email or password.'; errEl.style.display = 'block'; return; }
     await startSession(data.user);
+  }
+
+  async function forgotPassword() {
+    const email = $('loginEmail').value.trim();
+    if (!email) { $('loginEmail').focus(); toast('Enter your email above first, then tap Forgot password.'); return; }
+    const btn = $('forgotBtn');
+    if (btn) { btn.textContent = 'Sending…'; btn.disabled = true; }
+    await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin });
+    if (btn) { btn.textContent = 'Forgot password?'; btn.disabled = false; }
+    toast('If an account exists for that email, a reset link is on its way.');
+  }
+
+  function showResetPanel() {
+    document.body.classList.remove('app-visible');
+    if ($('app')) $('app').style.display = 'none';
+    if ($('login')) $('login').style.display = 'grid';
+    if ($('panelSignIn')) $('panelSignIn').style.display = 'none';
+    if ($('panelSignUp')) $('panelSignUp').style.display = 'none';
+    if ($('panelReset')) $('panelReset').style.display = '';
+  }
+
+  async function updatePassword() {
+    const pass = $('resetPass').value;
+    const errEl = $('resetError');
+    errEl.style.display = 'none';
+    if (!pass || pass.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
+    const btn = $('resetBtn');
+    btn.textContent = 'Updating…'; btn.disabled = true;
+    const { error } = await sb.auth.updateUser({ password: pass });
+    if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; btn.textContent = 'Update password'; btn.disabled = false; return; }
+    toast('Password updated — signing you in…');
+    setTimeout(function(){ window.location.replace(window.location.origin); }, 1200);
   }
 
   async function backToLogin() {
@@ -1228,7 +1279,7 @@ Date: ${date(e.createdAt)}`;
             <div>${logo || `<div class="estimate-brand-title">${esc(state.settings.company)}</div>`}</div>
             <div>
               <div class="estimate-brand-title">${esc(state.settings.company)}</div>
-              <div class="estimate-brand-meta">${esc(state.settings.address)}<br>${esc(state.settings.phone)} • ${esc(state.settings.email)}</div>
+              <div class="estimate-brand-meta">${esc(state.settings.address)}<br>${esc(state.settings.phone)} • ${esc(state.settings.email)}</div>${taxIds()}
             </div>
           </div>
           <div style="text-align:right">
@@ -1563,6 +1614,8 @@ Date: ${date(e.createdAt)}`;
     $('setTPS').value = state.settings.tps ?? 5;
     $('setTVQ').value = state.settings.tvq ?? 9.975;
     $('setTerms').value = state.settings.terms || '';
+    if ($('setGST')) $('setGST').value = state.settings.gstNumber || '';
+    if ($('setQST')) $('setQST').value = state.settings.qstNumber || '';
     $('setFollowupDays').value = state.settings.followupDays ?? 3;
     $('logoStatus').textContent = state.settings.logo ? 'Custom logo uploaded and ready for estimates.' : 'No custom logo uploaded.';
     refreshPushUI();
@@ -1965,9 +2018,11 @@ Date: ${date(e.createdAt)}`;
       tvq:Number($('setTVQ').value || 0),
       logo:state.settings.logo || '',
       terms:$('setTerms').value,
+      gstNumber:$('setGST') ? $('setGST').value : (state.settings.gstNumber || ''),
+      qstNumber:$('setQST') ? $('setQST').value : (state.settings.qstNumber || ''),
       followupDays:Number($('setFollowupDays').value || 3)
     };
-    sb.from('settings').upsert({ org_id:orgId, company:state.settings.company, email:state.settings.email, phone:state.settings.phone, address:state.settings.address, tps:state.settings.tps, tvq:state.settings.tvq, logo:state.settings.logo, terms:state.settings.terms, followup_days:state.settings.followupDays }, { onConflict:'org_id' });
+    sb.from('settings').upsert({ org_id:orgId, company:state.settings.company, email:state.settings.email, phone:state.settings.phone, address:state.settings.address, tps:state.settings.tps, tvq:state.settings.tvq, logo:state.settings.logo, terms:state.settings.terms, gst_number:state.settings.gstNumber, qst_number:state.settings.qstNumber, followup_days:state.settings.followupDays }, { onConflict:'org_id' });
     log('Updated settings', `${user} updated company settings.`);
     save();
     renderAll();
@@ -2519,6 +2574,8 @@ Date: ${date(e.createdAt)}`;
     $('tabSignUp').addEventListener('click', showSignUp);
     $('signupBtn').addEventListener('click', signUp);
     $('enterBtn').addEventListener('click', enterApp);
+    if ($('forgotBtn')) $('forgotBtn').addEventListener('click', forgotPassword);
+    if ($('resetBtn')) $('resetBtn').addEventListener('click', updatePassword);
     $('switchBtn').addEventListener('click', backToLogin);
 
     document.querySelectorAll('[data-tab]').forEach(button => {
@@ -2616,7 +2673,7 @@ Date: ${date(e.createdAt)}`;
             <div>${logo || `<div class="estimate-brand-title">${esc(state.settings.company)}</div>`}</div>
             <div>
               <div class="estimate-brand-title">${esc(state.settings.company)}</div>
-              <div class="estimate-brand-meta">${esc(state.settings.address)}<br>${esc(state.settings.phone)} • ${esc(state.settings.email)}</div>
+              <div class="estimate-brand-meta">${esc(state.settings.address)}<br>${esc(state.settings.phone)} • ${esc(state.settings.email)}</div>${taxIds()}
             </div>
           </div>
           <div style="text-align:right">
@@ -2895,7 +2952,7 @@ Date: ${date(e.createdAt)}`;
       const upcoming = (pd.appointments || []).filter(a => (a.start_time || '') >= nowStr);
 
       state = {
-        settings: { tps: cfg.tps || 5, tvq: cfg.tvq || 9.975, company: cfg.company || '', logo: cfg.logo || '', address: cfg.address || '', phone: cfg.phone || '', email: cfg.email || '', terms: cfg.terms || '' },
+        settings: { tps: cfg.tps || 5, tvq: cfg.tvq || 9.975, company: cfg.company || '', logo: cfg.logo || '', address: cfg.address || '', phone: cfg.phone || '', email: cfg.email || '', terms: cfg.terms || '', gstNumber: cfg.gst_number || '', qstNumber: cfg.qst_number || '' },
         clients: [c],
         estimates: estimates
       };
@@ -3071,7 +3128,7 @@ Date: ${date(e.createdAt)}`;
 
       // Set a temporary state so estimateHTML can render
       state = {
-        settings: { tps: cfg.tps || 5, tvq: cfg.tvq || 9.975, company: cfg.company || '', logo: cfg.logo || '', address: cfg.address || '', phone: cfg.phone || '', email: cfg.email || '', terms: cfg.terms || '' },
+        settings: { tps: cfg.tps || 5, tvq: cfg.tvq || 9.975, company: cfg.company || '', logo: cfg.logo || '', address: cfg.address || '', phone: cfg.phone || '', email: cfg.email || '', terms: cfg.terms || '', gstNumber: cfg.gst_number || '', qstNumber: cfg.qst_number || '' },
         clients: clientData.id ? [{ id: clientData.id, name: clientData.name, address: clientData.address, phone: clientData.phone, email: clientData.email }] : [],
         estimates: [est]
       };
@@ -3155,7 +3212,7 @@ Date: ${date(e.createdAt)}`;
     bindEvents();
     await checkJoinInvite();
     const { data: { session } } = await sb.auth.getSession();
-    if (session) await startSession(session.user);
+    if (session && !recoveryMode) await startSession(session.user);
   }
   function showStatDetail(type) {
     var overlay = document.getElementById('statDetailOverlay');
