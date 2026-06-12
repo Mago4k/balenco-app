@@ -433,23 +433,23 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 
     <section id="dashboard" class="tab active">
       <div class="grid4">
-        <div class="card stat" onclick="showStatDetail('leads')" style="cursor:pointer"><div class="stat-icon" style="background:#eff6ff"><i data-lucide="target" style="color:#3b82f6;width:20px;height:20px"></i></div><label>Active leads</label><strong id="statLeads">0</strong></div>
-        <div class="card stat" onclick="showStatDetail('revenue')" style="cursor:pointer"><div class="stat-icon" style="background:#ecfdf5"><i data-lucide="trending-up" style="color:#047857;width:20px;height:20px"></i></div><label>This month revenue</label><strong id="statAccepted">$0</strong></div>
-        <div class="card stat" onclick="showStatDetail('pipeline')" style="cursor:pointer"><div class="stat-icon" style="background:#fefce8"><i data-lucide="file-text" style="color:#b45309;width:20px;height:20px"></i></div><label>Pipeline value</label><strong id="statEstimates">$0</strong></div>
-        <div class="card stat" onclick="showStatDetail('outstanding')" style="cursor:pointer"><div class="stat-icon" style="background:#fef2f2"><i data-lucide="circle-dollar-sign" style="color:#b91c1c;width:20px;height:20px"></i></div><label>Outstanding</label><strong id="statBalances">$0</strong></div>
+        <div class="card stat" onclick="showStatDetail('leads')" style="cursor:pointer"><div class="stat-icon" style="background:#eff6ff"><i data-lucide="target" style="color:#3b82f6;width:20px;height:20px"></i></div><label data-i18n="dash.activeLeads">Active leads</label><strong id="statLeads">0</strong></div>
+        <div class="card stat" onclick="showStatDetail('revenue')" style="cursor:pointer"><div class="stat-icon" style="background:#ecfdf5"><i data-lucide="trending-up" style="color:#047857;width:20px;height:20px"></i></div><label data-i18n="dash.monthRev">This month revenue</label><strong id="statAccepted">$0</strong></div>
+        <div class="card stat" onclick="showStatDetail('pipeline')" style="cursor:pointer"><div class="stat-icon" style="background:#fefce8"><i data-lucide="file-text" style="color:#b45309;width:20px;height:20px"></i></div><label data-i18n="dash.pipeline">Pipeline value</label><strong id="statEstimates">$0</strong></div>
+        <div class="card stat" onclick="showStatDetail('outstanding')" style="cursor:pointer"><div class="stat-icon" style="background:#fef2f2"><i data-lucide="circle-dollar-sign" style="color:#b91c1c;width:20px;height:20px"></i></div><label data-i18n="dash.outstanding">Outstanding</label><strong id="statBalances">$0</strong></div>
       </div>
       <div class="grid4" style="margin-top:16px">
-        <div class="card stat"><div class="stat-icon" style="background:#f0fdf4"><i data-lucide="percent" style="color:#047857;width:20px;height:20px"></i></div><label>Win rate</label><strong id="statWinRate">0%</strong></div>
-        <div class="card stat"><div class="stat-icon" style="background:#eff6ff"><i data-lucide="trending-up" style="color:#1d4ed8;width:20px;height:20px"></i></div><label>YTD revenue</label><strong id="statYTD">$0</strong></div>
-        <div class="card stat"><div class="stat-icon" style="background:#fdf4ff"><i data-lucide="users" style="color:#9333ea;width:20px;height:20px"></i></div><label>Total clients</label><strong id="statClients">0</strong></div>
-        <div class="card stat"><div class="stat-icon" style="background:#fff7ed"><i data-lucide="briefcase" style="color:#ea580c;width:20px;height:20px"></i></div><label>Avg job value</label><strong id="statAvgJob">$0</strong></div>
+        <div class="card stat"><div class="stat-icon" style="background:#f0fdf4"><i data-lucide="percent" style="color:#047857;width:20px;height:20px"></i></div><label data-i18n="dash.winRate">Win rate</label><strong id="statWinRate">0%</strong></div>
+        <div class="card stat"><div class="stat-icon" style="background:#eff6ff"><i data-lucide="trending-up" style="color:#1d4ed8;width:20px;height:20px"></i></div><label data-i18n="dash.ytdRev">YTD revenue</label><strong id="statYTD">$0</strong></div>
+        <div class="card stat"><div class="stat-icon" style="background:#fdf4ff"><i data-lucide="users" style="color:#9333ea;width:20px;height:20px"></i></div><label data-i18n="dash.totalClients">Total clients</label><strong id="statClients">0</strong></div>
+        <div class="card stat"><div class="stat-icon" style="background:#fff7ed"><i data-lucide="briefcase" style="color:#ea580c;width:20px;height:20px"></i></div><label data-i18n="dash.avgJob">Avg job value</label><strong id="statAvgJob">$0</strong></div>
       </div>
       <div class="grid2" style="margin-top:18px">
-        <div class="card"><div class="title"><div><h3>Upcoming appointments</h3><p>Next appointments and job visits.</p></div></div><div id="dashAppointments" class="list"></div></div>
-        <div class="card"><div class="title"><div><h3>Recent activity</h3><p class="owner-only">Owner view shows employee actions.</p></div></div><div id="activityList" class="list"></div></div>
+        <div class="card"><div class="title"><div><h3 data-i18n="dash.upcoming">Upcoming appointments</h3><p data-i18n="dash.upcomingSub">Next appointments and job visits.</p></div></div><div id="dashAppointments" class="list"></div></div>
+        <div class="card"><div class="title"><div><h3 data-i18n="dash.activity">Recent activity</h3><p class="owner-only" data-i18n="dash.activitySub">Owner view shows employee actions.</p></div></div><div id="activityList" class="list"></div></div>
       </div>
       <div class="card" style="margin-top:18px">
-        <div class="title"><div><h3>Revenue — last 6 months</h3><p>Accepted estimate value per month.</p></div></div>
+        <div class="title"><div><h3 data-i18n="dash.rev6">Revenue — last 6 months</h3><p data-i18n="dash.rev6Sub">Accepted estimate value per month.</p></div></div>
         <div id="revenueChart" class="rev-chart"></div>
       </div>
     </section>
@@ -457,182 +457,182 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     <section id="leads" class="tab">
       <div class="grid2">
         <div class="card">
-          <div class="title"><div><h3>Add / import lead</h3><p>Use this for Facebook, website, Google, referrals, phone calls, or walk-ins.</p></div></div>
+          <div class="title"><div><h3 data-i18n="ld.add">Add / import lead</h3><p data-i18n="ld.addSub">Use this for Facebook, website, Google, referrals, phone calls, or walk-ins.</p></div></div>
           <form id="leadForm" class="form">
             <div class="form2">
-              <input id="leadName" placeholder="Lead name" required>
-              <input id="leadPhone" placeholder="Phone">
-              <input id="leadEmail" placeholder="Email">
-              <select id="leadSource"><option>Facebook</option><option>Website</option><option>Google</option><option>Referral</option><option>Phone call</option><option>Other</option></select>
-              <input id="leadProject" placeholder="Project needed" required>
-              <select id="leadStatus"><option>New</option><option>Contacted</option><option>Appointment set</option><option>Won</option><option>Lost</option></select>
+              <input id="leadName" data-i18n-ph="ld.name" placeholder="Lead name" required>
+              <input id="leadPhone" data-i18n-ph="f.phone" placeholder="Phone">
+              <input id="leadEmail" data-i18n-ph="f.email" placeholder="Email">
+              <select id="leadSource"><option value="Facebook">Facebook</option><option value="Website" data-i18n="ld.srcWebsite">Website</option><option value="Google">Google</option><option value="Referral" data-i18n="ld.srcReferral">Referral</option><option value="Phone call" data-i18n="ld.srcPhone">Phone call</option><option value="Other" data-i18n="g.other">Other</option></select>
+              <input id="leadProject" data-i18n-ph="ld.project" placeholder="Project needed" required>
+              <select id="leadStatus"><option value="New" data-i18n="st.new">New</option><option value="Contacted" data-i18n="st.contacted">Contacted</option><option value="Appointment set" data-i18n="st.apptSet">Appointment set</option><option value="Won" data-i18n="st.won">Won</option><option value="Lost" data-i18n="st.lost">Lost</option></select>
             </div>
-            <textarea id="leadNotes" rows="4" placeholder="Paste Facebook lead details or notes here"></textarea>
-            <button class="btn" type="submit">Save lead</button>
+            <textarea id="leadNotes" rows="4" data-i18n-ph="ld.notes" placeholder="Paste Facebook lead details or notes here"></textarea>
+            <button class="btn" type="submit" data-i18n="ld.save">Save lead</button>
           </form>
         </div>
         <div class="card">
-          <div class="title"><div><h3>How to connect Facebook leads</h3><p>Prototype-ready workflow for real lead automation.</p></div></div>
+          <div class="title"><div><h3 data-i18n="ld.fbTitle">How to connect Facebook leads</h3><p data-i18n="ld.fbSub">Prototype-ready workflow for real lead automation.</p></div></div>
           <div class="list">
-            <div class="item"><div><strong>Manual now</strong><span class="muted">Copy a Facebook lead into this form and save it. Then convert it to a client.</span></div></div>
-            <div class="item"><div><strong>Automatic later</strong><span class="muted">Connect Facebook Lead Ads → Zapier/Make → Balenco database. New leads can appear automatically.</span></div></div>
-            <div class="item"><div><strong>Website form later</strong><span class="muted">Add a quote request form to your company website and send submissions into Balenco.</span></div></div>
+            <div class="item"><div><strong data-i18n="ld.fb1">Manual now</strong><span class="muted" data-i18n="ld.fb1s">Copy a Facebook lead into this form and save it. Then convert it to a client.</span></div></div>
+            <div class="item"><div><strong data-i18n="ld.fb2">Automatic later</strong><span class="muted" data-i18n="ld.fb2s">Connect Facebook Lead Ads → Zapier/Make → Balenco database. New leads can appear automatically.</span></div></div>
+            <div class="item"><div><strong data-i18n="ld.fb3">Website form later</strong><span class="muted" data-i18n="ld.fb3s">Add a quote request form to your company website and send submissions into Balenco.</span></div></div>
           </div>
         </div>
       </div>
-      <div class="card" style="margin-top:18px"><div class="title"><div><h3>Lead inbox</h3><p>Convert good leads into clients and estimates.</p></div></div><div id="leadList" class="list"></div></div>
+      <div class="card" style="margin-top:18px"><div class="title"><div><h3 data-i18n="ld.inbox">Lead inbox</h3><p data-i18n="ld.inboxSub">Convert good leads into clients and estimates.</p></div></div><div id="leadList" class="list"></div></div>
     </section>
 
     <section id="clients" class="tab">
       <div class="grid2" style="grid-template-columns:.8fr 1.2fr">
         <div class="card">
-          <div class="title"><div><h3>Add client</h3><p>Client archive for active and past jobs.</p></div></div>
+          <div class="title"><div><h3 data-i18n="cl.add">Add client</h3><p data-i18n="cl.addSub">Client archive for active and past jobs.</p></div></div>
           <form id="clientForm" class="form">
-            <input id="clientNameInput" placeholder="Client name" required>
-            <input id="clientPhone" placeholder="Phone">
-            <input id="clientEmail" placeholder="Email">
-            <input id="clientAddress" placeholder="Full address for map / area">
-            <input id="clientProject" placeholder="Project type" required>
-            <select id="clientStatus"><option>Active</option><option>Estimate sent</option><option>Payment due</option><option>Completed</option></select>
-            <input id="clientBalance" type="number" min="0" step="1" placeholder="Open balance" value="0">
-            <button class="btn" type="submit">Save client</button>
+            <input id="clientNameInput" data-i18n-ph="cl.name" placeholder="Client name" required>
+            <input id="clientPhone" data-i18n-ph="f.phone" placeholder="Phone">
+            <input id="clientEmail" data-i18n-ph="f.email" placeholder="Email">
+            <input id="clientAddress" data-i18n-ph="cl.address" placeholder="Full address for map / area">
+            <input id="clientProject" data-i18n-ph="cl.project" placeholder="Project type" required>
+            <select id="clientStatus"><option value="Active" data-i18n="cst.active">Active</option><option value="Estimate sent" data-i18n="cst.estSent">Estimate sent</option><option value="Payment due" data-i18n="cst.payDue">Payment due</option><option value="Completed" data-i18n="cst.completed">Completed</option></select>
+            <input id="clientBalance" type="number" min="0" step="1" data-i18n-ph="cl.balance" placeholder="Open balance" value="0">
+            <button class="btn" type="submit" data-i18n="cl.save">Save client</button>
           </form>
         </div>
-        <div class="card"><div class="title"><div><h3>Client archive</h3><p>Search contacts, jobs, and balances.</p></div><input id="clientSearch" placeholder="Search clients"></div><div id="clientList" class="grid2"></div></div>
+        <div class="card"><div class="title"><div><h3 data-i18n="cl.archive">Client archive</h3><p data-i18n="cl.archiveSub">Search contacts, jobs, and balances.</p></div><input id="clientSearch" data-i18n-ph="cl.search" placeholder="Search clients"></div><div id="clientList" class="grid2"></div></div>
       </div>
     </section>
 
     <section id="estimates" class="tab">
       <div class="grid2">
         <div class="card">
-          <div class="title"><div><h3>Create professional estimate</h3><p>Includes TPS/TVQ, deposit, payment schedule, signature, and approval.</p></div></div>
+          <div class="title"><div><h3 data-i18n="es.create">Create professional estimate</h3><p data-i18n="es.createSub">Includes TPS/TVQ, deposit, payment schedule, signature, and approval.</p></div></div>
           <form id="estimateForm" class="form" onkeydown="if(event.key==='Enter'&&event.target.tagName!=='TEXTAREA'&&event.target.type!=='submit'){event.preventDefault();}">
             <div class="ai-draft" id="aiDraftPanel">
-              <div class="ai-draft-head"><span>✨ Draft from a photo</span><button type="button" class="ai-draft-toggle" onclick="toggleAiDraft()" title="Show / hide">−</button></div>
+              <div class="ai-draft-head"><span data-i18n="es.aiHead">✨ Draft from a photo</span><button type="button" class="ai-draft-toggle" onclick="toggleAiDraft()" title="Show / hide">−</button></div>
               <div class="ai-draft-body" id="aiDraftBody">
-                <p class="ai-draft-hint">Snap or upload a job photo and add a quick note. Claude drafts the line items — review and tweak before saving.</p>
+                <p class="ai-draft-hint" data-i18n="es.aiHint">Snap or upload a job photo and add a quick note. Claude drafts the line items — review and tweak before saving.</p>
                 <input type="file" id="aiPhotos" accept="image/*" capture="environment" multiple onchange="aiPhotosPicked()">
                 <div id="aiPhotoPreview" class="ai-photo-preview"></div>
-                <textarea id="aiNote" rows="2" placeholder="e.g. Repaint 2 bedrooms, patch ceiling water damage, ~300 sq ft"></textarea>
-                <button type="button" class="btn" id="aiDraftBtn" onclick="generateAiEstimate()">Generate estimate</button>
+                <textarea id="aiNote" rows="2" data-i18n-ph="es.aiNote" placeholder="e.g. Repaint 2 bedrooms, patch ceiling water damage, ~300 sq ft"></textarea>
+                <button type="button" class="btn" id="aiDraftBtn" onclick="generateAiEstimate()" data-i18n="es.aiGen">Generate estimate</button>
                 <div id="aiDraftStatus" class="ai-draft-status"></div>
               </div>
             </div>
             <div class="form2">
               <select id="estimateClient" required></select>
-              <input id="estimateTitle" placeholder="Project title" required>
+              <input id="estimateTitle" data-i18n-ph="es.title" placeholder="Project title" required>
               <div class="line-items-wrap">
               <table class="line-items-edit">
-                <thead><tr><th>Description</th><th>Qty</th><th>Unit price</th><th>Total</th><th></th></tr></thead>
+                <thead><tr><th data-i18n="doc.description">Description</th><th data-i18n="doc.qty">Qty</th><th data-i18n="doc.unitPrice">Unit price</th><th data-i18n="doc.total">Total</th><th></th></tr></thead>
                 <tbody id="lineItemsBody"></tbody>
               </table>
-              <button type="button" class="btn-ghost add-line-btn" onclick="addLineItem()">+ Add item</button>
-              <div class="line-items-foot">Subtotal: <strong id="lineItemsSubtotal">$0.00</strong></div>
+              <button type="button" class="btn-ghost add-line-btn" onclick="addLineItem()" data-i18n="es.addItem">+ Add item</button>
+              <div class="line-items-foot"><span data-i18n="doc.subtotal">Subtotal</span>: <strong id="lineItemsSubtotal">$0.00</strong></div>
             </div>
             <input type="hidden" id="estimateSubtotal">
-              <select id="estimateStatus"><option>Draft</option><option>Sent</option><option>Accepted</option><option>Lost</option><option>Partially paid</option></select>
-              <input id="estimateDeposit" type="number" min="0" step="1" placeholder="Deposit required">
-              <select id="estimatePaymentSchedule"><option>Deposit + balance on completion</option><option>50% deposit / 50% completion</option><option>Progress payments</option><option>Due on completion</option><option>Custom payment terms</option></select>
+              <select id="estimateStatus"><option value="Draft" data-i18n="est.draft">Draft</option><option value="Sent" data-i18n="est.sent">Sent</option><option value="Accepted" data-i18n="est.accepted">Accepted</option><option value="Lost" data-i18n="est.lost">Lost</option><option value="Partially paid" data-i18n="est.partial">Partially paid</option></select>
+              <input id="estimateDeposit" type="number" min="0" step="1" data-i18n-ph="es.deposit" placeholder="Deposit required">
+              <select id="estimatePaymentSchedule"><option value="Deposit + balance on completion" data-i18n="ps.depBal">Deposit + balance on completion</option><option value="50% deposit / 50% completion" data-i18n="ps.5050">50% deposit / 50% completion</option><option value="Progress payments" data-i18n="ps.progress">Progress payments</option><option value="Due on completion" data-i18n="ps.dueComplete">Due on completion</option><option value="Custom payment terms" data-i18n="ps.custom">Custom payment terms</option></select>
             </div>
-            <textarea id="estimateScope" rows="7" placeholder="Scope of work / included items"></textarea>
-            <textarea id="estimatePaymentNotes" rows="3" placeholder="Payment schedule notes"></textarea>
-            <input type="date" id="estimateExpiry" placeholder="Estimate valid until">
-            <button class="btn" type="submit">Save estimate</button>
+            <textarea id="estimateScope" rows="7" data-i18n-ph="es.scope" placeholder="Scope of work / included items"></textarea>
+            <textarea id="estimatePaymentNotes" rows="3" data-i18n-ph="doc.paymentNotesH" placeholder="Payment schedule notes"></textarea>
+            <input type="date" id="estimateExpiry" data-i18n-ph="es.expiry" placeholder="Estimate valid until">
+            <button class="btn" type="submit" data-i18n="es.save">Save estimate</button>
           </form>
         </div>
         <div class="card">
-          <div class="title"><div><h3>Estimate preview</h3><p>Select an estimate to copy, email, approve, print, or download.</p></div></div>
+          <div class="title"><div><h3 data-i18n="es.preview">Estimate preview</h3><p data-i18n="es.previewSub">Select an estimate to copy, email, approve, print, or download.</p></div></div>
           <select id="previewEstimate"></select>
           <div id="estimatePreview" class="preview" style="margin-top:12px"></div>
           <div class="actions" style="margin-top:12px">
-            <button class="btn approve" type="button" id="approveBtn">Client approve</button>
-            <button class="btn" type="button" id="copyLinkBtn">Copy approval link</button>
-            <button class="btn" type="button" id="copyEstimateBtn">Copy text</button>
-            <button class="btn out" type="button" id="emailEstimateBtn">Send by email</button>
-            <button class="btn out" type="button" id="printEstimateBtn">Print / save PDF</button>
-            <button class="btn out" type="button" id="downloadEstimateBtn">Download PDF</button>
-            <button class="btn out" type="button" id="invoiceBtn">Print invoice</button>
-            <button class="btn" type="button" id="paymentLinkBtn" style="background:#635bff">Copy payment link</button>
+            <button class="btn approve" type="button" id="approveBtn" data-i18n="es.btnApprove">Client approve</button>
+            <button class="btn" type="button" id="copyLinkBtn" data-i18n="es.btnCopyLink">Copy approval link</button>
+            <button class="btn" type="button" id="copyEstimateBtn" data-i18n="es.btnCopyText">Copy text</button>
+            <button class="btn out" type="button" id="emailEstimateBtn" data-i18n="es.btnEmail">Send by email</button>
+            <button class="btn out" type="button" id="printEstimateBtn" data-i18n="es.btnPrint">Print / save PDF</button>
+            <button class="btn out" type="button" id="downloadEstimateBtn" data-i18n="es.btnDownload">Download PDF</button>
+            <button class="btn out" type="button" id="invoiceBtn" data-i18n="es.btnInvoice">Print invoice</button>
+            <button class="btn" type="button" id="paymentLinkBtn" style="background:#635bff" data-i18n="es.btnPayLink">Copy payment link</button>
           </div>
           <div id="estimatePayments" style="margin-top:16px"></div>
         </div>
       </div>
-      <div class="card" style="margin-top:18px"><div class="title"><div><h3>Estimates</h3><p>Mark any estimate accepted or lost.</p></div></div><div class="table"><table><thead><tr><th>Estimate</th><th>Client</th><th>Subtotal</th><th>Taxes</th><th>Total</th><th>Status</th><th class="owner-only">Entered by</th><th class="right">Actions</th></tr></thead><tbody id="estimateTable"></tbody></table></div></div>
+      <div class="card" style="margin-top:18px"><div class="title"><div><h3 data-i18n="es.listTitle">Estimates</h3><p data-i18n="es.listSub">Mark any estimate accepted or lost.</p></div></div><div class="table"><table><thead><tr><th data-i18n="es.thEstimate">Estimate</th><th data-i18n="doc.client">Client</th><th data-i18n="doc.subtotal">Subtotal</th><th data-i18n="es.thTaxes">Taxes</th><th data-i18n="doc.total">Total</th><th data-i18n="es.thStatus">Status</th><th class="owner-only" data-i18n="es.thEnteredBy">Entered by</th><th class="right" data-i18n="es.thActions">Actions</th></tr></thead><tbody id="estimateTable"></tbody></table></div></div>
     </section>
 
     <section id="calendar" class="tab">
       <div class="grid2" style="grid-template-columns:.8fr 1.2fr">
         <div class="card">
-          <div class="title"><div><h3>Set appointment</h3><p>Book estimate visits, start dates, inspections, and follow-ups.</p></div></div>
+          <div class="title"><div><h3 data-i18n="cal.set">Set appointment</h3><p data-i18n="cal.setSub">Book estimate visits, start dates, inspections, and follow-ups.</p></div></div>
           <form id="appointmentForm" class="form">
-            <input id="apptTitle" placeholder="Appointment title" required>
+            <input id="apptTitle" data-i18n-ph="cal.title" placeholder="Appointment title" required>
             <select id="apptClient" required></select>
             <input id="apptStart" type="datetime-local" required>
             <input id="apptEnd" type="datetime-local">
-            <input id="apptLocation" placeholder="Location">
-            <textarea id="apptNotes" rows="4" placeholder="Appointment notes"></textarea>
-            <label class="notice" style="display:flex;gap:10px;align-items:center"><input id="apptReminder24" type="checkbox" style="width:auto" checked> Prepare 24h client reminder message</label>
-            <label style="display:flex;gap:10px;align-items:center;cursor:pointer;padding:10px 14px;background:rgba(79,195,247,0.06);border:1px solid rgba(79,195,247,0.15);border-radius:14px"><input id="apptRecurring" type="checkbox" style="width:auto" onchange="document.getElementById('recurringOptions').style.display=this.checked?'grid':'none'"> <span style="font-size:14px;color:var(--text)">↻ &nbsp;Recurring appointment</span></label>
+            <input id="apptLocation" data-i18n-ph="cal.location" placeholder="Location">
+            <textarea id="apptNotes" rows="4" data-i18n-ph="cal.notes" placeholder="Appointment notes"></textarea>
+            <label class="notice" style="display:flex;gap:10px;align-items:center"><input id="apptReminder24" type="checkbox" style="width:auto" checked> <span data-i18n="cal.reminder24">Prepare 24h client reminder message</span></label>
+            <label style="display:flex;gap:10px;align-items:center;cursor:pointer;padding:10px 14px;background:rgba(79,195,247,0.06);border:1px solid rgba(79,195,247,0.15);border-radius:14px"><input id="apptRecurring" type="checkbox" style="width:auto" onchange="document.getElementById('recurringOptions').style.display=this.checked?'grid':'none'"> <span style="font-size:14px;color:var(--text)" data-i18n="cal.recurring">↻ Recurring appointment</span></label>
             <div id="recurringOptions" class="form2" style="display:none">
               <select id="apptRecurringFreq">
-                <option value="weekly">Weekly</option>
-                <option value="biweekly">Every 2 weeks</option>
-                <option value="monthly">Monthly</option>
+                <option value="weekly" data-i18n="cal.weekly">Weekly</option>
+                <option value="biweekly" data-i18n="cal.biweekly">Every 2 weeks</option>
+                <option value="monthly" data-i18n="cal.monthly">Monthly</option>
               </select>
-              <input id="apptRecurringEnd" type="date" placeholder="End date (optional)">
+              <input id="apptRecurringEnd" type="date" data-i18n-ph="cal.endDate" placeholder="End date (optional)">
             </div>
-            <button class="btn" type="submit">Save appointment</button>
+            <button class="btn" type="submit" data-i18n="cal.save">Save appointment</button>
           </form>
         </div>
-        <div class="card"><div class="title"><div><h3>Calendar</h3><p>Download calendar events or open Google Calendar.</p></div></div><div id="appointmentList" class="list"></div></div>
+        <div class="card"><div class="title"><div><h3 data-i18n="nav.calendar">Calendar</h3><p data-i18n="cal.sub2">Download calendar events or open Google Calendar.</p></div></div><div id="appointmentList" class="list"></div></div>
       </div>
     </section>
 
     <section id="photos" class="tab">
       <div class="grid2" style="grid-template-columns:.8fr 1.2fr">
         <div class="card">
-          <div class="title"><div><h3>Upload job photo</h3><p>Save before, progress, proof, and after photos.</p></div></div>
+          <div class="title"><div><h3 data-i18n="ph.upload">Upload job photo</h3><p data-i18n="ph.uploadSub">Save before, progress, proof, and after photos.</p></div></div>
           <form id="photoForm" class="form">
             <select id="photoClient" required></select>
-            <select id="photoType"><option>Before</option><option>Progress</option><option>Problem / proof</option><option>After</option></select>
+            <select id="photoType"><option value="Before" data-i18n="ph.before">Before</option><option value="Progress" data-i18n="ph.progress">Progress</option><option value="Problem / proof" data-i18n="ph.problem">Problem / proof</option><option value="After" data-i18n="ph.after">After</option></select>
             <input id="photoFile" type="file" accept="image/*">
-            <textarea id="photoNotes" rows="4" placeholder="Photo notes"></textarea>
-            <button class="btn" type="submit">Save photo</button>
+            <textarea id="photoNotes" rows="4" data-i18n-ph="ph.notes" placeholder="Photo notes"></textarea>
+            <button class="btn" type="submit" data-i18n="ph.save">Save photo</button>
           </form>
         </div>
-        <div class="card"><div class="title"><div><h3>Photo archive</h3><p>Photos are saved locally in this browser.</p></div></div><div id="photoList" class="grid3"></div></div>
+        <div class="card"><div class="title"><div><h3 data-i18n="ph.archive">Photo archive</h3><p data-i18n="ph.archiveSub">Securely stored in the cloud, organized by client.</p></div></div><div id="photoList" class="grid3"></div></div>
       </div>
     </section>
 
     <section id="balances" class="tab">
       <div class="grid3">
-        <div class="card stat"><div class="icon">💵</div><label>Total open</label><strong id="moneyOpen">$0</strong></div>
-        <div class="card stat"><div class="icon">✅</div><label>Accepted estimate value</label><strong id="moneyAccepted">$0</strong></div>
-        <div class="card stat"><div class="icon">📄</div><label>Tax total on estimates</label><strong id="moneyTax">$0</strong></div>
+        <div class="card stat"><div class="icon">💵</div><label data-i18n="bal.open">Total open</label><strong id="moneyOpen">$0</strong></div>
+        <div class="card stat"><div class="icon">✅</div><label data-i18n="bal.acceptedVal">Accepted estimate value</label><strong id="moneyAccepted">$0</strong></div>
+        <div class="card stat"><div class="icon">📄</div><label data-i18n="bal.taxTotal">Tax total on estimates</label><strong id="moneyTax">$0</strong></div>
       </div>
-      <div class="card" style="margin-top:18px"><div class="title"><div><h3>Open balances</h3><p>Track who owes money and create payment reminders.</p></div><button class="btn out small" type="button" id="exportCSVBtn">Export CSV</button></div><div id="balanceList" class="list"></div></div>
+      <div class="card" style="margin-top:18px"><div class="title"><div><h3 data-i18n="bal.title">Open balances</h3><p data-i18n="bal.sub">Track who owes money and create payment reminders.</p></div><button class="btn out small" type="button" id="exportCSVBtn" data-i18n="bal.export">Export CSV</button></div><div id="balanceList" class="list"></div></div>
     </section>
 
     <section id="maps" class="tab">
       <div class="grid2">
         <div class="card">
-          <div class="title"><div><h3>Client map links</h3><p>Open client addresses in Google Maps and get directions.</p></div></div>
-          <div class="notice">This version uses Google Maps links. A live embedded map later needs a Google Maps API key.</div>
+          <div class="title"><div><h3 data-i18n="mp.title">Client map links</h3><p data-i18n="mp.sub">Open client addresses in Google Maps and get directions.</p></div></div>
+          <div class="notice" data-i18n="mp.notice">This version uses Google Maps links. A live embedded map later needs a Google Maps API key.</div>
           <div id="clientMapList" class="list" style="margin-top:14px"></div>
         </div>
         <div class="card">
-          <div class="title"><div><h3>Estimate route suggestion</h3><p>Choose a starting point and get a suggested order to visit clients.</p></div></div>
+          <div class="title"><div><h3 data-i18n="mp.route">Estimate route suggestion</h3><p data-i18n="mp.routeSub">Choose a starting point and get a suggested order to visit clients.</p></div></div>
           <div class="form">
-            <input id="routeStart" placeholder="Starting address, example: Montreal, QC">
-            <select id="routeFilter"><option value="estimates">Clients needing estimates / appointments</option><option value="all">All visible clients</option><option value="balance">Clients with open balances</option></select>
-            <button class="btn" type="button" id="suggestRouteBtn">Suggest route</button>
+            <input id="routeStart" data-i18n-ph="mp.start" placeholder="Starting address, example: Montreal, QC">
+            <select id="routeFilter"><option value="estimates" data-i18n="mp.fEstimates">Clients needing estimates / appointments</option><option value="all" data-i18n="mp.fAll">All visible clients</option><option value="balance" data-i18n="mp.fBalance">Clients with open balances</option></select>
+            <button class="btn" type="button" id="suggestRouteBtn" data-i18n="mp.suggest">Suggest route</button>
           </div>
           <div id="routeSuggestion" class="list" style="margin-top:14px"></div>
         </div>
       </div>
       <div class="card" style="margin-top:18px">
-        <div class="title"><div><h3>24h appointment reminders</h3><p>Copy or open SMS reminders for clients one day before appointments.</p></div></div>
-        <div class="notice">Automatic SMS sending needs a real backend + Twilio. This prototype prepares the message and opens SMS when supported.</div>
+        <div class="title"><div><h3 data-i18n="mp.rem">24h appointment reminders</h3><p data-i18n="mp.remSub">Copy or open SMS reminders for clients one day before appointments.</p></div></div>
+        <div class="notice" data-i18n="mp.remNotice">Automatic SMS sending needs a real backend + Twilio. This prototype prepares the message and opens SMS when supported.</div>
         <div id="reminderList" class="list" style="margin-top:14px"></div>
       </div>
     </section>
@@ -847,7 +847,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       'top.switch':'Switch account','top.owner':'Owner / Admin account','top.employee':'Employee account','top.loggedIn':'Logged in as ',
       'hero.title':'Run the job from lead to payment.','hero.sub':'Create tax-ready estimates, send polished quote emails, book appointments, track balances, and keep a clean client archive.','hero.addLead':'+ Add lead','hero.newEstimate':'+ New estimate',
       'doc.estimate':'Estimate','doc.quoteNo':'Quote #','doc.date':'Date','doc.validUntil':'Valid until','doc.preparedBy':'Prepared by','doc.client':'Client','doc.project':'Project','doc.taxesBelow':'Taxes shown below.','doc.scope':'Scope of work','doc.noScope':'No scope entered.','doc.description':'Description','doc.qty':'Qty','doc.unitPrice':'Unit price','doc.total':'Total','doc.subtotal':'Subtotal','doc.deposit':'Deposit','doc.balanceAfter':'Balance after deposit','doc.paymentPlan':'Payment plan','doc.notSpecified':'Not specified','doc.paymentNotesH':'Payment schedule notes','doc.terms':'Terms & notes','doc.clientSig':'Client signature','doc.approved':'Approved','doc.apprPre':'This estimate was approved by ','doc.apprMid':' on ','doc.thankYou':'Thank you for considering ','doc.invoice':'Invoice','doc.invoiceNo':'Invoice #','doc.billTo':'Bill to','doc.descWork':'Description of work','doc.seeEstimate':'See attached estimate.','doc.paidToDate':'Paid to date','doc.amountDue':'Amount due','doc.payInstr':'Payment instructions','doc.payDefault':'Please remit payment at your earliest convenience. Thank you.','doc.payStatus':'Payment status','doc.paidFull':'Paid in full. Thank you for your business!','doc.thankYouShort':'Thank you — ','doc.basedOn':'Based on ','doc.approvedByLbl':'Approved by ','doc.month':'','doc.invDate':'Date',
-      'set.title':'Company settings','set.sub':'Anyone can put in their company name, tax rates, and logo.','set.company':'Company name','set.email':'Company email','set.phone':'Company phone','set.address':'Company address','set.gst':'GST / TPS registration number','set.qst':'QST / TVQ registration number','set.logoTitle':'Estimate logo','set.logoSub':'Optional: upload your own company logo for professional estimates.','set.uploadLogo':'Upload logo','set.noLogo':'No custom logo uploaded.','set.logoReady':'Custom logo uploaded and ready for estimates.','set.removeLogo':'Remove logo','set.terms':'Default estimate terms','set.followup':'Auto follow-up','set.followupSub':'Send a follow-up email to clients with unanswered estimates after this many days','set.days':'days','set.push':'🔔 Push notifications','set.pushSub':'Get an alert on this device when a client books online','set.pushUnsupported':'Not supported on this browser. On iPhone: add Balenco to your Home Screen first (Share → Add to Home Screen).','set.pushBlocked':'Blocked — allow notifications for this site in your browser settings, then reload.','set.pushEnabled':'Enabled on this device — you’ll get an alert when a client books online.','set.enable':'Enable','set.disable':'Disable','set.save':'Save settings','team.title':'Team','team.sub':'Invite your crew and manage roles.','team.invite':'🔗 Invite link — anyone who signs up through it joins your company as an employee','team.copy':'Copy','team.regen':'Regenerate link','team.loading':'Loading team…','team.none':'No team members yet.','team.makeEmp':'Make employee','team.makeAdmin':'Make admin','team.admin':'Admin','team.employee':'Employee','team.you':'You','bk.title':'📅 Online Booking','bk.sub':'Let clients book appointments directly from a shareable link — no phone tag.','bk.enable':'Enable online booking','bk.enableSub':'When on, clients can request appointments from your booking link','bk.workdays':'Working days','bk.start':'Start time','bk.end':'End time','bk.slot':'Slot length','bk.slot30':'30 min','bk.slot60':'1 hour','bk.slot90':'90 min','bk.slot120':'2 hours','bk.link':'Your booking link — share this with clients','bk.linkPh':'Enable booking and save to generate link','bk.copyLink':'Copy link','bk.save':'Save booking settings','d.mon':'Mon','d.tue':'Tue','d.wed':'Wed','d.thu':'Thu','d.fri':'Fri','d.sat':'Sat','d.sun':'Sun'
+      'set.title':'Company settings','set.sub':'Anyone can put in their company name, tax rates, and logo.','set.company':'Company name','set.email':'Company email','set.phone':'Company phone','set.address':'Company address','set.gst':'GST / TPS registration number','set.qst':'QST / TVQ registration number','set.logoTitle':'Estimate logo','set.logoSub':'Optional: upload your own company logo for professional estimates.','set.uploadLogo':'Upload logo','set.noLogo':'No custom logo uploaded.','set.logoReady':'Custom logo uploaded and ready for estimates.','set.removeLogo':'Remove logo','set.terms':'Default estimate terms','set.followup':'Auto follow-up','set.followupSub':'Send a follow-up email to clients with unanswered estimates after this many days','set.days':'days','set.push':'🔔 Push notifications','set.pushSub':'Get an alert on this device when a client books online','set.pushUnsupported':'Not supported on this browser. On iPhone: add Balenco to your Home Screen first (Share → Add to Home Screen).','set.pushBlocked':'Blocked — allow notifications for this site in your browser settings, then reload.','set.pushEnabled':'Enabled on this device — you’ll get an alert when a client books online.','set.enable':'Enable','set.disable':'Disable','set.save':'Save settings','team.title':'Team','team.sub':'Invite your crew and manage roles.','team.invite':'🔗 Invite link — anyone who signs up through it joins your company as an employee','team.copy':'Copy','team.regen':'Regenerate link','team.loading':'Loading team…','team.none':'No team members yet.','team.makeEmp':'Make employee','team.makeAdmin':'Make admin','team.admin':'Admin','team.employee':'Employee','team.you':'You','bk.title':'📅 Online Booking','bk.sub':'Let clients book appointments directly from a shareable link — no phone tag.','bk.enable':'Enable online booking','bk.enableSub':'When on, clients can request appointments from your booking link','bk.workdays':'Working days','bk.start':'Start time','bk.end':'End time','bk.slot':'Slot length','bk.slot30':'30 min','bk.slot60':'1 hour','bk.slot90':'90 min','bk.slot120':'2 hours','bk.link':'Your booking link — share this with clients','bk.linkPh':'Enable booking and save to generate link','bk.copyLink':'Copy link','bk.save':'Save booking settings','d.mon':'Mon','d.tue':'Tue','d.wed':'Wed','d.thu':'Thu','d.fri':'Fri','d.sat':'Sat','d.sun':'Sun','dash.activeLeads':'Active leads','dash.monthRev':'This month revenue','dash.pipeline':'Pipeline value','dash.outstanding':'Outstanding','dash.winRate':'Win rate','dash.ytdRev':'YTD revenue','dash.totalClients':'Total clients','dash.avgJob':'Avg job value','dash.upcoming':'Upcoming appointments','dash.upcomingSub':'Next appointments and job visits.','dash.activity':'Recent activity','dash.activitySub':'Owner view shows employee actions.','dash.rev6':'Revenue — last 6 months','dash.rev6Sub':'Accepted estimate value per month.','f.phone':'Phone','f.email':'Email','g.other':'Other','st.new':'New','st.contacted':'Contacted','st.apptSet':'Appointment set','st.won':'Won','st.lost':'Lost','ld.add':'Add / import lead','ld.addSub':'Use this for Facebook, website, Google, referrals, phone calls, or walk-ins.','ld.name':'Lead name','ld.srcWebsite':'Website','ld.srcReferral':'Referral','ld.srcPhone':'Phone call','ld.project':'Project needed','ld.notes':'Paste Facebook lead details or notes here','ld.save':'Save lead','ld.fbTitle':'How to connect Facebook leads','ld.fbSub':'Prototype-ready workflow for real lead automation.','ld.fb1':'Manual now','ld.fb1s':'Copy a Facebook lead into this form and save it. Then convert it to a client.','ld.fb2':'Automatic later','ld.fb2s':'Connect Facebook Lead Ads → Zapier/Make → Balenco database. New leads can appear automatically.','ld.fb3':'Website form later','ld.fb3s':'Add a quote request form to your company website and send submissions into Balenco.','ld.inbox':'Lead inbox','ld.inboxSub':'Convert good leads into clients and estimates.','cl.add':'Add client','cl.addSub':'Client archive for active and past jobs.','cl.name':'Client name','cl.address':'Full address for map / area','cl.project':'Project type','cl.balance':'Open balance','cl.save':'Save client','cl.archive':'Client archive','cl.archiveSub':'Search contacts, jobs, and balances.','cl.search':'Search clients','cst.active':'Active','cst.estSent':'Estimate sent','cst.payDue':'Payment due','cst.completed':'Completed','es.create':'Create professional estimate','es.createSub':'Includes TPS/TVQ, deposit, payment schedule, signature, and approval.','es.aiHead':'✨ Draft from a photo','es.aiHint':'Snap or upload a job photo and add a quick note. Claude drafts the line items — review and tweak before saving.','es.aiNote':'e.g. Repaint 2 bedrooms, patch ceiling water damage, ~300 sq ft','es.aiGen':'Generate estimate','es.title':'Project title','es.addItem':'+ Add item','es.deposit':'Deposit required','es.scope':'Scope of work / included items','es.expiry':'Estimate valid until','es.save':'Save estimate','es.preview':'Estimate preview','es.previewSub':'Select an estimate to copy, email, approve, print, or download.','es.btnApprove':'Client approve','es.btnCopyLink':'Copy approval link','es.btnCopyText':'Copy text','es.btnEmail':'Send by email','es.btnPrint':'Print / save PDF','es.btnDownload':'Download PDF','es.btnInvoice':'Print invoice','es.btnPayLink':'Copy payment link','es.listTitle':'Estimates','es.listSub':'Mark any estimate accepted or lost.','es.thEstimate':'Estimate','es.thTaxes':'Taxes','es.thStatus':'Status','es.thEnteredBy':'Entered by','es.thActions':'Actions','est.draft':'Draft','est.sent':'Sent','est.accepted':'Accepted','est.lost':'Lost','est.partial':'Partially paid','ps.depBal':'Deposit + balance on completion','ps.5050':'50% deposit / 50% completion','ps.progress':'Progress payments','ps.dueComplete':'Due on completion','ps.custom':'Custom payment terms','cal.set':'Set appointment','cal.setSub':'Book estimate visits, start dates, inspections, and follow-ups.','cal.title':'Appointment title','cal.location':'Location','cal.notes':'Appointment notes','cal.reminder24':'Prepare 24h client reminder message','cal.recurring':'↻ Recurring appointment','cal.weekly':'Weekly','cal.biweekly':'Every 2 weeks','cal.monthly':'Monthly','cal.endDate':'End date (optional)','cal.save':'Save appointment','cal.sub2':'Download calendar events or open Google Calendar.','ph.upload':'Upload job photo','ph.uploadSub':'Save before, progress, proof, and after photos.','ph.before':'Before','ph.progress':'Progress','ph.problem':'Problem / proof','ph.after':'After','ph.notes':'Photo notes','ph.save':'Save photo','ph.archive':'Photo archive','ph.archiveSub':'Securely stored in the cloud, organized by client.','bal.open':'Total open','bal.acceptedVal':'Accepted estimate value','bal.taxTotal':'Tax total on estimates','bal.title':'Open balances','bal.sub':'Track who owes money and create payment reminders.','bal.export':'Export CSV','mp.title':'Client map links','mp.sub':'Open client addresses in Google Maps and get directions.','mp.notice':'This version uses Google Maps links. A live embedded map later needs a Google Maps API key.','mp.route':'Estimate route suggestion','mp.routeSub':'Choose a starting point and get a suggested order to visit clients.','mp.start':'Starting address, example: Montreal, QC','mp.fEstimates':'Clients needing estimates / appointments','mp.fAll':'All visible clients','mp.fBalance':'Clients with open balances','mp.suggest':'Suggest route','mp.rem':'24h appointment reminders','mp.remSub':'Copy or open SMS reminders for clients one day before appointments.','mp.remNotice':'Automatic SMS sending needs a real backend + Twilio. This prototype prepares the message and opens SMS when supported.'
     },
     fr: {
       'login.signin':'Se connecter','login.create':'Créer un compte','login.welcome':'Bon retour','login.welcomeSub':'Entrez vos identifiants pour continuer.','login.email':'Adresse courriel','login.password':'Mot de passe','login.forgot':'Mot de passe oublié?','login.createCompany':'Créez votre entreprise','login.createCompanySub':'Inscrivez-vous et obtenez instantanément votre espace Balenco privé.','login.name':'Votre nom complet','login.company':'Nom de l’entreprise','login.passMin':'Mot de passe (min. 6 caractères)','login.brandTitle':'La gestion d’entrepreneur, simplifiée.','login.brandSub':'Prospects, clients, soumissions avec taxes, rendez-vous, soldes, photos, rappels et suivi propriétaire/employé.','login.secure':'Stockage infonuagique sécurisé propulsé par Supabase.',
@@ -857,7 +857,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       'top.switch':'Changer de compte','top.owner':'Compte propriétaire / admin','top.employee':'Compte employé','top.loggedIn':'Connecté : ',
       'hero.title':'Gérez le chantier, du prospect au paiement.','hero.sub':'Créez des soumissions avec taxes, envoyez de beaux courriels, planifiez des rendez-vous, suivez les soldes et gardez un dossier client impeccable.','hero.addLead':'+ Ajouter un prospect','hero.newEstimate':'+ Nouvelle soumission',
       'doc.estimate':'Soumission','doc.quoteNo':'Soumission n°','doc.date':'Date','doc.validUntil':'Valide jusqu’au','doc.preparedBy':'Préparée par','doc.client':'Client','doc.project':'Projet','doc.taxesBelow':'Taxes indiquées ci-dessous.','doc.scope':'Description des travaux','doc.noScope':'Aucune description fournie.','doc.description':'Description','doc.qty':'Qté','doc.unitPrice':'Prix unitaire','doc.total':'Total','doc.subtotal':'Sous-total','doc.deposit':'Acompte','doc.balanceAfter':'Solde après acompte','doc.paymentPlan':'Modalités de paiement','doc.notSpecified':'Non spécifié','doc.paymentNotesH':'Notes sur le calendrier de paiement','doc.terms':'Conditions et notes','doc.clientSig':'Signature du client','doc.approved':'Approuvée','doc.apprPre':'Cette soumission a été approuvée par ','doc.apprMid':' le ','doc.thankYou':'Merci de considérer ','doc.invoice':'Facture','doc.invoiceNo':'Facture n°','doc.billTo':'Facturer à','doc.descWork':'Description des travaux','doc.seeEstimate':'Voir la soumission jointe.','doc.paidToDate':'Payé à ce jour','doc.amountDue':'Montant dû','doc.payInstr':'Instructions de paiement','doc.payDefault':'Veuillez effectuer le paiement dès que possible. Merci.','doc.payStatus':'Statut du paiement','doc.paidFull':'Payée en totalité. Merci de votre confiance!','doc.thankYouShort':'Merci — ','doc.basedOn':'Basée sur ','doc.approvedByLbl':'Approuvée par ','doc.month':'','doc.invDate':'Date',
-      'set.title':'Paramètres de l’entreprise','set.sub':'Inscrivez le nom de votre entreprise, vos taux de taxe et votre logo.','set.company':'Nom de l’entreprise','set.email':'Courriel de l’entreprise','set.phone':'Téléphone de l’entreprise','set.address':'Adresse de l’entreprise','set.gst':'Numéro d’inscription TPS','set.qst':'Numéro d’inscription TVQ','set.logoTitle':'Logo de soumission','set.logoSub':'Optionnel : téléversez votre logo pour des soumissions professionnelles.','set.uploadLogo':'Téléverser un logo','set.noLogo':'Aucun logo personnalisé.','set.logoReady':'Logo personnalisé téléversé et prêt pour les soumissions.','set.removeLogo':'Retirer le logo','set.terms':'Conditions par défaut des soumissions','set.followup':'Relance automatique','set.followupSub':'Envoyer un courriel de relance aux clients sans réponse après ce nombre de jours','set.days':'jours','set.push':'🔔 Notifications','set.pushSub':'Recevez une alerte sur cet appareil quand un client réserve en ligne','set.pushUnsupported':'Non pris en charge sur ce navigateur. Sur iPhone : ajoutez d’abord Balenco à votre écran d’accueil (Partager → Ajouter à l’écran d’accueil).','set.pushBlocked':'Bloqué — autorisez les notifications pour ce site dans les réglages de votre navigateur, puis rechargez.','set.pushEnabled':'Activé sur cet appareil — vous recevrez une alerte quand un client réserve en ligne.','set.enable':'Activer','set.disable':'Désactiver','set.save':'Enregistrer','team.title':'Équipe','team.sub':'Invitez votre équipe et gérez les rôles.','team.invite':'🔗 Lien d’invitation — toute personne qui s’inscrit via ce lien rejoint votre entreprise comme employé','team.copy':'Copier','team.regen':'Régénérer le lien','team.loading':'Chargement de l’équipe…','team.none':'Aucun membre pour l’instant.','team.makeEmp':'Rendre employé','team.makeAdmin':'Rendre admin','team.admin':'Admin','team.employee':'Employé','team.you':'Vous','bk.title':'📅 Réservation en ligne','bk.sub':'Laissez les clients réserver directement via un lien partageable — fini les appels téléphoniques.','bk.enable':'Activer la réservation en ligne','bk.enableSub':'Quand c’est activé, les clients peuvent demander des rendez-vous via votre lien','bk.workdays':'Jours ouvrables','bk.start':'Heure de début','bk.end':'Heure de fin','bk.slot':'Durée du créneau','bk.slot30':'30 min','bk.slot60':'1 heure','bk.slot90':'90 min','bk.slot120':'2 heures','bk.link':'Votre lien de réservation — partagez-le avec vos clients','bk.linkPh':'Activez la réservation et enregistrez pour générer le lien','bk.copyLink':'Copier le lien','bk.save':'Enregistrer la réservation','d.mon':'Lun','d.tue':'Mar','d.wed':'Mer','d.thu':'Jeu','d.fri':'Ven','d.sat':'Sam','d.sun':'Dim'
+      'set.title':'Paramètres de l’entreprise','set.sub':'Inscrivez le nom de votre entreprise, vos taux de taxe et votre logo.','set.company':'Nom de l’entreprise','set.email':'Courriel de l’entreprise','set.phone':'Téléphone de l’entreprise','set.address':'Adresse de l’entreprise','set.gst':'Numéro d’inscription TPS','set.qst':'Numéro d’inscription TVQ','set.logoTitle':'Logo de soumission','set.logoSub':'Optionnel : téléversez votre logo pour des soumissions professionnelles.','set.uploadLogo':'Téléverser un logo','set.noLogo':'Aucun logo personnalisé.','set.logoReady':'Logo personnalisé téléversé et prêt pour les soumissions.','set.removeLogo':'Retirer le logo','set.terms':'Conditions par défaut des soumissions','set.followup':'Relance automatique','set.followupSub':'Envoyer un courriel de relance aux clients sans réponse après ce nombre de jours','set.days':'jours','set.push':'🔔 Notifications','set.pushSub':'Recevez une alerte sur cet appareil quand un client réserve en ligne','set.pushUnsupported':'Non pris en charge sur ce navigateur. Sur iPhone : ajoutez d’abord Balenco à votre écran d’accueil (Partager → Ajouter à l’écran d’accueil).','set.pushBlocked':'Bloqué — autorisez les notifications pour ce site dans les réglages de votre navigateur, puis rechargez.','set.pushEnabled':'Activé sur cet appareil — vous recevrez une alerte quand un client réserve en ligne.','set.enable':'Activer','set.disable':'Désactiver','set.save':'Enregistrer','team.title':'Équipe','team.sub':'Invitez votre équipe et gérez les rôles.','team.invite':'🔗 Lien d’invitation — toute personne qui s’inscrit via ce lien rejoint votre entreprise comme employé','team.copy':'Copier','team.regen':'Régénérer le lien','team.loading':'Chargement de l’équipe…','team.none':'Aucun membre pour l’instant.','team.makeEmp':'Rendre employé','team.makeAdmin':'Rendre admin','team.admin':'Admin','team.employee':'Employé','team.you':'Vous','bk.title':'📅 Réservation en ligne','bk.sub':'Laissez les clients réserver directement via un lien partageable — fini les appels téléphoniques.','bk.enable':'Activer la réservation en ligne','bk.enableSub':'Quand c’est activé, les clients peuvent demander des rendez-vous via votre lien','bk.workdays':'Jours ouvrables','bk.start':'Heure de début','bk.end':'Heure de fin','bk.slot':'Durée du créneau','bk.slot30':'30 min','bk.slot60':'1 heure','bk.slot90':'90 min','bk.slot120':'2 heures','bk.link':'Votre lien de réservation — partagez-le avec vos clients','bk.linkPh':'Activez la réservation et enregistrez pour générer le lien','bk.copyLink':'Copier le lien','bk.save':'Enregistrer la réservation','d.mon':'Lun','d.tue':'Mar','d.wed':'Mer','d.thu':'Jeu','d.fri':'Ven','d.sat':'Sam','d.sun':'Dim','dash.activeLeads':'Prospects actifs','dash.monthRev':'Revenus du mois','dash.pipeline':'Valeur du pipeline','dash.outstanding':'Montants dus','dash.winRate':'Taux de réussite','dash.ytdRev':'Revenus cumulés','dash.totalClients':'Total clients','dash.avgJob':'Valeur moyenne par projet','dash.upcoming':'Rendez-vous à venir','dash.upcomingSub':'Prochains rendez-vous et visites de chantier.','dash.activity':'Activité récente','dash.activitySub':'La vue propriétaire montre les actions des employés.','dash.rev6':'Revenus — 6 derniers mois','dash.rev6Sub':'Valeur des soumissions acceptées par mois.','f.phone':'Téléphone','f.email':'Courriel','g.other':'Autre','st.new':'Nouveau','st.contacted':'Contacté','st.apptSet':'Rendez-vous fixé','st.won':'Gagné','st.lost':'Perdu','ld.add':'Ajouter / importer un prospect','ld.addSub':'Pour Facebook, site web, Google, références, appels ou visites.','ld.name':'Nom du prospect','ld.srcWebsite':'Site web','ld.srcReferral':'Référence','ld.srcPhone':'Appel téléphonique','ld.project':'Projet souhaité','ld.notes':'Collez les détails du prospect Facebook ou des notes ici','ld.save':'Enregistrer le prospect','ld.fbTitle':'Comment connecter les prospects Facebook','ld.fbSub':'Flux prêt pour l’automatisation des prospects.','ld.fb1':'Manuel pour l’instant','ld.fb1s':'Copiez un prospect Facebook dans ce formulaire et enregistrez-le. Puis convertissez-le en client.','ld.fb2':'Automatique plus tard','ld.fb2s':'Connectez Facebook Lead Ads → Zapier/Make → base de données Balenco. Les nouveaux prospects peuvent apparaître automatiquement.','ld.fb3':'Formulaire web plus tard','ld.fb3s':'Ajoutez un formulaire de demande de soumission à votre site web et envoyez les demandes dans Balenco.','ld.inbox':'Boîte de réception des prospects','ld.inboxSub':'Convertissez les bons prospects en clients et soumissions.','cl.add':'Ajouter un client','cl.addSub':'Archive des clients pour les projets actifs et passés.','cl.name':'Nom du client','cl.address':'Adresse complète pour la carte / le secteur','cl.project':'Type de projet','cl.balance':'Solde dû','cl.save':'Enregistrer le client','cl.archive':'Archive des clients','cl.archiveSub':'Recherchez contacts, projets et soldes.','cl.search':'Rechercher des clients','cst.active':'Actif','cst.estSent':'Soumission envoyée','cst.payDue':'Paiement dû','cst.completed':'Terminé','es.create':'Créer une soumission professionnelle','es.createSub':'Inclut TPS/TVQ, acompte, modalités de paiement, signature et approbation.','es.aiHead':'✨ Brouillon à partir d’une photo','es.aiHint':'Prenez ou téléversez une photo du chantier et ajoutez une note. Claude rédige les articles — révisez avant d’enregistrer.','es.aiNote':'ex. Repeindre 2 chambres, réparer un dégât d’eau au plafond, ~300 pi²','es.aiGen':'Générer la soumission','es.title':'Titre du projet','es.addItem':'+ Ajouter un article','es.deposit':'Acompte requis','es.scope':'Description des travaux / articles inclus','es.expiry':'Soumission valide jusqu’au','es.save':'Enregistrer la soumission','es.preview':'Aperçu de la soumission','es.previewSub':'Sélectionnez une soumission à copier, envoyer, approuver, imprimer ou télécharger.','es.btnApprove':'Approbation client','es.btnCopyLink':'Copier le lien d’approbation','es.btnCopyText':'Copier le texte','es.btnEmail':'Envoyer par courriel','es.btnPrint':'Imprimer / enregistrer PDF','es.btnDownload':'Télécharger PDF','es.btnInvoice':'Imprimer la facture','es.btnPayLink':'Copier le lien de paiement','es.listTitle':'Soumissions','es.listSub':'Marquez une soumission acceptée ou perdue.','es.thEstimate':'Soumission','es.thTaxes':'Taxes','es.thStatus':'Statut','es.thEnteredBy':'Saisie par','es.thActions':'Actions','est.draft':'Brouillon','est.sent':'Envoyée','est.accepted':'Acceptée','est.lost':'Perdue','est.partial':'Partiellement payée','ps.depBal':'Acompte + solde à la fin','ps.5050':'50 % acompte / 50 % à la fin','ps.progress':'Paiements progressifs','ps.dueComplete':'Dû à la fin des travaux','ps.custom':'Modalités personnalisées','cal.set':'Fixer un rendez-vous','cal.setSub':'Planifiez visites d’estimation, dates de début, inspections et suivis.','cal.title':'Titre du rendez-vous','cal.location':'Lieu','cal.notes':'Notes du rendez-vous','cal.reminder24':'Préparer un rappel client 24 h à l’avance','cal.recurring':'↻ Rendez-vous récurrent','cal.weekly':'Hebdomadaire','cal.biweekly':'Aux 2 semaines','cal.monthly':'Mensuel','cal.endDate':'Date de fin (optionnel)','cal.save':'Enregistrer le rendez-vous','cal.sub2':'Téléchargez les événements ou ouvrez Google Agenda.','ph.upload':'Téléverser une photo de chantier','ph.uploadSub':'Enregistrez photos avant, pendant, preuve et après.','ph.before':'Avant','ph.progress':'En cours','ph.problem':'Problème / preuve','ph.after':'Après','ph.notes':'Notes de la photo','ph.save':'Enregistrer la photo','ph.archive':'Archive des photos','ph.archiveSub':'Stockées en toute sécurité dans le nuage, par client.','bal.open':'Total dû','bal.acceptedVal':'Valeur des soumissions acceptées','bal.taxTotal':'Total des taxes sur soumissions','bal.title':'Soldes ouverts','bal.sub':'Suivez qui doit de l’argent et créez des rappels de paiement.','bal.export':'Exporter CSV','mp.title':'Liens carte des clients','mp.sub':'Ouvrez les adresses clients dans Google Maps et obtenez l’itinéraire.','mp.notice':'Cette version utilise des liens Google Maps. Une carte intégrée nécessitera plus tard une clé API Google Maps.','mp.route':'Suggestion d’itinéraire','mp.routeSub':'Choisissez un point de départ et obtenez un ordre suggéré pour visiter les clients.','mp.start':'Adresse de départ, exemple : Montréal, QC','mp.fEstimates':'Clients à estimer / rendez-vous','mp.fAll':'Tous les clients visibles','mp.fBalance':'Clients avec solde dû','mp.suggest':'Suggérer un itinéraire','mp.rem':'Rappels de rendez-vous 24 h','mp.remSub':'Copiez ou ouvrez des rappels SMS un jour avant les rendez-vous.','mp.remNotice':'L’envoi automatique de SMS nécessite un serveur + Twilio. Ce prototype prépare le message et ouvre les SMS lorsque pris en charge.'
     }
   };
   function t(k) { return (I18N[lang] && I18N[lang][k]) || I18N.en[k] || k; }
