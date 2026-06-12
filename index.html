@@ -141,6 +141,21 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 .add-line-btn:hover { background:rgba(79,195,247,0.06); }
 .line-items-foot { text-align:right; font-size:14px; color:var(--muted); padding:4px 2px; }
 .line-items-foot strong { color:var(--text); }
+/* ── AI draft from photo ── */
+.ai-draft { border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:14px; background:linear-gradient(180deg, rgba(59,130,246,0.08), rgba(59,130,246,0.02)); }
+.ai-draft-head { display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:14px; color:var(--text); }
+.ai-draft-toggle { background:none; border:none; color:var(--muted); font-size:18px; cursor:pointer; line-height:1; padding:0 6px; }
+.ai-draft-body { margin-top:10px; display:flex; flex-direction:column; gap:8px; }
+.ai-draft-hint { color:var(--muted); font-size:12px; margin:0; }
+.ai-draft-body input[type=file] { font-size:13px; color:var(--muted); }
+.ai-draft-body textarea { width:100%; border:1px solid var(--line); border-radius:8px; padding:8px; font-size:13px; background:#0a1628; color:var(--text); resize:vertical; font-family:inherit; }
+.ai-photo-preview { display:flex; gap:6px; flex-wrap:wrap; }
+.ai-photo-preview:empty { display:none; }
+.ai-photo-preview img { width:64px; height:64px; object-fit:cover; border-radius:8px; border:1px solid var(--line); }
+.ai-draft #aiDraftBtn { align-self:flex-start; }
+.ai-draft-status { font-size:12px; min-height:14px; color:var(--muted); }
+.ai-draft-status.err { color:#fca5a5; }
+.ai-draft-status.ok { color:#86efac; }
 /* ── Payments ── */
 .payments-section { border-top:1px solid var(--line); padding-top:14px; margin-top:4px; }
 .payments-section h4 { font-size:13px; font-weight:800; color:#93c5fd; margin:0 0 10px; text-transform:uppercase; letter-spacing:.4px; }
@@ -479,6 +494,17 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
         <div class="card">
           <div class="title"><div><h3>Create professional estimate</h3><p>Includes TPS/TVQ, deposit, payment schedule, signature, and approval.</p></div></div>
           <form id="estimateForm" class="form" onkeydown="if(event.key==='Enter'&&event.target.tagName!=='TEXTAREA'&&event.target.type!=='submit'){event.preventDefault();}">
+            <div class="ai-draft" id="aiDraftPanel">
+              <div class="ai-draft-head"><span>✨ Draft from a photo</span><button type="button" class="ai-draft-toggle" onclick="toggleAiDraft()" title="Show / hide">−</button></div>
+              <div class="ai-draft-body" id="aiDraftBody">
+                <p class="ai-draft-hint">Snap or upload a job photo and add a quick note. Claude drafts the line items — review and tweak before saving.</p>
+                <input type="file" id="aiPhotos" accept="image/*" capture="environment" multiple onchange="aiPhotosPicked()">
+                <div id="aiPhotoPreview" class="ai-photo-preview"></div>
+                <textarea id="aiNote" rows="2" placeholder="e.g. Repaint 2 bedrooms, patch ceiling water damage, ~300 sq ft"></textarea>
+                <button type="button" class="btn" id="aiDraftBtn" onclick="generateAiEstimate()">Generate estimate</button>
+                <div id="aiDraftStatus" class="ai-draft-status"></div>
+              </div>
+            </div>
             <div class="form2">
               <select id="estimateClient" required></select>
               <input id="estimateTitle" placeholder="Project title" required>
@@ -1706,6 +1732,114 @@ Date: ${date(e.createdAt)}`;
     addLineItem();
   }
 
+  // ── AI estimate from a photo ─────────────────────────────────────────
+  function setAiStatus(msg, kind) {
+    const el = $('aiDraftStatus');
+    if (!el) return;
+    el.textContent = msg || '';
+    el.className = 'ai-draft-status' + (kind ? ' ' + kind : '');
+  }
+
+  function toggleAiDraft() {
+    const b = $('aiDraftBody');
+    const t = document.querySelector('.ai-draft-toggle');
+    if (!b) return;
+    const open = b.style.display !== 'none';
+    b.style.display = open ? 'none' : '';
+    if (t) t.textContent = open ? '+' : '−';
+  }
+
+  function aiPhotosPicked() {
+    const wrap = $('aiPhotoPreview');
+    if (!wrap) return;
+    const files = Array.prototype.slice.call(($('aiPhotos') && $('aiPhotos').files) || [], 0, 4);
+    wrap.innerHTML = '';
+    files.forEach(function(f) {
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(f);
+      img.onload = function() { URL.revokeObjectURL(img.src); };
+      wrap.appendChild(img);
+    });
+  }
+
+  function resizeImage(file, maxDim) {
+    return new Promise(function(resolve, reject) {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = function() {
+        URL.revokeObjectURL(url);
+        let w = img.naturalWidth, h = img.naturalHeight;
+        const scale = Math.min(1, maxDim / Math.max(w, h));
+        w = Math.max(1, Math.round(w * scale));
+        h = Math.max(1, Math.round(h * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      img.onerror = function() { URL.revokeObjectURL(url); reject(new Error('bad image')); };
+      img.src = url;
+    });
+  }
+
+  function applyAiEstimate(data) {
+    const titleEl = $('estimateTitle');
+    if (data.title && titleEl && !titleEl.value.trim()) titleEl.value = data.title;
+    const body = $('lineItemsBody');
+    if (body) body.innerHTML = '';
+    (data.line_items || []).forEach(function(it) {
+      const unit = (it.unit || '').trim();
+      const desc = unit && unit.toLowerCase() !== 'each'
+        ? ((it.description || '') + ' (' + unit + ')')
+        : (it.description || '');
+      addLineItem(desc, it.quantity, it.unit_price);
+    });
+    if (!body || !body.children.length) addLineItem();
+    calcLineItems();
+    if (data.notes && $('estimateScope')) {
+      const cur = $('estimateScope').value.trim();
+      $('estimateScope').value = cur ? (cur + '\n\n' + data.notes) : data.notes;
+    }
+  }
+
+  function clearAiDraft() {
+    if ($('aiPhotos')) $('aiPhotos').value = '';
+    if ($('aiNote')) $('aiNote').value = '';
+    if ($('aiPhotoPreview')) $('aiPhotoPreview').innerHTML = '';
+    setAiStatus('', '');
+  }
+
+  async function generateAiEstimate() {
+    const fileEl = $('aiPhotos');
+    const files = Array.prototype.slice.call((fileEl && fileEl.files) || [], 0, 4);
+    const note = (($('aiNote') && $('aiNote').value) || '').trim();
+    if (!files.length && !note) { setAiStatus('Add a photo or a note first.', 'err'); return; }
+    const btn = $('aiDraftBtn');
+    if (btn) btn.disabled = true;
+    setAiStatus('Reading the job… this takes a few seconds.', '');
+    try {
+      const images = [];
+      for (const f of files) {
+        try { images.push(await resizeImage(f, 1280)); } catch (e) { /* skip unreadable file */ }
+      }
+      const res = await sb.functions.invoke('ai-estimate', { body: { images: images, note: note } });
+      if (res.error) {
+        let msg = 'AI estimate failed. Try again.';
+        try { const ctx = await res.error.context.json(); if (ctx && ctx.error) msg = ctx.error; } catch (e) {}
+        setAiStatus(msg, 'err');
+        return;
+      }
+      const data = res.data;
+      if (!data || !data.ok) { setAiStatus((data && data.error) || 'AI estimate failed. Try again.', 'err'); return; }
+      applyAiEstimate(data);
+      setAiStatus('Draft ready — review and tweak the items below, then Save estimate.', 'ok');
+    } catch (e) {
+      setAiStatus('Something went wrong. Try again.', 'err');
+    } finally {
+      if (btn) btn.disabled = false;
+    }
+  }
+
   function addEstimate(event) {
     event.preventDefault();
     calcLineItems();
@@ -1716,6 +1850,7 @@ Date: ${date(e.createdAt)}`;
     save();
     event.target.reset();
     resetLineItems();
+    clearAiDraft();
     renderAll();
     $('previewEstimate').value = e.id;
     renderEstimatePreview();
@@ -3263,6 +3398,9 @@ Date: ${date(e.createdAt)}`;
   }
 
   window.addLineItem = addLineItem;
+  window.generateAiEstimate = generateAiEstimate;
+  window.toggleAiDraft = toggleAiDraft;
+  window.aiPhotosPicked = aiPhotosPicked;
   window.recordPayment = recordPayment;
   window.showStatDetail = showStatDetail;
   window.closeStatDetail = closeStatDetail;
