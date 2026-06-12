@@ -845,7 +845,8 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       'nav.dashboard':'Dashboard','nav.leads':'Leads','nav.clients':'Clients','nav.estimates':'Estimates','nav.calendar':'Calendar','nav.photos':'Photos','nav.balances':'Balances','nav.maps':'Map & Route','nav.settings':'Settings',
       'mnav.home':'Home','mnav.leads':'Leads','mnav.clients':'Clients','mnav.quotes':'Quotes','mnav.calendar':'Calendar','mnav.photos':'Photos','mnav.money':'Money','mnav.map':'Map','mnav.setup':'Setup',
       'top.switch':'Switch account','top.owner':'Owner / Admin account','top.employee':'Employee account','top.loggedIn':'Logged in as ',
-      'hero.title':'Run the job from lead to payment.','hero.sub':'Create tax-ready estimates, send polished quote emails, book appointments, track balances, and keep a clean client archive.','hero.addLead':'+ Add lead','hero.newEstimate':'+ New estimate'
+      'hero.title':'Run the job from lead to payment.','hero.sub':'Create tax-ready estimates, send polished quote emails, book appointments, track balances, and keep a clean client archive.','hero.addLead':'+ Add lead','hero.newEstimate':'+ New estimate',
+      'doc.estimate':'Estimate','doc.quoteNo':'Quote #','doc.date':'Date','doc.validUntil':'Valid until','doc.preparedBy':'Prepared by','doc.client':'Client','doc.project':'Project','doc.taxesBelow':'Taxes shown below.','doc.scope':'Scope of work','doc.noScope':'No scope entered.','doc.description':'Description','doc.qty':'Qty','doc.unitPrice':'Unit price','doc.total':'Total','doc.subtotal':'Subtotal','doc.deposit':'Deposit','doc.balanceAfter':'Balance after deposit','doc.paymentPlan':'Payment plan','doc.notSpecified':'Not specified','doc.paymentNotesH':'Payment schedule notes','doc.terms':'Terms & notes','doc.clientSig':'Client signature','doc.approved':'Approved','doc.apprPre':'This estimate was approved by ','doc.apprMid':' on ','doc.thankYou':'Thank you for considering ','doc.invoice':'Invoice','doc.invoiceNo':'Invoice #','doc.billTo':'Bill to','doc.descWork':'Description of work','doc.seeEstimate':'See attached estimate.','doc.paidToDate':'Paid to date','doc.amountDue':'Amount due','doc.payInstr':'Payment instructions','doc.payDefault':'Please remit payment at your earliest convenience. Thank you.','doc.payStatus':'Payment status','doc.paidFull':'Paid in full. Thank you for your business!','doc.thankYouShort':'Thank you — ','doc.basedOn':'Based on ','doc.approvedByLbl':'Approved by ','doc.month':'','doc.invDate':'Date'
     },
     fr: {
       'login.signin':'Se connecter','login.create':'Créer un compte','login.welcome':'Bon retour','login.welcomeSub':'Entrez vos identifiants pour continuer.','login.email':'Adresse courriel','login.password':'Mot de passe','login.forgot':'Mot de passe oublié?','login.createCompany':'Créez votre entreprise','login.createCompanySub':'Inscrivez-vous et obtenez instantanément votre espace Balenco privé.','login.name':'Votre nom complet','login.company':'Nom de l’entreprise','login.passMin':'Mot de passe (min. 6 caractères)','login.brandTitle':'La gestion d’entrepreneur, simplifiée.','login.brandSub':'Prospects, clients, soumissions avec taxes, rendez-vous, soldes, photos, rappels et suivi propriétaire/employé.','login.secure':'Stockage infonuagique sécurisé propulsé par Supabase.',
@@ -853,7 +854,8 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       'nav.dashboard':'Tableau de bord','nav.leads':'Prospects','nav.clients':'Clients','nav.estimates':'Soumissions','nav.calendar':'Calendrier','nav.photos':'Photos','nav.balances':'Soldes','nav.maps':'Carte et trajet','nav.settings':'Paramètres',
       'mnav.home':'Accueil','mnav.leads':'Prospects','mnav.clients':'Clients','mnav.quotes':'Soumissions','mnav.calendar':'Calendrier','mnav.photos':'Photos','mnav.money':'Argent','mnav.map':'Carte','mnav.setup':'Config',
       'top.switch':'Changer de compte','top.owner':'Compte propriétaire / admin','top.employee':'Compte employé','top.loggedIn':'Connecté : ',
-      'hero.title':'Gérez le chantier, du prospect au paiement.','hero.sub':'Créez des soumissions avec taxes, envoyez de beaux courriels, planifiez des rendez-vous, suivez les soldes et gardez un dossier client impeccable.','hero.addLead':'+ Ajouter un prospect','hero.newEstimate':'+ Nouvelle soumission'
+      'hero.title':'Gérez le chantier, du prospect au paiement.','hero.sub':'Créez des soumissions avec taxes, envoyez de beaux courriels, planifiez des rendez-vous, suivez les soldes et gardez un dossier client impeccable.','hero.addLead':'+ Ajouter un prospect','hero.newEstimate':'+ Nouvelle soumission',
+      'doc.estimate':'Soumission','doc.quoteNo':'Soumission n°','doc.date':'Date','doc.validUntil':'Valide jusqu’au','doc.preparedBy':'Préparée par','doc.client':'Client','doc.project':'Projet','doc.taxesBelow':'Taxes indiquées ci-dessous.','doc.scope':'Description des travaux','doc.noScope':'Aucune description fournie.','doc.description':'Description','doc.qty':'Qté','doc.unitPrice':'Prix unitaire','doc.total':'Total','doc.subtotal':'Sous-total','doc.deposit':'Acompte','doc.balanceAfter':'Solde après acompte','doc.paymentPlan':'Modalités de paiement','doc.notSpecified':'Non spécifié','doc.paymentNotesH':'Notes sur le calendrier de paiement','doc.terms':'Conditions et notes','doc.clientSig':'Signature du client','doc.approved':'Approuvée','doc.apprPre':'Cette soumission a été approuvée par ','doc.apprMid':' le ','doc.thankYou':'Merci de considérer ','doc.invoice':'Facture','doc.invoiceNo':'Facture n°','doc.billTo':'Facturer à','doc.descWork':'Description des travaux','doc.seeEstimate':'Voir la soumission jointe.','doc.paidToDate':'Payé à ce jour','doc.amountDue':'Montant dû','doc.payInstr':'Instructions de paiement','doc.payDefault':'Veuillez effectuer le paiement dès que possible. Merci.','doc.payStatus':'Statut du paiement','doc.paidFull':'Payée en totalité. Merci de votre confiance!','doc.thankYouShort':'Merci — ','doc.basedOn':'Basée sur ','doc.approvedByLbl':'Approuvée par ','doc.month':'','doc.invDate':'Date'
     }
   };
   function t(k) { return (I18N[lang] && I18N[lang][k]) || I18N.en[k] || k; }
@@ -1326,46 +1328,46 @@ Date: ${date(e.createdAt)}`;
             </div>
           </div>
           <div style="text-align:right">
-            <div class="estimate-brand-title" style="font-size:22px">Estimate</div>
-            <div class="estimate-brand-meta">Quote #: ${estimateNumber(e)}<br>Date: ${date(e.createdAt)}${e.expiry ? '<br>Valid until: ' + date(e.expiry) : ''}<br>Prepared by: ${esc(e.createdBy)}</div>
+            <div class="estimate-brand-title" style="font-size:22px">${t('doc.estimate')}</div>
+            <div class="estimate-brand-meta">${t('doc.quoteNo')}: ${estimateNumber(e)}<br>${t('doc.date')}: ${date(e.createdAt)}${e.expiry ? '<br>' + t('doc.validUntil') + ': ' + date(e.expiry) : ''}<br>${t('doc.preparedBy')}: ${esc(e.createdBy)}</div>
             <div style="margin-top:10px"><span class="estimate-badge">${esc(e.status)}</span></div>
           </div>
         </div>
 
         <div class="estimate-blocks">
-          <div class="estimate-box"><h4>Client</h4><p><strong>${esc(c.name || '')}</strong><br>${esc(c.address || '')}<br>${esc(c.phone || '')}<br>${esc(c.email || '')}</p></div>
-          <div class="estimate-box"><h4>Project</h4><p><strong>${esc(e.title)}</strong><br>Taxes included below using current app settings.<br>Generated from Balenco estimate builder.</p></div>
+          <div class="estimate-box"><h4>${t('doc.client')}</h4><p><strong>${esc(c.name || '')}</strong><br>${esc(c.address || '')}<br>${esc(c.phone || '')}<br>${esc(c.email || '')}</p></div>
+          <div class="estimate-box"><h4>${t('doc.project')}</h4><p><strong>${esc(e.title)}</strong><br>${t('doc.taxesBelow')}</p></div>
         </div>
 
-        <div class="estimate-scope"><h4>Scope of work</h4><p>${esc(e.scope || 'No scope entered.')}</p></div>
+        <div class="estimate-scope"><h4>${t('doc.scope')}</h4><p>${esc(e.scope || t('doc.noScope'))}</p></div>
 
         <div class="estimate-pricing">
           <table>
-            ${(e.line_items && e.line_items.length > 0) ? '<tr class=\"li-head\"><th style=\"text-align:left;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0\">Description</th><th style=\"text-align:center;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0\">Qty</th><th style=\"text-align:right;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0\">Unit price</th><th style=\"text-align:right;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0\">Total</th></tr>' + e.line_items.map(function(item) { return '<tr><td style=\"padding:6px 8px\">' + esc(item.desc) + '</td><td style=\"text-align:center;padding:6px 8px\">' + item.qty + '</td><td style=\"text-align:right;padding:6px 8px\">' + money(item.price) + '</td><td style=\"text-align:right;padding:6px 8px;font-weight:600\">' + money(item.qty * item.price) + '</td></tr>'; }).join('') + '<tr><td colspan=\"3\" style=\"text-align:right;padding:8px;border-top:1px solid #e2e8f0;font-weight:600\">Subtotal</td><td style=\"text-align:right;padding:8px;border-top:1px solid #e2e8f0;font-weight:600\">' + money(e.subtotal) + '</td></tr>' : '<tr><td>Subtotal</td><td style=\"text-align:right\">' + money(e.subtotal) + '</td></tr>'}
+            ${(e.line_items && e.line_items.length > 0) ? '<tr class=\"li-head\"><th style=\"text-align:left;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0\">Description</th><th style=\"text-align:center;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0\">' + t('doc.qty') + '</th><th style=\"text-align:right;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0\">' + t('doc.unitPrice') + '</th><th style=\"text-align:right;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0\">Total</th></tr>' + e.line_items.map(function(item) { return '<tr><td style=\"padding:6px 8px\">' + esc(item.desc) + '</td><td style=\"text-align:center;padding:6px 8px\">' + item.qty + '</td><td style=\"text-align:right;padding:6px 8px\">' + money(item.price) + '</td><td style=\"text-align:right;padding:6px 8px;font-weight:600\">' + money(item.qty * item.price) + '</td></tr>'; }).join('') + '<tr><td colspan=\"3\" style=\"text-align:right;padding:8px;border-top:1px solid #e2e8f0;font-weight:600\">' + t('doc.subtotal') + '</td><td style=\"text-align:right;padding:8px;border-top:1px solid #e2e8f0;font-weight:600\">' + money(e.subtotal) + '</td></tr>' : '<tr><td>' + t('doc.subtotal') + '</td><td style=\"text-align:right\">' + money(e.subtotal) + '</td></tr>'}
             <tr><td>TPS (${esc(state.settings.tps)}%)</td><td style="text-align:right">${money(tax.tps)}</td></tr>
             <tr><td>TVQ (${esc(state.settings.tvq)}%)</td><td style="text-align:right">${money(tax.tvq)}</td></tr>
-            <tr class="total-row"><td>Total</td><td style="text-align:right">${money(tax.total)}</td></tr>
+            <tr class="total-row"><td>${t('doc.total')}</td><td style="text-align:right">${money(tax.total)}</td></tr>
           </table>
         </div>
 
         <div class="estimate-payment">
-          <div class="pay-card"><span>Deposit</span><strong>${money(deposit)}</strong></div>
-          <div class="pay-card"><span>Balance after deposit</span><strong>${money(balance)}</strong></div>
-          <div class="pay-card"><span>Payment plan</span><strong style="font-size:14px">${esc(e.paymentSchedule || 'Not specified')}</strong></div>
+          <div class="pay-card"><span>${t('doc.deposit')}</span><strong>${money(deposit)}</strong></div>
+          <div class="pay-card"><span>${t('doc.balanceAfter')}</span><strong>${money(balance)}</strong></div>
+          <div class="pay-card"><span>${t('doc.paymentPlan')}</span><strong style="font-size:14px">${esc(e.paymentSchedule || t('doc.notSpecified'))}</strong></div>
         </div>
 
-        ${e.paymentNotes ? `<div class="estimate-scope"><h4>Payment schedule notes</h4><p>${esc(e.paymentNotes)}</p></div>` : ''}
+        ${e.paymentNotes ? `<div class="estimate-scope"><h4>${t('doc.paymentNotesH')}</h4><p>${esc(e.paymentNotes)}</p></div>` : ''}
 
-        <div class="estimate-terms"><h4>Terms & notes</h4><p>${esc(state.settings.terms || '')}</p></div>
+        <div class="estimate-terms"><h4>${t('doc.terms')}</h4><p>${esc(state.settings.terms || '')}</p></div>
 
         <div class="signature-box">
-          <div class="signature-line"><small>Client signature</small></div>
-          <div class="signature-line"><small>Date</small></div>
+          <div class="signature-line"><small>${t('doc.clientSig')}</small></div>
+          <div class="signature-line"><small>${t('doc.date')}</small></div>
         </div>
 
-        <div class="approval-box ${e.approvedBy ? 'show' : ''}"><strong>Approved</strong><br>This estimate was approved by ${esc(e.approvedBy || '')} on ${e.approvedAt ? date(e.approvedAt) : ''}.</div>
+        <div class="approval-box ${e.approvedBy ? 'show' : ''}"><strong>${t('doc.approved')}</strong><br>${t('doc.apprPre')}${esc(e.approvedBy || '')}${t('doc.apprMid')}${e.approvedAt ? date(e.approvedAt) : ''}.</div>
 
-        <div class="estimate-footer"><div>Thank you for considering ${esc(state.settings.company)}.</div><div>Quote #: ${estimateNumber(e)}</div></div>
+        <div class="estimate-footer"><div>${t('doc.thankYou')}${esc(state.settings.company)}.</div><div>${t('doc.quoteNo')}: ${estimateNumber(e)}</div></div>
       </div>`;
   }
 
@@ -2755,7 +2757,7 @@ Date: ${date(e.createdAt)}`;
             ${(e.line_items && e.line_items.length) ? '<tr><th style="text-align:left;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0">Description</th><th style="text-align:center;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0">Qty</th><th style="text-align:right;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0">Unit</th><th style="text-align:right;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0">Total</th></tr>' + e.line_items.map(function(i){ return '<tr><td style="padding:6px 8px">' + esc(i.desc) + '</td><td style="text-align:center;padding:6px 8px">' + i.qty + '</td><td style="text-align:right;padding:6px 8px">' + money(i.price) + '</td><td style="text-align:right;padding:6px 8px;font-weight:600">' + money(i.qty * i.price) + '</td></tr>'; }).join('') + '<tr><td colspan="3" style="text-align:right;padding:8px;border-top:1px solid #e2e8f0;font-weight:600">Subtotal</td><td style="text-align:right;padding:8px;border-top:1px solid #e2e8f0;font-weight:600">' + money(e.subtotal) + '</td></tr>' : '<tr><td>Subtotal</td><td style="text-align:right">' + money(e.subtotal) + '</td></tr>'}
             <tr><td>TPS (${esc(state.settings.tps)}%)</td><td style="text-align:right">${money(tax.tps)}</td></tr>
             <tr><td>TVQ (${esc(state.settings.tvq)}%)</td><td style="text-align:right">${money(tax.tvq)}</td></tr>
-            <tr class="total-row"><td>Total</td><td style="text-align:right">${money(tax.total)}</td></tr>
+            <tr class="total-row"><td>${t('doc.total')}</td><td style="text-align:right">${money(tax.total)}</td></tr>
           </table>
         </div>
         <div class="estimate-payment">
