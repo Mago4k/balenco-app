@@ -1,5 +1,5 @@
-const CACHE = 'balenco-v3';
-const SHELL = ['/', '/index.html', '/icon-192.png', '/icon-512.png', '/apple-touch-icon.png'];
+const CACHE = 'balenco-v4';
+const SHELL = ['/', '/index.html', '/logo.png', '/icon-192.png', '/icon-512.png', '/apple-touch-icon.png'];
 
 // Install — cache the app shell
 self.addEventListener('install', e => {
