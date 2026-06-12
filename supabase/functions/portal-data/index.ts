@@ -74,5 +74,13 @@ Deno.serve(async (req) => {
     })
   }
 
-  return json({ error: 'Invalid mode (expected "client" or "estimate")' }, 400)
+  if (mode === 'join') {
+    const token = body.join_token
+    if (!token) return json({ error: 'Missing join_token' }, 400)
+    const { data: org } = await sb.from('orgs').select('name').eq('join_token', token).maybeSingle()
+    if (!org) return json({ error: 'Invalid or expired invite link' }, 404)
+    return json({ company: org.name })
+  }
+
+  return json({ error: 'Invalid mode (expected "client", "estimate" or "join")' }, 400)
 })

@@ -335,7 +335,8 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
         <button class="btn" type="button" id="enterBtn">Sign in</button>
       </div>
       <div id="panelSignUp" style="display:none">
-        <div class="title" style="margin-top:8px"><div><h3>Create your company</h3><p>Sign up and get your own private Balenco workspace instantly.</p></div></div>
+        <div class="title" style="margin-top:8px"><div><h3 id="signupHeading">Create your company</h3><p id="signupSubtext">Sign up and get your own private Balenco workspace instantly.</p></div></div>
+        <div id="joinBanner" style="display:none;background:rgba(79,195,247,0.1);border:1px solid rgba(79,195,247,0.3);border-radius:12px;padding:10px 14px;font-size:14px;color:var(--blue);font-weight:700;margin-bottom:4px"></div>
         <input type="text" id="signupName" placeholder="Your full name">
         <input type="text" id="signupCompany" placeholder="Company name">
         <input type="email" id="signupEmail" placeholder="Email address" autocomplete="username">
@@ -625,7 +626,15 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
           </form>
         </div>
         <div class="card owner-only">
-          <div class="title"><div><h3>Team</h3><p>Manage user accounts and roles.</p></div></div>
+          <div class="title"><div><h3>Team</h3><p>Invite your crew and manage roles.</p></div></div>
+          <div style="background:#0a1628;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px">
+            <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px">🔗 Invite link — anyone who signs up through it joins your company as an employee</div>
+            <div style="display:flex;gap:8px">
+              <input id="inviteLink" readonly placeholder="Loading…" style="flex:1;font-size:13px">
+              <button type="button" class="btn out" onclick="copyInviteLink()" style="white-space:nowrap;flex-shrink:0">Copy</button>
+            </div>
+            <button type="button" class="btn out small" onclick="regenerateInvite()" style="margin-top:8px">Regenerate link</button>
+          </div>
           <div id="teamList" class="list"><div class="empty">Loading team…</div></div>
         </div>
       </div>
@@ -776,6 +785,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
   let user = 'Carlos Reyes';
   let userId = null;
   let orgId = null;
+  let joinToken = null;
   let state = null;
 
   const $ = (id) => document.getElementById(id);
@@ -940,16 +950,17 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     const sucEl = $('signupSuccess');
     errEl.style.display = 'none';
     sucEl.style.display = 'none';
-    if (!name || !company || !email || !pass) { errEl.textContent = 'Please fill in all fields.'; errEl.style.display = 'block'; return; }
+    if (!name || !email || !pass || (!joinToken && !company)) { errEl.textContent = 'Please fill in all fields.'; errEl.style.display = 'block'; return; }
     if (pass.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
     $('signupBtn').textContent = 'Creating account…';
     $('signupBtn').disabled = true;
-    // The server (handle_new_user trigger) creates the company, owner profile and settings.
-    const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: { name, company } } });
+    // The server (handle_new_user trigger) joins the company (join_token) or creates a new one.
+    const meta = joinToken ? { name, join_token: joinToken } : { name, company };
+    const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: meta } });
     $('signupBtn').textContent = 'Create account';
     $('signupBtn').disabled = false;
     if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
-    sucEl.textContent = 'Company created! You can now sign in.';
+    sucEl.textContent = joinToken ? 'Account created — you can now sign in.' : 'Company created! You can now sign in.';
     sucEl.style.display = 'block';
     $('signupName').value = '';
     $('signupCompany').value = '';
@@ -1447,6 +1458,7 @@ Date: ${date(e.createdAt)}`;
 
   function renderTeam() {
     if (role !== 'owner') return;
+    renderInviteLink();
     const el = $('teamList');
     if (!el) return;
     sb.from('profiles').select('*').order('created_at', { ascending: true }).then(function(res) {
@@ -1469,6 +1481,51 @@ Date: ${date(e.createdAt)}`;
     if (res.error) { toast('Error updating role'); return; }
     renderTeam();
     toast(newRole === 'owner' ? 'Promoted to admin' : 'Changed to employee');
+  }
+
+  async function renderInviteLink() {
+    if (role !== 'owner' || !orgId) return;
+    const el = $('inviteLink');
+    if (!el) return;
+    const { data } = await sb.from('orgs').select('join_token').eq('id', orgId).maybeSingle();
+    if (data && data.join_token) el.value = window.location.origin + '/?join=' + data.join_token;
+  }
+
+  function copyInviteLink() {
+    const el = $('inviteLink');
+    if (!el || !el.value) { toast('Link not ready yet — try again'); return; }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(el.value).then(function(){ toast('Invite link copied'); }).catch(function(){ el.select(); document.execCommand('copy'); toast('Invite link copied'); });
+    } else { el.select(); document.execCommand('copy'); toast('Invite link copied'); }
+  }
+
+  async function regenerateInvite() {
+    if (!orgId) return;
+    if (!confirm('Generate a new invite link? Your current link will stop working.')) return;
+    const newToken = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : null;
+    if (!newToken) { toast('Not supported on this browser'); return; }
+    const { error } = await sb.from('orgs').update({ join_token: newToken }).eq('id', orgId);
+    if (error) { toast('Error: ' + error.message); return; }
+    await renderInviteLink();
+    toast('New invite link generated');
+  }
+
+  async function checkJoinInvite() {
+    const token = new URLSearchParams(window.location.search).get('join');
+    if (!token) return;
+    try {
+      const { data } = await sb.functions.invoke('portal-data', { body: { mode: 'join', join_token: token } });
+      if (data && data.company) {
+        joinToken = token;
+        showSignUp();
+        const cf = $('signupCompany'); if (cf) cf.style.display = 'none';
+        const h = $('signupHeading'); if (h) h.textContent = 'Join ' + data.company;
+        const st = $('signupSubtext'); if (st) st.textContent = 'Create your account to join the team.';
+        const b = $('joinBanner'); if (b) { b.textContent = '👋 You are joining ' + data.company; b.style.display = 'block'; }
+      } else {
+        const b = $('joinBanner'); if (b) { b.textContent = 'That invite link is invalid or expired.'; b.style.color = 'var(--danger)'; b.style.display = 'block'; }
+      }
+    } catch (e) { /* ignore — fall back to normal signup */ }
   }
 
   function renderSettings() {
@@ -2962,6 +3019,7 @@ Date: ${date(e.createdAt)}`;
     const isBookingPage = await bookingPageInit();
     if (isBookingPage) return;
     bindEvents();
+    await checkJoinInvite();
     const { data: { session } } = await sb.auth.getSession();
     if (session) await startSession(session.user);
   }
@@ -3216,6 +3274,8 @@ Date: ${date(e.createdAt)}`;
   window.togglePush = togglePush;
   window.togglePass = togglePass;
   window.toggleRole = toggleRole;
+  window.copyInviteLink = copyInviteLink;
+  window.regenerateInvite = regenerateInvite;
   window.approveEstimatePortal = approveEstimatePortal;
   window.removeLineItem = removeLineItem;
   window.calcLineItems = calcLineItems;
