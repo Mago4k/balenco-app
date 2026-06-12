@@ -33,6 +33,26 @@ Deno.serve(async (req) => {
     })
   }
 
+  // Require an authenticated caller from this estimate's own org —
+  // stops anyone with the public key + an estimate UUID from spamming
+  // clients (and burning email credits).
+  const { data: { user } } = await createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_ANON_KEY')!,
+    { global: { headers: { Authorization: req.headers.get('Authorization') || '' } } }
+  ).auth.getUser()
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Please sign in to send estimates.' }), {
+      status: 401, headers: { ...cors, 'Content-Type': 'application/json' }
+    })
+  }
+  const { data: caller } = await sb.from('profiles').select('org_id').eq('id', user.id).single()
+  if (!caller?.org_id || caller.org_id !== est.org_id) {
+    return new Response(JSON.stringify({ error: 'Not allowed.' }), {
+      status: 403, headers: { ...cors, 'Content-Type': 'application/json' }
+    })
+  }
+
   const [clientRes, cfgRes] = await Promise.all([
     sb.from('clients').select('*').eq('id', est.client_id).single(),
     sb.from('settings').select('*').eq('org_id', est.org_id).maybeSingle(),
