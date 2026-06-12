@@ -848,7 +848,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       settings: sr ? { company:sr.company, email:sr.email, phone:sr.phone, address:sr.address, tps:sr.tps, tvq:sr.tvq, logo:sr.logo||'', terms:sr.terms, followupDays:sr.followup_days||3 } : { company:'Your Company Name', email:'info@company.com', phone:'514-000-0000', address:'Montreal, Quebec', tps:5, tvq:9.975, logo:'', terms:'', followupDays:3 },
       clients: (clients||[]).map(function(r){ return { id:r.id, name:r.name, phone:r.phone||'', email:r.email||'', address:r.address||'', project:r.project||'', status:r.status||'Active', balance:r.balance||0, createdBy:r.created_by||'', createdAt:r.created_at }; }),
       leads: (leads||[]).map(function(r){ return { id:r.id, name:r.name, phone:r.phone||'', email:r.email||'', source:r.source||'', project:r.project||'', status:r.status||'New', notes:r.notes||'', createdBy:r.created_by||'', createdAt:r.created_at }; }),
-      estimates: (estimates||[]).map(function(r){ return { id:r.id, clientId:r.client_id, title:r.title||'', subtotal:r.subtotal||0, line_items:r.line_items||[], deposit:r.deposit||0, paymentSchedule:r.payment_schedule||'', paymentNotes:r.payment_notes||'', approvedBy:r.approved_by||'', approvedAt:r.approved_at||'', status:r.status||'Draft', scope:r.scope||'', expiry:r.expiry||'', payments:r.payments||[], followupSent:r.followup_sent||false, createdBy:r.created_by||'', createdAt:r.created_at, updatedBy:r.updated_by||'', updatedAt:r.updated_at }; }),
+      estimates: (estimates||[]).map(function(r){ return { id:r.id, estimateNumber:r.estimate_number, clientId:r.client_id, title:r.title||'', subtotal:r.subtotal||0, line_items:r.line_items||[], deposit:r.deposit||0, paymentSchedule:r.payment_schedule||'', paymentNotes:r.payment_notes||'', approvedBy:r.approved_by||'', approvedAt:r.approved_at||'', status:r.status||'Draft', scope:r.scope||'', expiry:r.expiry||'', payments:r.payments||[], followupSent:r.followup_sent||false, createdBy:r.created_by||'', createdAt:r.created_at, updatedBy:r.updated_by||'', updatedAt:r.updated_at }; }),
       appointments: (appointments||[]).map(function(r){ return { id:r.id, title:r.title||'', clientId:r.client_id, start:r.start_time||'', end:r.end_time||'', location:r.location||'', notes:r.notes||'', reminder24:r.reminder24!==false, reminderSent:r.reminder_sent||false, recurring:r.recurring||'', recurringEnd:r.recurring_end||'', recurringParentId:r.recurring_parent_id||null, bookingStatus:r.booking_status||'confirmed', bookerName:r.booker_name||'', bookerEmail:r.booker_email||'', bookerPhone:r.booker_phone||'', bookedOnline:r.booked_online||false, createdBy:r.created_by||'', createdAt:r.created_at }; }),
       photos: (photos||[]).map(function(r){ return { id:r.id, clientId:r.client_id, type:r.type||'', notes:r.notes||'', data:r.storage_path||'', createdBy:r.created_by||'', createdAt:r.created_at }; }),
       logs: (logs||[]).map(function(r){ return { id:r.id, action:r.action||'', detail:r.detail||'', user:r.user_name||'', at:r.created_at }; }),
@@ -1171,8 +1171,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
   }
 
   function estimateNumber(e) {
-    const index = state.estimates.findIndex(x => x.id === e.id);
-    return 'EST-' + (1001 + Math.max(index, 0));
+    return 'EST-' + (e && e.estimateNumber ? e.estimateNumber : '—');
   }
 
   function estimateText(e) {
@@ -1845,7 +1844,7 @@ Date: ${date(e.createdAt)}`;
     calcLineItems();
     const e = { id:uid(), clientId:$('estimateClient').value, title:$('estimateTitle').value, line_items:getLineItems(), subtotal:Number($('estimateSubtotal').value || 0), deposit:Number($('estimateDeposit').value || 0), paymentSchedule:$('estimatePaymentSchedule').value, paymentNotes:$('estimatePaymentNotes').value, approvedBy:'', approvedAt:'', status:$('estimateStatus').value, scope:$('estimateScope').value, expiry:$('estimateExpiry').value || '', createdBy:user, createdAt:new Date().toISOString(), updatedBy:user, updatedAt:new Date().toISOString() };
     state.estimates.unshift(e);
-    sb.from('estimates').insert({ id:e.id, client_id:e.clientId, title:e.title, line_items:e.line_items||[], payments:[], subtotal:e.subtotal, deposit:e.deposit, payment_schedule:e.paymentSchedule, payment_notes:e.paymentNotes, approved_by:'', approved_at:null, status:e.status, scope:e.scope, expiry:e.expiry||null, created_by:e.createdBy, created_at:e.createdAt, updated_by:e.updatedBy, updated_at:e.updatedAt, org_id:orgId }).then(function(res){ if(res.error) toast('Save error: '+res.error.message); });
+    sb.from('estimates').insert({ id:e.id, client_id:e.clientId, title:e.title, line_items:e.line_items||[], payments:[], subtotal:e.subtotal, deposit:e.deposit, payment_schedule:e.paymentSchedule, payment_notes:e.paymentNotes, approved_by:'', approved_at:null, status:e.status, scope:e.scope, expiry:e.expiry||null, created_by:e.createdBy, created_at:e.createdAt, updated_by:e.updatedBy, updated_at:e.updatedAt, org_id:orgId }).select('estimate_number').single().then(function(res){ if(res.error){ toast('Save error: '+res.error.message); return; } if(res.data){ e.estimateNumber = res.data.estimate_number; renderEstimates(); renderPreviewOptions(); } });
     log('Created estimate', `${user} created ${e.title} for ${clientName(e.clientId)}.`);
     save();
     event.target.reset();
@@ -2604,7 +2603,7 @@ Date: ${date(e.createdAt)}`;
     if (!e) return '';
     const c    = client(e.clientId) || {};
     const tax  = calc(e);
-    const invNum  = 'INV-' + (1001 + Math.max(state.estimates.findIndex(x => x.id === e.id), 0));
+    const invNum  = 'INV-' + (e.estimateNumber || '—');
     const deposit = Number(e.deposit || 0);
     const pmts    = (e.payments || []).reduce((s, p) => s + Number(p.amount || 0), 0);
     const paid    = deposit + pmts;
@@ -2846,7 +2845,7 @@ Date: ${date(e.createdAt)}`;
       const pmts = (e.payments || []).reduce(function(s, p) { return s + Number(p.amount || 0); }, 0);
       const remaining = Math.max(tax.total - deposit - pmts, 0);
       rows.push([
-        'EST-' + (1001 + i),
+        'EST-' + (e.estimateNumber || (1001 + i)),
         clientName(e.clientId),
         e.title || '',
         e.createdAt ? e.createdAt.slice(0, 10) : '',
@@ -3079,7 +3078,7 @@ Date: ${date(e.createdAt)}`;
 
       // Normalize DB row to the shape estimateHTML expects
       const e = {
-        id: est.id, title: est.title, scope: est.scope, subtotal: est.subtotal,
+        id: est.id, estimateNumber: est.estimate_number, title: est.title, scope: est.scope, subtotal: est.subtotal,
         deposit: est.deposit, paymentSchedule: est.payment_schedule,
         paymentNotes: est.payment_notes, clientId: est.client_id,
         createdBy: est.created_by, createdAt: est.created_at,
