@@ -8,7 +8,7 @@ const cors = {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
 
-  const { estimate_id } = await req.json()
+  const { estimate_id, preview } = await req.json()
   if (!estimate_id) {
     return new Response(JSON.stringify({ error: 'Missing estimate_id' }), {
       status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
@@ -58,10 +58,10 @@ Deno.serve(async (req) => {
   const company   = cfg.company || 'Balenco'
   const portalLink = `https://balenco.app/?client=${est.client_id}`
 
-  const items: any[] = est.items || []
+  const items: any[] = est.line_items || []
   const itemRows = items.map((item: any) => `
     <tr>
-      <td style="padding:10px 14px;border-top:1px solid #eef2f7;font-size:14px;color:#334155">${item.description || ''}</td>
+      <td style="padding:10px 14px;border-top:1px solid #eef2f7;font-size:14px;color:#334155">${item.desc || item.description || ''}</td>
       <td style="padding:10px 14px;border-top:1px solid #eef2f7;font-size:14px;text-align:center;color:#64748b">${item.qty || 1}</td>
       <td style="padding:10px 14px;border-top:1px solid #eef2f7;font-size:14px;text-align:right;color:#64748b">${fmt(Number(item.price || 0))}</td>
       <td style="padding:10px 14px;border-top:1px solid #eef2f7;font-size:14px;text-align:right;font-weight:700;color:#0f172a">${fmt(Number(item.qty || 1) * Number(item.price || 0))}</td>
@@ -130,10 +130,10 @@ Deno.serve(async (req) => {
       <div style="font-size:13px;color:#64748b">${est.payment_schedule || 'Due upon acceptance'}</div>
     </div>` : ''}
 
-    ${est.terms ? `
+    ${cfg.terms ? `
     <div style="background:#f8fafc;border-radius:10px;padding:14px 18px;margin-bottom:24px">
       <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Terms &amp; Notes</div>
-      <div style="font-size:13px;color:#64748b;white-space:pre-wrap">${est.terms}</div>
+      <div style="font-size:13px;color:#64748b;white-space:pre-wrap">${cfg.terms}</div>
     </div>` : ''}
 
     <div style="text-align:center;margin:32px 0">
@@ -149,6 +149,13 @@ Deno.serve(async (req) => {
 
   </div>
 </div>`
+
+  // Preview mode: return the rendered HTML without sending (for testing/QA).
+  if (preview) {
+    return new Response(JSON.stringify({ html }), {
+      headers: { ...cors, 'Content-Type': 'application/json' }
+    })
+  }
 
   const sendRes = await fetch('https://api.resend.com/emails', {
     method: 'POST',
