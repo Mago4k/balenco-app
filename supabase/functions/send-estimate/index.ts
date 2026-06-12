@@ -99,8 +99,8 @@ Deno.serve(async (req) => {
 
   <div style="padding:28px 32px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px">
 
-    <p style="font-size:16px;color:#334155;margin:0 0 6px">Hi <strong>${client.name}</strong>,</p>
-    <p style="font-size:15px;color:#64748b;margin:0 0 24px">Please find your estimate below. Use the button at the bottom to review and approve it.</p>
+    <p style="font-size:16px;color:#334155;margin:0 0 6px">Bonjour <strong>${client.name}</strong>,</p>
+    <p style="font-size:15px;color:#64748b;margin:0 0 24px">Voici votre soumission ci-dessous. Utilisez le bouton au bas pour la consulter et l’approuver.</p>
 
     <div style="margin-bottom:20px">
       <div style="font-size:20px;font-weight:900;color:#062A5E">${est.title}</div>
@@ -113,8 +113,8 @@ Deno.serve(async (req) => {
         <thead>
           <tr style="background:#f8fafc">
             <th style="padding:10px 14px;text-align:left;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px">Description</th>
-            <th style="padding:10px 14px;text-align:center;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px">Qty</th>
-            <th style="padding:10px 14px;text-align:right;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px">Price</th>
+            <th style="padding:10px 14px;text-align:center;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px">Qté</th>
+            <th style="padding:10px 14px;text-align:right;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px">Prix</th>
             <th style="padding:10px 14px;text-align:right;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px">Total</th>
           </tr>
         </thead>
@@ -125,7 +125,7 @@ Deno.serve(async (req) => {
     <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:24px">
       <table style="width:100%;border-collapse:collapse">
         <tr>
-          <td style="padding:11px 16px;font-size:14px;color:#64748b">Subtotal</td>
+          <td style="padding:11px 16px;font-size:14px;color:#64748b">Sous-total</td>
           <td style="padding:11px 16px;font-size:14px;text-align:right;color:#0f172a">${fmt(subtotal)}</td>
         </tr>
         <tr>
@@ -145,22 +145,22 @@ Deno.serve(async (req) => {
 
     ${deposit > 0 ? `
     <div style="background:#eff6ff;border:1px solid #dbeafe;border-radius:10px;padding:14px 18px;margin-bottom:24px">
-      <div style="font-size:12px;color:#3b82f6;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Deposit required to confirm</div>
+      <div style="font-size:12px;color:#3b82f6;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Acompte requis pour confirmer</div>
       <div style="font-size:26px;font-weight:900;color:#1d4ed8;margin:6px 0">${fmt(deposit)}</div>
-      <div style="font-size:13px;color:#64748b">${est.payment_schedule || 'Due upon acceptance'}</div>
+      <div style="font-size:13px;color:#64748b">${est.payment_schedule || 'Dû à l’acceptation'}</div>
     </div>` : ''}
 
     ${cfg.terms ? `
     <div style="background:#f8fafc;border-radius:10px;padding:14px 18px;margin-bottom:24px">
-      <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Terms &amp; Notes</div>
+      <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Conditions et notes</div>
       <div style="font-size:13px;color:#64748b;white-space:pre-wrap">${cfg.terms}</div>
     </div>` : ''}
 
     <div style="text-align:center;margin:32px 0">
       <a href="${portalLink}" style="background:#062A5E;color:#ffffff;text-decoration:none;padding:18px 40px;border-radius:10px;font-size:16px;font-weight:800;display:inline-block">
-        ${deposit > 0 ? `Review, Approve &amp; Pay Deposit &rarr;` : `Review &amp; Approve Your Estimate &rarr;`}
+        ${deposit > 0 ? `Consulter, approuver et payer l’acompte &rarr;` : `Consulter et approuver votre soumission &rarr;`}
       </a>
-      <div style="margin-top:10px;font-size:12px;color:#94a3b8">Secure client portal &middot; No account required</div>
+      <div style="margin-top:10px;font-size:12px;color:#94a3b8">Portail client sécurisé &middot; Aucun compte requis</div>
     </div>
 
     <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e2e8f0;font-size:13px;color:#94a3b8;text-align:center">
@@ -187,7 +187,7 @@ Deno.serve(async (req) => {
     body: JSON.stringify({
       from: 'Balenco <notifications@mail.balenco.app>',
       to: client.email,
-      subject: `Your estimate from ${company} — ${est.title}`,
+      subject: `Votre soumission de ${company} — ${est.title}`,
       html,
     }),
   })
