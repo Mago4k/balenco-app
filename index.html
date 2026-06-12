@@ -335,8 +335,9 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
         <button class="btn" type="button" id="enterBtn">Sign in</button>
       </div>
       <div id="panelSignUp" style="display:none">
-        <div class="title" style="margin-top:8px"><div><h3>Create account</h3><p>New accounts are set as Employee. The owner can update your role.</p></div></div>
-        <input type="text" id="signupName" placeholder="Full name">
+        <div class="title" style="margin-top:8px"><div><h3>Create your company</h3><p>Sign up and get your own private Balenco workspace instantly.</p></div></div>
+        <input type="text" id="signupName" placeholder="Your full name">
+        <input type="text" id="signupCompany" placeholder="Company name">
         <input type="email" id="signupEmail" placeholder="Email address" autocomplete="username">
         <div style="position:relative"><input type="password" id="signupPass" placeholder="Password (min 6 characters)" autocomplete="new-password" style="width:100%;padding-right:42px"><button type="button" onclick="togglePass('signupPass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;color:#64748b;display:flex;align-items:center"><i data-lucide="eye" style="width:18px;height:18px"></i></button></div>
         <div id="signupError" style="color:var(--danger);font-size:13px;display:none;padding:8px 12px;background:#fef2f2;border-radius:12px;border:1px solid #fecaca;"></div>
@@ -806,9 +807,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       sb.from('availability').select('*').limit(1)
     ]);
     const sr = settingsRows && settingsRows[0];
-    if (!sr) {
-      await sb.from('settings').insert({ id:'global', company:'Your Company Name', email:'info@company.com', phone:'514-000-0000', address:'Montreal, Quebec', tps:5, tvq:9.975, logo:'', terms:'Estimate valid for 15 days. Deposit required before scheduling. Hidden conditions, permits, and extra work are not included unless stated.' });
-    }
+    // Settings are provisioned per-company by the signup trigger — no client insert.
     state = {
       settings: sr ? { company:sr.company, email:sr.email, phone:sr.phone, address:sr.address, tps:sr.tps, tvq:sr.tvq, logo:sr.logo||'', terms:sr.terms, followupDays:sr.followup_days||3 } : { company:'Your Company Name', email:'info@company.com', phone:'514-000-0000', address:'Montreal, Quebec', tps:5, tvq:9.975, logo:'', terms:'', followupDays:3 },
       clients: (clients||[]).map(function(r){ return { id:r.id, name:r.name, phone:r.phone||'', email:r.email||'', address:r.address||'', project:r.project||'', status:r.status||'Active', balance:r.balance||0, createdBy:r.created_by||'', createdAt:r.created_at }; }),
@@ -826,10 +825,11 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     var profileRes = await sb.from('profiles').select('*').eq('id', userId).single();
     var profile = profileRes.data;
     if (!profile) {
-      var isOwner = supaUser.email === 'reyesc383@gmail.com';
-      var name = isOwner ? 'Carlos Reyes' : (supaUser.user_metadata && supaUser.user_metadata.name ? supaUser.user_metadata.name : supaUser.email.split('@')[0]);
-      await sb.from('profiles').insert({ id:userId, name:name, role:isOwner ? 'owner' : 'employee', email:supaUser.email });
-      profile = { name:name, role:isOwner ? 'owner' : 'employee' };
+      // The signup trigger provisions the profile + company. If it is missing,
+      // the account is not set up — don't create an org-less profile.
+      toast('Account not set up yet. Please sign up again or contact support.');
+      await backToLogin();
+      return;
     }
     role = profile.role;
     user = profile.name;
@@ -933,26 +933,26 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 
   async function signUp() {
     const name = $('signupName').value.trim();
+    const company = $('signupCompany').value.trim();
     const email = $('signupEmail').value.trim();
     const pass = $('signupPass').value;
     const errEl = $('signupError');
     const sucEl = $('signupSuccess');
     errEl.style.display = 'none';
     sucEl.style.display = 'none';
-    if (!name || !email || !pass) { errEl.textContent = 'Please fill in all fields.'; errEl.style.display = 'block'; return; }
+    if (!name || !company || !email || !pass) { errEl.textContent = 'Please fill in all fields.'; errEl.style.display = 'block'; return; }
     if (pass.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
     $('signupBtn').textContent = 'Creating account…';
     $('signupBtn').disabled = true;
-    const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: { name } } });
+    // The server (handle_new_user trigger) creates the company, owner profile and settings.
+    const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: { name, company } } });
     $('signupBtn').textContent = 'Create account';
     $('signupBtn').disabled = false;
     if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
-    if (data.user) {
-      await sb.from('profiles').insert({ id:data.user.id, name, role:'employee', email });
-    }
-    sucEl.textContent = 'Account created! You can now sign in.';
+    sucEl.textContent = 'Company created! You can now sign in.';
     sucEl.style.display = 'block';
     $('signupName').value = '';
+    $('signupCompany').value = '';
     $('signupEmail').value = '';
     $('signupPass').value = '';
     setTimeout(showSignIn, 1800);
@@ -1776,7 +1776,7 @@ Date: ${date(e.createdAt)}`;
       terms:$('setTerms').value,
       followupDays:Number($('setFollowupDays').value || 3)
     };
-    sb.from('settings').upsert({ id:'global', company:state.settings.company, email:state.settings.email, phone:state.settings.phone, address:state.settings.address, tps:state.settings.tps, tvq:state.settings.tvq, logo:state.settings.logo, terms:state.settings.terms, followup_days:state.settings.followupDays });
+    sb.from('settings').upsert({ org_id:orgId, company:state.settings.company, email:state.settings.email, phone:state.settings.phone, address:state.settings.address, tps:state.settings.tps, tvq:state.settings.tvq, logo:state.settings.logo, terms:state.settings.terms, followup_days:state.settings.followupDays }, { onConflict:'org_id' });
     log('Updated settings', `${user} updated company settings.`);
     save();
     renderAll();
@@ -2117,7 +2117,7 @@ Date: ${date(e.createdAt)}`;
     const reader = new FileReader();
     reader.onload = () => {
       state.settings.logo = reader.result;
-      sb.from('settings').upsert({ id:'global', logo:state.settings.logo });
+      sb.from('settings').upsert({ org_id:orgId, logo:state.settings.logo }, { onConflict:'org_id' });
       renderAll();
       toast('Company logo uploaded');
     };
@@ -2126,7 +2126,7 @@ Date: ${date(e.createdAt)}`;
 
   function clearCompanyLogo() {
     state.settings.logo = '';
-    sb.from('settings').upsert({ id:'global', logo:'' });
+    sb.from('settings').upsert({ org_id:orgId, logo:'' }, { onConflict:'org_id' });
     renderAll();
     toast('Company logo removed');
   }
