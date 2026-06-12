@@ -114,7 +114,7 @@ Deno.serve(async (req) => {
   // Email the org owner
   const { data: settings } = await sb.from('settings').select('email,company').eq('org_id', org_id).maybeSingle()
   if (settings?.email) {
-    const dateStr = start.toLocaleString('en-CA', {
+    const dateStr = start.toLocaleString('fr-CA', {
       weekday: 'long', month: 'long', day: 'numeric',
       hour: 'numeric', minute: '2-digit'
     })
@@ -127,22 +127,22 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         from: 'Balenco <notifications@mail.balenco.app>',
         to: settings.email,
-        subject: `📅 New Booking Request — ${name}`,
+        subject: `📅 Nouvelle demande de réservation — ${name}`,
         html: `
 <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:24px;background:#fff">
   <div style="background:#062A5E;border-radius:12px;padding:20px 24px;margin-bottom:24px">
-    <h2 style="color:#fff;margin:0;font-size:20px">📅 New Online Booking Request</h2>
+    <h2 style="color:#fff;margin:0;font-size:20px">📅 Nouvelle demande de réservation en ligne</h2>
   </div>
   <table style="width:100%;border-collapse:collapse;font-size:15px">
-    <tr><td style="padding:10px 0;color:#666;width:130px;border-bottom:1px solid #f0f0f0">Date & Time</td><td style="padding:10px 0;border-bottom:1px solid #f0f0f0"><strong>${dateStr}</strong></td></tr>
+    <tr><td style="padding:10px 0;color:#666;width:130px;border-bottom:1px solid #f0f0f0">Date et heure</td><td style="padding:10px 0;border-bottom:1px solid #f0f0f0"><strong>${dateStr}</strong></td></tr>
     <tr><td style="padding:10px 0;color:#666;border-bottom:1px solid #f0f0f0">Client</td><td style="padding:10px 0;border-bottom:1px solid #f0f0f0"><strong>${name}</strong></td></tr>
     <tr><td style="padding:10px 0;color:#666;border-bottom:1px solid #f0f0f0">Service</td><td style="padding:10px 0;border-bottom:1px solid #f0f0f0">${service_type || '—'}</td></tr>
-    <tr><td style="padding:10px 0;color:#666;border-bottom:1px solid #f0f0f0">Phone</td><td style="padding:10px 0;border-bottom:1px solid #f0f0f0">${phone || '—'}</td></tr>
-    <tr><td style="padding:10px 0;color:#666;border-bottom:1px solid #f0f0f0">Email</td><td style="padding:10px 0;border-bottom:1px solid #f0f0f0">${email || '—'}</td></tr>
+    <tr><td style="padding:10px 0;color:#666;border-bottom:1px solid #f0f0f0">Téléphone</td><td style="padding:10px 0;border-bottom:1px solid #f0f0f0">${phone || '—'}</td></tr>
+    <tr><td style="padding:10px 0;color:#666;border-bottom:1px solid #f0f0f0">Courriel</td><td style="padding:10px 0;border-bottom:1px solid #f0f0f0">${email || '—'}</td></tr>
     <tr><td style="padding:10px 0;color:#666">Notes</td><td style="padding:10px 0">${notes || '—'}</td></tr>
   </table>
   <div style="margin-top:24px;padding:14px 18px;background:#f0f9ff;border-radius:8px;font-size:14px;color:#0369a1">
-    Open <strong>Balenco → Calendar</strong> to confirm or decline this request. The client will be notified automatically.
+    Ouvrez <strong>Balenco → Calendrier</strong> pour confirmer ou refuser cette demande. Le client sera avisé automatiquement.
   </div>
 </div>`
       })

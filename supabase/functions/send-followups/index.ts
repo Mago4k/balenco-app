@@ -79,20 +79,20 @@ Deno.serve(async (req) => {
     <div style="color:#ffffff;font-size:20px;font-weight:900">${company}</div>
   </div>
   <div style="padding:24px 28px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px">
-    <p style="font-size:16px;color:#334155;margin:0 0 6px">Hi <strong>${client.name}</strong>,</p>
-    <p style="font-size:15px;color:#64748b;margin:0 0 20px">Just following up on the estimate we sent you${ageDays > 0 ? ` ${ageDays} days ago` : ''} — we'd love to hear your thoughts or answer any questions.</p>
+    <p style="font-size:16px;color:#334155;margin:0 0 6px">Bonjour <strong>${client.name}</strong>,</p>
+    <p style="font-size:15px;color:#64748b;margin:0 0 20px">Petit suivi concernant la soumission que nous vous avons envoyée${ageDays > 0 ? ` il y a ${ageDays} jours` : ''} — nous aimerions connaître vos commentaires ou répondre à vos questions.</p>
     <div style="border:1px solid #e2e8f0;border-radius:10px;padding:16px 18px;margin-bottom:20px">
       <div style="font-size:17px;font-weight:900;color:#062A5E">${est.title}</div>
-      <div style="font-size:14px;color:#64748b;margin-top:6px">Total: <strong style="color:#0f172a">${fmt(total)}</strong>${deposit > 0 ? ` &nbsp;·&nbsp; Deposit to confirm: <strong style="color:#0f172a">${fmt(deposit)}</strong>` : ''}</div>
-      ${est.expiry ? `<div style="font-size:13px;color:#94a3b8;margin-top:4px">Valid until ${est.expiry}</div>` : ''}
+      <div style="font-size:14px;color:#64748b;margin-top:6px">Total : <strong style="color:#0f172a">${fmt(total)}</strong>${deposit > 0 ? ` &nbsp;·&nbsp; Acompte requis pour confirmer : <strong style="color:#0f172a">${fmt(deposit)}</strong>` : ''}</div>
+      ${est.expiry ? `<div style="font-size:13px;color:#94a3b8;margin-top:4px">Valide jusqu’au ${est.expiry}</div>` : ''}
     </div>
     <div style="text-align:center;margin:26px 0">
       <a href="${portalLink}" style="background:#062A5E;color:#ffffff;text-decoration:none;padding:15px 34px;border-radius:10px;font-size:15px;font-weight:800;display:inline-block">
-        Review &amp; Approve Your Estimate &rarr;
+        Consulter et approuver votre soumission &rarr;
       </a>
-      <div style="margin-top:8px;font-size:12px;color:#94a3b8">Secure client portal &middot; No account required</div>
+      <div style="margin-top:8px;font-size:12px;color:#94a3b8">Portail client sécurisé &middot; Aucun compte requis</div>
     </div>
-    <p style="font-size:14px;color:#64748b;margin:0">Questions or want to adjust something? Just reply to this email${cfg.phone ? ` or call ${cfg.phone}` : ''}.</p>
+    <p style="font-size:14px;color:#64748b;margin:0">Des questions ou besoin d’ajuster quelque chose? Répondez simplement à ce courriel${cfg.phone ? ` ou appelez le ${cfg.phone}` : ''}.</p>
     <div style="margin-top:18px;padding-top:14px;border-top:1px solid #e2e8f0;font-size:13px;color:#94a3b8;text-align:center">
       ${cfg.email || ''}${cfg.email && cfg.phone ? ' &nbsp;&middot;&nbsp; ' : ''}${cfg.phone || ''}
     </div>
@@ -108,7 +108,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         from: 'Balenco <notifications@mail.balenco.app>',
         to: client.email,
-        subject: `Following up — your estimate from ${company}`,
+        subject: `Suivi — votre soumission de ${company}`,
         html,
       }),
     })

@@ -48,7 +48,7 @@ Deno.serve(async (req) => {
     const { data: settings } = await sbAdmin.from('settings')
       .select('company').eq('org_id', profile.org_id).maybeSingle()
     const company = settings?.company ?? 'Your contractor'
-    const dateStr = new Date(appt.start_time).toLocaleString('en-CA', {
+    const dateStr = new Date(appt.start_time).toLocaleString('fr-CA', {
       weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit'
     })
     const isConfirm = action === 'confirm'
@@ -63,23 +63,23 @@ Deno.serve(async (req) => {
         from: 'Balenco <notifications@mail.balenco.app>',
         to: appt.booker_email,
         subject: isConfirm
-          ? `✅ Appointment Confirmed — ${company}`
-          : `Appointment Update — ${company}`,
+          ? `✅ Rendez-vous confirmé — ${company}`
+          : `Mise à jour de votre rendez-vous — ${company}`,
         html: isConfirm ? `
 <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:32px;text-align:center;background:#fff">
   <div style="font-size:56px;margin-bottom:16px">✅</div>
-  <h2 style="color:#10b981;font-size:26px;margin:0 0 12px">Appointment Confirmed!</h2>
-  <p style="font-size:16px;color:#333">Hi <strong>${appt.booker_name}</strong>,</p>
-  <p style="font-size:15px;color:#333">Your appointment with <strong>${company}</strong> is confirmed:</p>
+  <h2 style="color:#10b981;font-size:26px;margin:0 0 12px">Rendez-vous confirmé!</h2>
+  <p style="font-size:16px;color:#333">Bonjour <strong>${appt.booker_name}</strong>,</p>
+  <p style="font-size:15px;color:#333">Votre rendez-vous avec <strong>${company}</strong> est confirmé :</p>
   <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:16px 24px;margin:20px 0;font-size:17px;font-weight:700;color:#166534">📅 ${dateStr}</div>
-  <p style="font-size:13px;color:#888;margin-top:24px">Need to reschedule? Contact us directly.</p>
+  <p style="font-size:13px;color:#888;margin-top:24px">Besoin de reporter? Contactez-nous directement.</p>
 </div>` : `
 <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:32px;text-align:center;background:#fff">
   <div style="font-size:56px;margin-bottom:16px">😔</div>
-  <h2 style="color:#ef4444;font-size:26px;margin:0 0 12px">We're Sorry</h2>
-  <p style="font-size:16px;color:#333">Hi <strong>${appt.booker_name}</strong>,</p>
-  <p style="font-size:15px;color:#333">Unfortunately we're unable to accommodate your request for <strong>${dateStr}</strong>.</p>
-  <p style="font-size:15px;color:#555">Please reach out to us directly to find another available time.</p>
+  <h2 style="color:#ef4444;font-size:26px;margin:0 0 12px">Toutes nos excuses</h2>
+  <p style="font-size:16px;color:#333">Bonjour <strong>${appt.booker_name}</strong>,</p>
+  <p style="font-size:15px;color:#333">Malheureusement, nous ne pouvons pas répondre à votre demande pour le <strong>${dateStr}</strong>.</p>
+  <p style="font-size:15px;color:#555">Veuillez nous contacter directement pour trouver une autre plage horaire.</p>
 </div>`
       })
     })
