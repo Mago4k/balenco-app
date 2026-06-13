@@ -10,36 +10,66 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Balenco Contractor Manager</title>
+<script>(function(){try{var t=localStorage.getItem('balenco_theme');if(t!=='light'&&t!=='dark'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
 <style>
 :root {
-  --navy:#062A5E; --red:#E30613; --bg:#080f1e; --surface:#0c1a32; --surface2:#0f2040;
-  --line:rgba(255,255,255,0.08); --line2:rgba(255,255,255,0.04);
-  --text:#dce8ff; --muted:#5b7ca8; --soft:#0c1a32;
-  --green:#10b981; --amber:#f59e0b; --danger:#ef4444;
-  --blue:#4fc3f7; --border:rgba(255,255,255,0.08);
+  --navy:#062A5E; --red:#E30613;
+  --bg:#122136; --surface:#1b2b43; --surface2:#24364f; --well:#0e1b2e;
+  --line:#2b3c54; --line2:#213044; --line-soft:#213044; --border:#2b3c54; --soft:#1b2b43;
+  --text:#e7eff9; --muted:#95a9c6;
+  --primary:#1f63c4; --primary-press:#2f76d6;
+  --accent:#4fb3f0; --accent-soft:rgba(79,179,240,0.14);
+  --brand-panel:#0d3a7a; --brand-on:#ffffff; --brand-sub:#9fc0ee;
+  --approve:#0f7a4d; --approve-press:#12925c; --red-btn:#cc1822; --red-press:#e01e2b;
+  --green:#34d399; --amber:#fbbf24; --danger:#f87171; --blue:#4fb3f0;
+  --pill-blue-bg:rgba(59,130,246,0.16); --pill-blue-tx:#9cc7fb;
+  --pill-green-bg:rgba(16,185,129,0.16); --pill-green-tx:#6ee7b7;
+  --pill-amber-bg:rgba(245,158,11,0.16); --pill-amber-tx:#fcd34d;
+  --pill-red-bg:rgba(239,68,68,0.16); --pill-red-tx:#fca5a5;
+  --pill-white-bg:rgba(255,255,255,0.08); --pill-white-tx:#aab8cc;
+  --audit-bg:rgba(245,158,11,0.10); --audit-bd:rgba(245,158,11,0.24); --audit-tx:#fcd34d;
+  --shadow:rgba(0,0,0,0.45); --overlay:rgba(0,0,0,0.6); --focus:rgba(79,179,240,0.20);
+  --r-card:16px; --r-md:12px; --r-sm:10px;
+}
+[data-theme="light"] {
+  --bg:#f4f6f9; --surface:#ffffff; --surface2:#eef2f7; --well:#f6f8fb;
+  --line:#e3e8ef; --line2:#eef2f6; --line-soft:#eef2f6; --border:#e3e8ef; --soft:#ffffff;
+  --text:#16243c; --muted:#5d7088;
+  --primary:#0d3a7a; --primary-press:#0a2f63;
+  --accent:#1d6fd0; --accent-soft:rgba(29,111,208,0.10);
+  --brand-panel:#0d3a7a; --brand-on:#ffffff; --brand-sub:#c2d6f2;
+  --approve:#15803d; --approve-press:#116a33; --red-btn:#dc2626; --red-press:#b91c1c;
+  --green:#15803d; --amber:#b45309; --danger:#dc2626; --blue:#1d6fd0;
+  --pill-blue-bg:#dbeafe; --pill-blue-tx:#1d4ed8;
+  --pill-green-bg:#dcfce7; --pill-green-tx:#15803d;
+  --pill-amber-bg:#fef3c7; --pill-amber-tx:#b45309;
+  --pill-red-bg:#fee2e2; --pill-red-tx:#b91c1c;
+  --pill-white-bg:#eef2f7; --pill-white-tx:#5d7088;
+  --audit-bg:#fef3c7; --audit-bd:#fde68a; --audit-tx:#92400e;
+  --shadow:rgba(15,23,42,0.10); --overlay:rgba(15,23,42,0.45); --focus:rgba(29,111,208,0.16);
 }
 * { box-sizing:border-box; }
 body { margin:0; font-family:Inter,Arial,sans-serif; background:var(--bg); color:var(--text); }
 button,input,select,textarea { font:inherit; }
 button { cursor:pointer; }
 /* ── Login ── */
-.login { min-height:100vh; display:grid; place-items:center; padding:24px; background:radial-gradient(circle at top right,rgba(227,6,19,.12),transparent 30%),linear-gradient(135deg,#060f1e,#091a3a); }
-.login-card { width:min(980px,100%); display:grid; grid-template-columns:1fr 1fr; background:#0c1a32; border:1px solid var(--line); border-radius:34px; overflow:hidden; box-shadow:0 24px 70px rgba(0,0,0,.6); }
-.login-brand { background:linear-gradient(160deg,#0d3a7a 0%,#041228 100%); color:#fff; padding:34px; min-height:470px; display:flex; flex-direction:column; justify-content:space-between; }
-.logo { background:rgba(255,255,255,0.07); border-radius:24px; padding:12px 16px; display:inline-flex; max-width:380px; }
+.login { min-height:100vh; display:grid; place-items:center; padding:24px; background:var(--bg); }
+.login-card { width:min(980px,100%); display:grid; grid-template-columns:1fr 1fr; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-card); overflow:hidden; box-shadow:0 18px 50px var(--shadow); }
+.login-brand { background:var(--brand-panel); color:var(--brand-on); padding:34px; min-height:470px; display:flex; flex-direction:column; justify-content:space-between; }
+.logo { background:rgba(255,255,255,0.08); border-radius:14px; padding:12px 16px; display:inline-flex; max-width:380px; }
 .logo img { width:100%; display:block; }
 .login-brand h1 { font-size:42px; line-height:1.05; margin:24px 0 12px; letter-spacing:-1px; }
-.login-brand p { color:#93b8e8; line-height:1.55; }
-.login-form { padding:34px; display:grid; gap:14px; align-content:center; background:#0c1a32; }
-.role { border:1px solid var(--line); background:rgba(255,255,255,0.03); border-radius:22px; padding:16px; text-align:left; }
-.role.selected,.role:hover { background:rgba(255,255,255,0.06); border-color:rgba(79,195,247,0.4); }
-.role strong { display:block; color:var(--blue); margin-bottom:6px; }
+.login-brand p { color:var(--brand-sub); line-height:1.55; }
+.login-form { padding:34px; display:grid; gap:14px; align-content:center; background:var(--surface); }
+.role { border:1px solid var(--line); background:var(--well); border-radius:var(--r-md); padding:16px; text-align:left; }
+.role.selected,.role:hover { background:var(--surface2); border-color:var(--accent); }
+.role strong { display:block; color:var(--accent); margin-bottom:6px; }
 .role span { color:var(--muted); font-size:14px; line-height:1.4; }
 /* ── App layout ── */
 .app { display:none; max-width:1480px; margin:0 auto; padding:22px; grid-template-columns:280px 1fr; gap:22px; }
-.sidebar { position:sticky; top:22px; height:calc(100vh - 44px); overflow:auto; background:linear-gradient(180deg,#0a1f45 0%,#060f1e 100%); border:1px solid var(--line); border-radius:30px; padding:18px; }
-.sidebar .logo { max-width:230px; background:rgba(255,255,255,0.06); border-radius:20px; margin:0 auto 12px; }
-.nav button { width:100%; border:0; background:transparent; text-align:left; border-radius:17px; padding:13px 15px; margin:4px 0; font-weight:800; color:var(--muted); }
+.sidebar { position:sticky; top:22px; height:calc(100vh - 44px); overflow:auto; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-card); padding:18px; }
+.sidebar .logo { max-width:230px; background:var(--brand-panel); border-radius:var(--r-md); margin:0 auto 12px; }
+.nav button { width:100%; border:0; background:transparent; text-align:left; border-radius:var(--r-sm); padding:13px 15px; margin:4px 0; font-weight:800; color:var(--muted); }
 .nav button svg { width:15px; height:15px; stroke-width:2; }
 .nav .nav-icon { display:inline-flex; align-items:center; justify-content:center; width:28px; height:28px; border-radius:8px; margin-right:10px; flex-shrink:0; vertical-align:middle; color:#fff; transition:opacity .15s; opacity:.65; }
 .nav button[data-tab='dashboard'] .nav-icon { background:#3b82f6; }
@@ -51,29 +81,29 @@ button { cursor:pointer; }
 .nav button[data-tab='balances'] .nav-icon { background:#22c55e; }
 .nav button[data-tab='maps'] .nav-icon { background:#f59e0b; }
 .nav button[data-tab='settings'] .nav-icon { background:#64748b; }
-.nav button:hover { background:rgba(255,255,255,0.06); color:var(--text); }
+.nav button:hover { background:var(--accent-soft); color:var(--text); }
 .nav button:hover .nav-icon { opacity:1; }
-.nav button.active { background:rgba(79,195,247,0.09); color:#fff; border-left:3px solid var(--blue); padding-left:12px; }
+.nav button.active { background:var(--accent-soft); color:var(--text); border-left:3px solid var(--accent); padding-left:12px; }
 .nav button.active .nav-icon { opacity:1; }
-.tip { background:rgba(255,255,255,0.03); border:1px solid var(--line); border-radius:20px; padding:14px; color:var(--muted); font-size:13px; line-height:1.45; margin-top:16px; }
+.tip { background:var(--well); border:1px solid var(--line); border-radius:var(--r-md); padding:14px; color:var(--muted); font-size:13px; line-height:1.45; margin-top:16px; }
 /* ── Top bar & hero ── */
-.top { display:flex; align-items:center; justify-content:space-between; gap:12px; background:#0c1a32; border:1px solid var(--line); border-radius:24px; padding:12px 14px; margin-bottom:18px; }
-.hero { background:linear-gradient(135deg,#0d3a7a 0%,#041228 100%); color:#fff; border-radius:32px; margin-bottom:20px; overflow:hidden; }
-.hero-in { padding:28px; background:radial-gradient(circle at top right,rgba(227,6,19,.22),transparent 35%); display:flex; align-items:center; justify-content:space-between; gap:18px; }
+.top { display:flex; align-items:center; justify-content:space-between; gap:12px; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-card); padding:12px 14px; margin-bottom:18px; }
+.hero { background:var(--brand-panel); color:var(--brand-on); border-radius:var(--r-card); margin-bottom:20px; overflow:hidden; }
+.hero-in { padding:28px; display:flex; align-items:center; justify-content:space-between; gap:18px; }
 .hero h2 { font-size:38px; line-height:1.05; margin:10px 0 8px; }
-.hero p { color:#93b8e8; line-height:1.55; max-width:780px; }
-.hero .logo { box-shadow:none; max-width:330px; background:rgba(255,255,255,0.07); }
+.hero p { color:var(--brand-sub); line-height:1.55; max-width:780px; }
+.hero .logo { box-shadow:none; max-width:330px; background:rgba(255,255,255,0.08); }
 /* ── Mobile nav ── */
 .mob-icon { width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; color:#fff; opacity:.4; transition:opacity .18s,transform .18s; flex-shrink:0; }
 .mob-icon svg { width:17px; height:17px; stroke-width:2.2; }
-.mobile { display:none; position:fixed; bottom:0; left:0; right:0; background:rgba(8,15,30,0.92); border-top:1px solid var(--line); overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding:6px 2px calc(6px + env(safe-area-inset-bottom)); z-index:100; box-shadow:0 -4px 20px rgba(0,0,0,.5); backdrop-filter:blur(16px); }
+.mobile { display:none; position:fixed; bottom:0; left:0; right:0; background:var(--surface); border-top:1px solid var(--line); overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; padding:6px 2px calc(6px + env(safe-area-inset-bottom)); z-index:100; box-shadow:0 -4px 20px var(--shadow); }
 .mobile::-webkit-scrollbar { display:none; }
 body:not(.app-visible) .mobile { display:none!important; }
-.mobile button { flex:0 0 auto; border:0; background:transparent; padding:4px 11px; display:flex; flex-direction:column; align-items:center; gap:3px; font-size:10px; font-weight:700; color:#3d5a7e; white-space:nowrap; }
-.mobile button.active { color:var(--blue); }
+.mobile button { flex:0 0 auto; border:0; background:transparent; padding:4px 11px; display:flex; flex-direction:column; align-items:center; gap:3px; font-size:10px; font-weight:700; color:var(--muted); white-space:nowrap; }
+.mobile button.active { color:var(--accent); }
 .mobile button.active .mob-icon { opacity:1; transform:scale(1.1); }
 /* ── Cards ── */
-.card { background:#0c1a32; border:1px solid var(--line); border-radius:30px; padding:20px; }
+.card { background:var(--surface); border:1px solid var(--line); border-radius:var(--r-card); padding:20px; }
 .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
 .grid3 { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; }
 .grid4 { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; }
@@ -83,47 +113,48 @@ body:not(.app-visible) .mobile { display:none!important; }
 .title h3 { color:var(--text); margin:0; font-size:22px; }
 .title p { margin:5px 0 0; color:var(--muted); font-size:14px; line-height:1.4; }
 /* ── Buttons ── */
-.btn { border:1px solid rgba(79,195,247,0.15); border-radius:16px; padding:12px 15px; background:linear-gradient(135deg,#0d3a7a,#062A5E); color:#fff; font-weight:900; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
-.btn:hover { filter:brightness(1.15); transform:translateY(-1px); }
-.btn.out { background:rgba(255,255,255,0.05); color:var(--text); border:1px solid var(--line); }
-.btn.out:hover { background:rgba(255,255,255,0.09); }
-.btn.red { background:linear-gradient(135deg,#e30613,#a80410); border-color:rgba(227,6,19,.3); }
-.btn.light { background:rgba(255,255,255,0.07); color:var(--text); border:1px solid var(--line); }
+.btn { border:1px solid var(--primary); border-radius:var(--r-md); padding:12px 15px; background:var(--primary); color:#fff; font-weight:800; text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px; }
+.btn:hover { filter:brightness(1.08); }
+.btn.out { background:var(--surface); color:var(--text); border:1px solid var(--line); }
+.btn.out:hover { background:var(--surface2); filter:none; }
+.btn.red { background:var(--red-btn); border-color:var(--red-btn); }
+.btn.light { background:var(--surface2); color:var(--text); border:1px solid var(--line); }
+.btn.light:hover { background:var(--line); filter:none; }
 .btn.small { font-size:12px; padding:8px 11px; border-radius:999px; }
-.btn.approve { background:linear-gradient(135deg,#059669,#047857); border-color:rgba(5,150,105,.3); }
+.btn.approve { background:var(--approve); border-color:var(--approve); }
 .actions { display:flex; gap:8px; flex-wrap:wrap; }
 /* ── Inputs ── */
-input,select,textarea { width:100%; border:1px solid var(--line); background:#0a1628; border-radius:17px; padding:13px 14px; outline:none; color:var(--text); }
+input,select,textarea { width:100%; border:1px solid var(--line); background:var(--well); border-radius:var(--r-md); padding:13px 14px; outline:none; color:var(--text); }
 input::placeholder,textarea::placeholder { color:var(--muted); }
-select option { background:#0c1a32; color:var(--text); }
-input:focus,select:focus,textarea:focus { background:#0f2040; border-color:rgba(79,195,247,0.35); box-shadow:0 0 0 3px rgba(79,195,247,0.08); }
+select option { background:var(--surface); color:var(--text); }
+input:focus,select:focus,textarea:focus { background:var(--surface2); border-color:var(--accent); box-shadow:0 0 0 3px var(--focus); }
 /* ── Lists ── */
 .form { display:grid; gap:12px; }
 .form2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 .list { display:grid; gap:12px; }
-.item { background:#0a1628; border:1px solid var(--line); border-radius:22px; padding:15px; display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
+.item { background:var(--well); border:1px solid var(--line); border-radius:var(--r-md); padding:15px; display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
 .item strong { display:block; color:var(--text); margin-bottom:5px; }
 .muted { color:var(--muted); font-size:14px; line-height:1.45; }
 /* ── Status pills ── */
 .pill { display:inline-flex; padding:6px 10px; border-radius:999px; font-size:12px; font-weight:900; white-space:nowrap; }
-.blue { background:rgba(59,130,246,0.15); color:#93c5fd; border:1px solid rgba(59,130,246,0.25); }
-.green { background:rgba(16,185,129,0.15); color:#6ee7b7; border:1px solid rgba(16,185,129,0.25); }
-.amber { background:rgba(245,158,11,0.15); color:#fcd34d; border:1px solid rgba(245,158,11,0.25); }
-.redpill { background:rgba(239,68,68,0.15); color:#fca5a5; border:1px solid rgba(239,68,68,0.25); }
-.white { background:rgba(255,255,255,0.06); color:#94a3b8; border:1px solid var(--line); }
+.blue { background:var(--pill-blue-bg); color:var(--pill-blue-tx); }
+.green { background:var(--pill-green-bg); color:var(--pill-green-tx); }
+.amber { background:var(--pill-amber-bg); color:var(--pill-amber-tx); }
+.redpill { background:var(--pill-red-bg); color:var(--pill-red-tx); }
+.white { background:var(--pill-white-bg); color:var(--pill-white-tx); }
 /* ── Tables ── */
 table { width:100%; border-collapse:collapse; }
-.table { overflow:auto; border:1px solid var(--line); border-radius:22px; background:#0c1a32; }
-th { text-align:left; background:#091422; color:var(--muted); font-size:13px; padding:14px; }
-td { border-top:1px solid rgba(255,255,255,0.04); padding:14px; font-size:14px; vertical-align:top; color:var(--text); }
+.table { overflow:auto; border:1px solid var(--line); border-radius:var(--r-md); background:var(--surface); }
+th { text-align:left; background:var(--surface2); color:var(--muted); font-size:13px; padding:14px; }
+td { border-top:1px solid var(--line-soft); padding:14px; font-size:14px; vertical-align:top; color:var(--text); }
 .right { text-align:right; }
 .owner-only { display:none!important; }
 body.owner-mode .owner-only { display:block!important; }
 body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell!important; }
-.audit { margin-top:9px; background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.2); color:#fcd34d; border-radius:14px; padding:9px 11px; font-size:12px; line-height:1.35; }
+.audit { margin-top:9px; background:var(--audit-bg); border:1px solid var(--audit-bd); color:var(--audit-tx); border-radius:var(--r-md); padding:9px 11px; font-size:12px; line-height:1.35; }
 .preview { background:#fff; border:1px solid #e2e8f0; border-radius:22px; padding:20px; line-height:1.45; font-family:Inter,Arial,sans-serif; overflow:auto; color:#0f172a; }
-.empty { text-align:center; padding:28px; border:1px dashed rgba(255,255,255,0.1); border-radius:22px; background:rgba(255,255,255,0.02); color:var(--muted); }
-.photo { height:140px; background:#091422; border-radius:18px; display:grid; place-items:center; overflow:hidden; margin-bottom:10px; font-size:34px; }
+.empty { text-align:center; padding:28px; border:1px dashed var(--line); border-radius:var(--r-md); background:var(--well); color:var(--muted); }
+.photo { height:140px; background:var(--well); border-radius:var(--r-md); display:grid; place-items:center; overflow:hidden; margin-bottom:10px; font-size:34px; }
 .photo img { width:100%; height:100%; object-fit:cover; }
 .stat-icon { width:40px; height:40px; border-radius:12px; display:flex; align-items:center; justify-content:center; margin-bottom:10px; }
 /* ── Line items ── */
@@ -131,43 +162,43 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 .line-items-edit { width:100%; border-collapse:collapse; font-size:13px; margin-bottom:6px; }
 .line-items-edit th { text-align:left; padding:4px 6px; color:var(--muted); font-weight:700; font-size:11px; text-transform:uppercase; border-bottom:1px solid var(--line); background:transparent; }
 .line-items-edit td { padding:4px 4px; vertical-align:middle; border:0; }
-.line-items-edit td input { border:1px solid var(--line); border-radius:6px; padding:5px 8px; font-size:13px; width:100%; background:#0a1628; color:var(--text); }
+.line-items-edit td input { border:1px solid var(--line); border-radius:6px; padding:5px 8px; font-size:13px; width:100%; background:var(--well); color:var(--text); }
 .line-items-edit td.li-qty input { width:60px; }
 .line-items-edit td.li-price input { width:90px; }
-.line-items-edit td.li-total { color:#93c5fd; font-weight:700; font-size:13px; min-width:72px; text-align:right; padding-right:6px; }
+.line-items-edit td.li-total { color:var(--accent); font-weight:700; font-size:13px; min-width:72px; text-align:right; padding-right:6px; }
 .line-items-edit td.li-rm button { background:none; border:none; color:var(--muted); cursor:pointer; font-size:16px; padding:2px 6px; border-radius:6px; }
-.line-items-edit td.li-rm button:hover { background:rgba(239,68,68,0.15); color:#fca5a5; }
+.line-items-edit td.li-rm button:hover { background:var(--pill-red-bg); color:var(--pill-red-tx); }
 .add-line-btn { background:none; border:1px dashed var(--line); color:var(--blue); font-size:13px; padding:5px 14px; border-radius:8px; cursor:pointer; margin-bottom:6px; width:100%; }
-.add-line-btn:hover { background:rgba(79,195,247,0.06); }
+.add-line-btn:hover { background:var(--accent-soft); }
 .line-items-foot { text-align:right; font-size:14px; color:var(--muted); padding:4px 2px; }
 .line-items-foot strong { color:var(--text); }
 /* ── AI draft from photo ── */
-.ai-draft { border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:14px; background:linear-gradient(180deg, rgba(59,130,246,0.08), rgba(59,130,246,0.02)); }
+.ai-draft { border:1px solid var(--line); border-radius:var(--r-md); padding:12px; margin-bottom:14px; background:var(--accent-soft); }
 .ai-draft-head { display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:14px; color:var(--text); }
 .ai-draft-toggle { background:none; border:none; color:var(--muted); font-size:18px; cursor:pointer; line-height:1; padding:0 6px; }
 .ai-draft-body { margin-top:10px; display:flex; flex-direction:column; gap:8px; }
 .ai-draft-hint { color:var(--muted); font-size:12px; margin:0; }
 .ai-draft-body input[type=file] { font-size:13px; color:var(--muted); }
-.ai-draft-body textarea { width:100%; border:1px solid var(--line); border-radius:8px; padding:8px; font-size:13px; background:#0a1628; color:var(--text); resize:vertical; font-family:inherit; }
+.ai-draft-body textarea { width:100%; border:1px solid var(--line); border-radius:8px; padding:8px; font-size:13px; background:var(--well); color:var(--text); resize:vertical; font-family:inherit; }
 .ai-photo-preview { display:flex; gap:6px; flex-wrap:wrap; }
 .ai-photo-preview:empty { display:none; }
 .ai-photo-preview img { width:64px; height:64px; object-fit:cover; border-radius:8px; border:1px solid var(--line); }
 .ai-draft #aiDraftBtn { align-self:flex-start; }
 .ai-draft-status { font-size:12px; min-height:14px; color:var(--muted); }
-.ai-draft-status.err { color:#fca5a5; }
-.ai-draft-status.ok { color:#86efac; }
+.ai-draft-status.err { color:var(--danger); }
+.ai-draft-status.ok { color:var(--green); }
 /* ── Payments ── */
 .payments-section { border-top:1px solid var(--line); padding-top:14px; margin-top:4px; }
-.payments-section h4 { font-size:13px; font-weight:800; color:#93c5fd; margin:0 0 10px; text-transform:uppercase; letter-spacing:.4px; }
+.payments-section h4 { font-size:13px; font-weight:800; color:var(--accent); margin:0 0 10px; text-transform:uppercase; letter-spacing:.4px; }
 .payment-item { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--line); font-size:13px; }
 .payment-item:last-child { border-bottom:none; }
 .payment-item .p-meta { color:var(--muted); font-size:12px; margin-top:2px; }
 .payment-add { display:flex; gap:8px; margin-top:10px; align-items:center; }
-.payment-add input { flex:1; border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:13px; background:#0a1628; color:var(--text); }
+.payment-add input { flex:1; border:1px solid var(--line); border-radius:8px; padding:7px 10px; font-size:13px; background:var(--well); color:var(--text); }
 .payment-add input[type="number"] { max-width:120px; }
 .payment-add button { white-space:nowrap; }
-.balance-row { display:flex; justify-content:space-between; padding:8px 0; font-size:14px; font-weight:700; color:#93c5fd; border-top:1px solid var(--line); margin-top:8px; }
-.balance-row.paid { color:#6ee7b7; }
+.balance-row { display:flex; justify-content:space-between; padding:8px 0; font-size:14px; font-weight:700; color:var(--accent); border-top:1px solid var(--line); margin-top:8px; }
+.balance-row.paid { color:var(--green); }
 .balance-row span:last-child { font-size:16px; }
 /* ── Stat detail ── */
 .stat-detail-row { display:flex; justify-content:space-between; align-items:flex-start; padding:10px 0; border-bottom:1px solid var(--line); font-size:14px; }
@@ -205,11 +236,11 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 .signature-box { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:16px; }
 .signature-line { border:1px solid #e2e8f0; border-radius:16px; padding:14px; min-height:78px; background:#fff; }
 .signature-line small { display:block; color:#64748b; margin-top:22px; border-top:1px solid #cbd5e1; padding-top:8px; }
-.approval-box { margin-top:16px; background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.25); color:#6ee7b7; border-radius:18px; padding:14px; display:none; }
+.approval-box { margin-top:16px; background:#ecfdf5; border:1px solid #bbf7d0; color:#15803d; border-radius:14px; padding:14px; display:none; }
 .approval-box.show { display:block; }
 .estimate-footer { display:flex; justify-content:space-between; gap:14px; align-items:flex-end; padding-top:12px; border-top:1px solid #e2e8f0; color:#64748b; font-size:13px; }
 /* ── Toast ── */
-#toast { position:fixed; right:18px; bottom:18px; background:#0d3a7a; color:white; padding:12px 14px; border-radius:14px; display:none; z-index:30; border:1px solid rgba(79,195,247,0.2); }
+#toast { position:fixed; right:18px; bottom:18px; background:var(--primary); color:#fff; padding:12px 14px; border-radius:var(--r-md); display:none; z-index:30; border:1px solid var(--line); box-shadow:0 8px 24px var(--shadow); }
 /* ── Responsive ── */
 @media(max-width:1050px) {
   .app { grid-template-columns:1fr; padding:12px; padding-bottom:calc(76px + env(safe-area-inset-bottom)); }
@@ -220,13 +251,13 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
   .hero .logo { display:none; }
 }
 @media(max-width:720px) {
-  .login { display:block; padding:0; background:#060f1e; min-height:100vh; }
+  .login { display:block; padding:0; background:var(--bg); min-height:100vh; }
   .login-card { display:flex; flex-direction:column; border-radius:0; border:0; box-shadow:none; min-height:100vh; }
-  .login-brand { min-height:auto; padding:28px; background:linear-gradient(160deg,#0d3a7a,#041228); flex-direction:column; align-items:flex-start; justify-content:flex-start; }
+  .login-brand { min-height:auto; padding:28px; background:var(--brand-panel); flex-direction:column; align-items:flex-start; justify-content:flex-start; }
   .login-brand .tip { display:none; }
   .login-brand h1 { font-size:28px; margin:16px 0 8px; }
   .login-brand .logo { background:rgba(255,255,255,0.08); padding:10px 14px; border-radius:18px; margin:0; max-width:160px; }
-  .login-form { padding:28px 24px 40px; display:flex; flex-direction:column; gap:14px; background:#0c1a32; }
+  .login-form { padding:28px 24px 40px; display:flex; flex-direction:column; gap:14px; background:var(--surface); }
   .grid2,.grid3,.grid4,.form2,.estimate-blocks,.estimate-payment,.signature-box { grid-template-columns:1fr; }
   .top { flex-direction:column; align-items:flex-start; gap:8px; }
   .top .actions { width:100%; }
@@ -244,55 +275,58 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
   .stat .num { font-size:26px; }
 }
 /* ── Approval page ── */
-.approve-page-wrap { min-height:100vh; display:grid; place-items:center; padding:24px; background:radial-gradient(circle at top right,rgba(227,6,19,.08),transparent 30%),linear-gradient(135deg,#060f1e,#091a3a); }
+.approve-page-wrap { min-height:100vh; display:grid; place-items:center; padding:24px; background:var(--bg); }
 .approve-card { width:min(860px,100%); }
-.approve-card-head { background:linear-gradient(135deg,#0d3a7a,#041228); color:#fff; border-radius:30px 30px 0 0; padding:24px 28px; display:flex; align-items:center; gap:14px; }
+.approve-card-head { background:var(--brand-panel); color:var(--brand-on); border-radius:var(--r-card) var(--r-card) 0 0; padding:24px 28px; display:flex; align-items:center; gap:14px; }
 .approve-card-head img { max-height:52px; max-width:160px; object-fit:contain; border-radius:10px; background:rgba(255,255,255,0.1); padding:6px 10px; }
 .approve-card-head h2 { margin:0; font-size:20px; }
-.approve-card-head p { margin:4px 0 0; color:#93b8e8; font-size:14px; }
-.approve-card-body { background:#0c1a32; border:1px solid var(--line); border-top:0; border-radius:0 0 30px 30px; padding:28px; color:var(--text); }
-.approve-sign { border:1px solid var(--line); border-radius:20px; padding:20px; margin-top:20px; background:#0a1628; }
+.approve-card-head p { margin:4px 0 0; color:var(--brand-sub); font-size:14px; }
+.approve-card-body { background:var(--surface); border:1px solid var(--line); border-top:0; border-radius:0 0 var(--r-card) var(--r-card); padding:28px; color:var(--text); }
+.approve-sign { border:1px solid var(--line); border-radius:20px; padding:20px; margin-top:20px; background:var(--well); }
 .approve-sign h4 { margin:0 0 8px; color:var(--text); font-size:16px; }
 .approve-sign p { margin:0 0 14px; color:var(--muted); font-size:14px; line-height:1.5; }
 .approve-sign .sign-row { display:grid; grid-template-columns:1fr auto; gap:10px; align-items:end; }
-.approve-success { background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.25); border-radius:20px; padding:28px; text-align:center; margin-top:20px; }
-.approve-success h3 { color:#6ee7b7; margin:0 0 8px; font-size:20px; }
-.approve-success p { color:#34d399; margin:0; font-size:15px; line-height:1.5; }
-.approve-already { background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.2); border-radius:20px; padding:24px; text-align:center; margin-top:20px; }
-.approve-already h3 { color:#fcd34d; margin:0 0 8px; font-size:18px; }
-.approve-already p { color:#f59e0b; margin:0; font-size:14px; }
+.approve-success { background:var(--pill-green-bg); border:1px solid transparent; border-radius:var(--r-md); padding:28px; text-align:center; margin-top:20px; }
+.approve-success h3 { color:var(--pill-green-tx); margin:0 0 8px; font-size:20px; }
+.approve-success p { color:var(--pill-green-tx); margin:0; font-size:15px; line-height:1.5; }
+.approve-already { background:var(--audit-bg); border:1px solid var(--audit-bd); border-radius:var(--r-md); padding:24px; text-align:center; margin-top:20px; }
+.approve-already h3 { color:var(--audit-tx); margin:0 0 8px; font-size:18px; }
+.approve-already p { color:var(--audit-tx); margin:0; font-size:14px; }
 /* ── Client portal ── */
-.portal-wrap { min-height:100vh; padding:24px; background:radial-gradient(circle at top right,rgba(227,6,19,.08),transparent 30%),linear-gradient(135deg,#060f1e,#091a3a); }
+.portal-wrap { min-height:100vh; padding:24px; background:var(--bg); }
 .portal-inner { max-width:860px; margin:0 auto; }
-.portal-head { background:linear-gradient(135deg,#0d3a7a,#041228); color:#fff; border-radius:30px; padding:24px 28px; display:flex; align-items:center; gap:16px; margin-bottom:20px; }
+.portal-head { background:var(--brand-panel); color:var(--brand-on); border-radius:var(--r-card); padding:24px 28px; display:flex; align-items:center; gap:16px; margin-bottom:20px; }
 .portal-head img { max-height:52px; max-width:160px; object-fit:contain; border-radius:10px; background:rgba(255,255,255,0.1); padding:6px 10px; }
 .portal-head h2 { margin:0; font-size:20px; }
-.portal-head p { margin:4px 0 0; color:#93b8e8; font-size:14px; }
-.portal-est-card { background:#0c1a32; border:1px solid var(--line); border-radius:20px; padding:16px; margin-bottom:12px; color:var(--text); }
+.portal-head p { margin:4px 0 0; color:var(--brand-sub); font-size:14px; }
+.portal-est-card { background:var(--surface); border:1px solid var(--line); border-radius:20px; padding:16px; margin-bottom:12px; color:var(--text); }
 .portal-est-card h4 { margin:0 0 4px; color:var(--text); font-size:16px; }
 .portal-est-meta { display:flex; gap:10px; flex-wrap:wrap; margin-top:12px; }
-.portal-appt { background:#0c1a32; border:1px solid var(--line); border-radius:16px; padding:14px; margin-bottom:10px; color:var(--text); }
+.portal-appt { background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:14px; margin-bottom:10px; color:var(--text); }
 .portal-section { margin-bottom:18px; }
 /* ── Client history modal ── */
 .history-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:200; align-items:flex-end; justify-content:center; backdrop-filter:blur(4px); }
 .history-overlay.open { display:flex; }
-.history-panel { background:#0c1a32; border-radius:20px 20px 0 0; width:100%; max-width:700px; max-height:84vh; overflow-y:auto; padding:24px; box-shadow:0 -4px 60px rgba(0,0,0,.5); border:1px solid var(--line); border-bottom:0; }
-.history-item { background:#0a1628; border:1px solid var(--line); border-radius:16px; padding:14px; }
+.history-panel { background:var(--surface); border-radius:20px 20px 0 0; width:100%; max-width:700px; max-height:84vh; overflow-y:auto; padding:24px; box-shadow:0 -4px 60px rgba(0,0,0,.5); border:1px solid var(--line); border-bottom:0; }
+.history-item { background:var(--well); border:1px solid var(--line); border-radius:16px; padding:14px; }
 .history-item h4 { margin:0 0 4px; color:var(--text); font-size:14px; }
 /* ── Revenue chart ── */
 .rev-chart { display:flex; align-items:flex-end; gap:8px; height:100px; margin-top:16px; padding:0 4px; }
 .rev-bar-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end; }
-.rev-bar { width:100%; background:linear-gradient(180deg,#4fc3f7,#0d3a7a); border-radius:6px 6px 0 0; min-height:3px; }
+.rev-bar { width:100%; background:var(--accent); border-radius:6px 6px 0 0; min-height:3px; }
 .rev-month { font-size:10px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:.4px; }
-.rev-amt { font-size:10px; color:#93c5fd; font-weight:900; white-space:nowrap; }
+.rev-amt { font-size:10px; color:var(--accent); font-weight:900; white-space:nowrap; }
 /* ── Booking settings day-checkboxes ── */
-.bk-day-check { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; background:#0a1628; border:1px solid var(--line); border-radius:10px; cursor:pointer; font-size:13px; font-weight:700; color:var(--text); transition:border-color .15s; }
-.bk-day-check:has(input:checked) { border-color:rgba(79,195,247,0.45); background:rgba(79,195,247,0.08); color:#4fc3f7; }
-.bk-day-check input { accent-color:#4fc3f7; width:14px; height:14px; }
+.bk-day-check { display:inline-flex; align-items:center; gap:6px; padding:8px 14px; background:var(--well); border:1px solid var(--line); border-radius:10px; cursor:pointer; font-size:13px; font-weight:700; color:var(--text); transition:border-color .15s; }
+.bk-day-check:has(input:checked) { border-color:var(--accent); background:var(--accent-soft); color:var(--accent); }
+.bk-day-check input { accent-color:var(--accent); width:14px; height:14px; }
 /* ── Language toggle ── */
 .lang-toggle { display:flex; gap:4px; }
-.lang-toggle button { background:rgba(255,255,255,0.05); border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:4px 9px; font-size:12px; font-weight:800; cursor:pointer; line-height:1; }
-.lang-toggle button.active { background:rgba(79,195,247,0.15); color:var(--blue); border-color:rgba(79,195,247,0.4); }
+.lang-toggle button { background:var(--well); border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:4px 9px; font-size:12px; font-weight:800; cursor:pointer; line-height:1; }
+.lang-toggle button.active { background:var(--accent-soft); color:var(--accent); border-color:var(--accent); }
+.theme-toggle { background:var(--well); border:1px solid var(--line); color:var(--muted); border-radius:8px; padding:5px 8px; font-size:14px; cursor:pointer; line-height:0; display:inline-flex; align-items:center; justify-content:center; }
+.theme-toggle:hover { color:var(--accent); border-color:var(--accent); }
+[data-theme-toggle] svg { width:16px; height:16px; display:block; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
@@ -342,7 +376,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       <p style="font-size:13px" data-i18n="login.secure">Secure cloud storage powered by Supabase.</p>
     </div>
     <div class="login-form">
-      <div class="lang-toggle" style="justify-content:flex-end;margin-bottom:8px"><button type="button" data-lang="en" onclick="setLang('en')">EN</button><button type="button" data-lang="fr" onclick="setLang('fr')">FR</button></div>
+      <div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-bottom:8px"><button type="button" class="theme-toggle" data-theme-toggle onclick="toggleTheme()" aria-label="Toggle theme"><i data-lucide="moon"></i></button><div class="lang-toggle"><button type="button" data-lang="en" onclick="setLang('en')">EN</button><button type="button" data-lang="fr" onclick="setLang('fr')">FR</button></div></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px">
         <button id="tabSignIn" class="btn" type="button" style="border-radius:14px" data-i18n="login.signin">Sign in</button>
         <button id="tabSignUp" class="btn out" type="button" style="border-radius:14px" data-i18n="login.create">Create account</button>
@@ -357,7 +391,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       </div>
       <div id="panelSignUp" style="display:none">
         <div class="title" style="margin-top:8px"><div><h3 id="signupHeading" data-i18n="login.createCompany">Create your company</h3><p id="signupSubtext" data-i18n="login.createCompanySub">Sign up and get your own private Balenco workspace instantly.</p></div></div>
-        <div id="joinBanner" style="display:none;background:rgba(79,195,247,0.1);border:1px solid rgba(79,195,247,0.3);border-radius:12px;padding:10px 14px;font-size:14px;color:var(--blue);font-weight:700;margin-bottom:4px"></div>
+        <div id="joinBanner" style="display:none;background:var(--accent-soft);border:1px solid var(--accent);border-radius:12px;padding:10px 14px;font-size:14px;color:var(--blue);font-weight:700;margin-bottom:4px"></div>
         <input type="text" id="signupName" data-i18n-ph="login.name" placeholder="Your full name">
         <input type="text" id="signupCompany" data-i18n-ph="login.company" placeholder="Company name">
         <input type="email" id="signupEmail" data-i18n-ph="login.email" placeholder="Email address" autocomplete="username">
@@ -403,7 +437,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     <div class="top">
       <div><span id="rolePill" class="pill blue">Employee account</span> <span id="userText" class="muted">Alex Martin</span></div>
       <div class="actions">
-        <div class="lang-toggle"><button type="button" data-lang="en" onclick="setLang('en')">EN</button><button type="button" data-lang="fr" onclick="setLang('fr')">FR</button></div>
+        <div style="display:flex;align-items:center;gap:8px"><button type="button" class="theme-toggle" data-theme-toggle onclick="toggleTheme()" aria-label="Toggle theme"><i data-lucide="moon"></i></button><div class="lang-toggle"><button type="button" data-lang="en" onclick="setLang('en')">EN</button><button type="button" data-lang="fr" onclick="setLang('fr')">FR</button></div></div>
         <button class="btn out" type="button" id="switchBtn" data-i18n="top.switch">Switch account</button>
       </div>
     </div>
@@ -572,7 +606,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
             <input id="apptLocation" data-i18n-ph="cal.location" placeholder="Location">
             <textarea id="apptNotes" rows="4" data-i18n-ph="cal.notes" placeholder="Appointment notes"></textarea>
             <label class="notice" style="display:flex;gap:10px;align-items:center"><input id="apptReminder24" type="checkbox" style="width:auto" checked> <span data-i18n="cal.reminder24">Prepare 24h client reminder message</span></label>
-            <label style="display:flex;gap:10px;align-items:center;cursor:pointer;padding:10px 14px;background:rgba(79,195,247,0.06);border:1px solid rgba(79,195,247,0.15);border-radius:14px"><input id="apptRecurring" type="checkbox" style="width:auto" onchange="document.getElementById('recurringOptions').style.display=this.checked?'grid':'none'"> <span style="font-size:14px;color:var(--text)" data-i18n="cal.recurring">↻ Recurring appointment</span></label>
+            <label style="display:flex;gap:10px;align-items:center;cursor:pointer;padding:10px 14px;background:var(--accent-soft);border:1px solid var(--line);border-radius:14px"><input id="apptRecurring" type="checkbox" style="width:auto" onchange="document.getElementById('recurringOptions').style.display=this.checked?'grid':'none'"> <span style="font-size:14px;color:var(--text)" data-i18n="cal.recurring">↻ Recurring appointment</span></label>
             <div id="recurringOptions" class="form2" style="display:none">
               <select id="apptRecurringFreq">
                 <option value="weekly" data-i18n="cal.weekly">Weekly</option>
@@ -654,12 +688,12 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
               <div class="form"><label class="btn out" style="justify-content:flex-start"><span data-i18n="set.uploadLogo">Upload logo</span><input id="companyLogoInput" type="file" accept="image/*" style="display:none"></label><div id="logoStatus" class="muted">No custom logo uploaded.</div><div class="actions"><button type="button" class="btn out small" id="clearLogoBtn" data-i18n="set.removeLogo">Remove logo</button></div></div>
             </div>
             <textarea id="setTerms" rows="5" data-i18n-ph="set.terms" placeholder="Default estimate terms"></textarea>
-            <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);border:1px solid var(--line);border-radius:14px;padding:12px 14px">
+            <div style="display:flex;align-items:center;gap:12px;background:var(--well);border:1px solid var(--line);border-radius:14px;padding:12px 14px">
               <div style="flex:1"><strong style="display:block;font-size:14px;color:var(--text)" data-i18n="set.followup">Auto follow-up</strong><span class="muted" style="font-size:13px" data-i18n="set.followupSub">Send a follow-up email to clients with unanswered estimates after this many days</span></div>
               <input id="setFollowupDays" type="number" min="1" max="30" style="width:70px;text-align:center" placeholder="3">
               <span class="muted" style="font-size:13px;white-space:nowrap" data-i18n="set.days">days</span>
             </div>
-            <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);border:1px solid var(--line);border-radius:14px;padding:12px 14px">
+            <div style="display:flex;align-items:center;gap:12px;background:var(--well);border:1px solid var(--line);border-radius:14px;padding:12px 14px">
               <div style="flex:1"><strong style="display:block;font-size:14px;color:var(--text)" data-i18n="set.push">🔔 Push notifications</strong><span class="muted" id="pushStatus" style="font-size:13px">Get an alert on this device when a client books online</span></div>
               <button type="button" class="btn small" id="pushToggleBtn" onclick="togglePush()">Enable</button>
             </div>
@@ -668,7 +702,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
         </div>
         <div class="card owner-only">
           <div class="title"><div><h3 data-i18n="team.title">Team</h3><p data-i18n="team.sub">Invite your crew and manage roles.</p></div></div>
-          <div style="background:#0a1628;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px">
+          <div style="background:var(--well);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px">
             <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px" data-i18n="team.invite">🔗 Invite link — anyone who signs up through it joins your company as an employee</div>
             <div style="display:flex;gap:8px">
               <input id="inviteLink" readonly placeholder="Loading…" style="flex:1;font-size:13px">
@@ -683,8 +717,8 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       <div class="card owner-only" style="margin-top:20px">
         <div class="title"><div><h3 data-i18n="bk.title">📅 Online Booking</h3><p data-i18n="bk.sub">Let clients book appointments directly from a shareable link — no phone tag.</p></div></div>
         <div class="form">
-          <label style="display:flex;align-items:center;gap:14px;background:rgba(79,195,247,0.06);border:1px solid rgba(79,195,247,0.18);border-radius:14px;padding:14px 16px;cursor:pointer">
-            <input id="bkEnabled" type="checkbox" style="width:18px;height:18px;accent-color:#4fc3f7;flex-shrink:0">
+          <label style="display:flex;align-items:center;gap:14px;background:var(--accent-soft);border:1px solid var(--line);border-radius:14px;padding:14px 16px;cursor:pointer">
+            <input id="bkEnabled" type="checkbox" style="width:18px;height:18px;accent-color:var(--accent);flex-shrink:0">
             <div><strong style="display:block;font-size:14px" data-i18n="bk.enable">Enable online booking</strong><span class="muted" style="font-size:13px" data-i18n="bk.enableSub">When on, clients can request appointments from your booking link</span></div>
           </label>
           <div>
@@ -721,7 +755,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
           <div>
             <label style="display:block;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:6px" data-i18n="bk.link">Your booking link — share this with clients</label>
             <div style="display:flex;gap:8px">
-              <input id="bkLink" type="text" readonly style="flex:1;background:rgba(255,255,255,0.04);cursor:text;font-size:13px" data-i18n-ph="bk.linkPh" placeholder="Enable booking and save to generate link">
+              <input id="bkLink" type="text" readonly style="flex:1;background:var(--well);cursor:text;font-size:13px" data-i18n-ph="bk.linkPh" placeholder="Enable booking and save to generate link">
               <button type="button" class="btn out" onclick="copyBkLink()" style="white-space:nowrap;flex-shrink:0" data-i18n="bk.copyLink">Copy link</button>
             </div>
           </div>
@@ -734,25 +768,25 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 
 <!-- ── Online Booking Page (shown when ?book=ORG_ID) ── -->
 <div id="bookingPage" style="display:none">
-  <div style="min-height:100vh;background:linear-gradient(135deg,#080f1e 0%,#0c1a32 100%);padding:24px 16px">
+  <div style="min-height:100vh;background:var(--bg);padding:24px 16px">
     <div style="max-width:660px;margin:0 auto">
       <!-- Header -->
       <div style="text-align:center;padding:36px 0 28px">
-        <div id="bkLogo" style="width:80px;height:80px;background:linear-gradient(135deg,#0d3a7a,#041228);border-radius:22px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:36px">🐋</div>
+        <div id="bkLogo" style="width:80px;height:80px;background:var(--brand-panel);border-radius:18px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:36px">🐋</div>
         <h1 id="bkCompanyName" style="font-size:26px;font-weight:800;color:#fff;margin:0 0 6px;letter-spacing:-0.5px">Book an Appointment</h1>
-        <p style="color:#5b7ca8;font-size:14px;margin:0" data-i18n="bkp.subtitle">Select a date and time below</p>
+        <p style="color:var(--muted);font-size:14px;margin:0" data-i18n="bkp.subtitle">Select a date and time below</p>
       </div>
       <!-- Error -->
       <div id="bkError" style="display:none;text-align:center;padding:28px 20px;color:#ef4444;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:16px;margin-bottom:20px;font-size:15px"></div>
       <!-- Loading -->
-      <div id="bkLoading" style="text-align:center;padding:60px 20px;color:#5b7ca8;font-size:15px" data-i18n="bkp.loading">Loading availability…</div>
+      <div id="bkLoading" style="text-align:center;padding:60px 20px;color:var(--muted);font-size:15px" data-i18n="bkp.loading">Loading availability…</div>
       <!-- Calendar UI -->
       <div id="bkCalUI" style="display:none">
         <!-- Week nav -->
-        <div style="display:flex;align-items:center;justify-content:space-between;background:#0c1a32;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:10px 18px;margin-bottom:18px">
-          <button onclick="bkPrevWeek()" style="background:transparent;border:none;color:#4fc3f7;font-size:14px;font-weight:700;padding:4px 2px;cursor:pointer" data-i18n="bkp.prev">← Prev</button>
+        <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px 18px;margin-bottom:18px">
+          <button onclick="bkPrevWeek()" style="background:transparent;border:none;color:var(--accent);font-size:14px;font-weight:700;padding:4px 2px;cursor:pointer" data-i18n="bkp.prev">← Prev</button>
           <span id="bkWeekLabel" style="color:#fff;font-weight:700;font-size:14px"></span>
-          <button onclick="bkNextWeek()" style="background:transparent;border:none;color:#4fc3f7;font-size:14px;font-weight:700;padding:4px 2px;cursor:pointer" data-i18n="bkp.next">Next →</button>
+          <button onclick="bkNextWeek()" style="background:transparent;border:none;color:var(--accent);font-size:14px;font-weight:700;padding:4px 2px;cursor:pointer" data-i18n="bkp.next">Next →</button>
         </div>
         <!-- Day tabs -->
         <div id="bkDayTabs" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:18px"></div>
@@ -760,29 +794,29 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
         <div id="bkSlots" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:22px"></div>
         <!-- Booking form (shown after slot selected) -->
         <div id="bkFormWrap" style="display:none">
-          <div style="background:rgba(79,195,247,0.08);border:1px solid rgba(79,195,247,0.2);border-radius:12px;padding:12px 16px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:8px">
-            <span style="color:#4fc3f7;font-weight:700;font-size:14px">📅 <span id="bkSelectedLabel"></span></span>
-            <button onclick="bkClearSlot()" style="background:transparent;border:none;color:#5b7ca8;font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0" data-i18n="bkp.change">Change ✕</button>
+          <div style="background:var(--accent-soft);border:1px solid var(--line);border-radius:12px;padding:12px 16px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;gap:8px">
+            <span style="color:var(--accent);font-weight:700;font-size:14px">📅 <span id="bkSelectedLabel"></span></span>
+            <button onclick="bkClearSlot()" style="background:transparent;border:none;color:var(--muted);font-size:13px;cursor:pointer;white-space:nowrap;flex-shrink:0" data-i18n="bkp.change">Change ✕</button>
           </div>
           <form id="bkForm" onsubmit="submitBooking(event)" style="display:grid;gap:14px">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
               <div>
-                <label style="display:block;font-size:12px;font-weight:700;color:#5b7ca8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px" data-i18n="bkp.fullName">Full name *</label>
-                <input id="bkName" type="text" required data-i18n-ph="bkp.yourName" placeholder="Your name" style="width:100%;background:#0a1628;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px 12px;color:#dce8ff;font-size:14px">
+                <label style="display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px" data-i18n="bkp.fullName">Full name *</label>
+                <input id="bkName" type="text" required data-i18n-ph="bkp.yourName" placeholder="Your name" style="width:100%;background:var(--well);border:1px solid var(--line);border-radius:10px;padding:11px 12px;color:var(--text);font-size:14px">
               </div>
               <div>
-                <label style="display:block;font-size:12px;font-weight:700;color:#5b7ca8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px" data-i18n="f.phone">Phone</label>
-                <input id="bkPhone" type="tel" placeholder="(514) 000-0000" style="width:100%;background:#0a1628;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px 12px;color:#dce8ff;font-size:14px">
+                <label style="display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px" data-i18n="f.phone">Phone</label>
+                <input id="bkPhone" type="tel" placeholder="(514) 000-0000" style="width:100%;background:var(--well);border:1px solid var(--line);border-radius:10px;padding:11px 12px;color:var(--text);font-size:14px">
               </div>
             </div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
               <div>
-                <label style="display:block;font-size:12px;font-weight:700;color:#5b7ca8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px" data-i18n="f.email">Email</label>
-                <input id="bkEmail" type="email" placeholder="your@email.com" style="width:100%;background:#0a1628;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px 12px;color:#dce8ff;font-size:14px">
+                <label style="display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px" data-i18n="f.email">Email</label>
+                <input id="bkEmail" type="email" placeholder="your@email.com" style="width:100%;background:var(--well);border:1px solid var(--line);border-radius:10px;padding:11px 12px;color:var(--text);font-size:14px">
               </div>
               <div>
-                <label style="display:block;font-size:12px;font-weight:700;color:#5b7ca8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px" data-i18n="bkp.service">Type of service</label>
-                <select id="bkService" style="width:100%;background:#0a1628;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px 12px;color:#dce8ff;font-size:14px">
+                <label style="display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px" data-i18n="bkp.service">Type of service</label>
+                <select id="bkService" style="width:100%;background:var(--well);border:1px solid var(--line);border-radius:10px;padding:11px 12px;color:var(--text);font-size:14px">
                   <option value="" data-i18n="bkp.select">Select…</option>
                   <option value="Interior Painting" data-i18n="bkp.svcInt">Interior Painting</option>
                   <option value="Exterior Painting" data-i18n="bkp.svcExt">Exterior Painting</option>
@@ -793,8 +827,8 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
               </div>
             </div>
             <div>
-              <label style="display:block;font-size:12px;font-weight:700;color:#5b7ca8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px" data-i18n="bkp.notes">Notes</label>
-              <textarea id="bkNotes" rows="3" data-i18n-ph="bkp.notesPh" placeholder="Tell us about your project…" style="width:100%;background:#0a1628;border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:11px 12px;color:#dce8ff;font-size:14px;resize:vertical"></textarea>
+              <label style="display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px" data-i18n="bkp.notes">Notes</label>
+              <textarea id="bkNotes" rows="3" data-i18n-ph="bkp.notesPh" placeholder="Tell us about your project…" style="width:100%;background:var(--well);border:1px solid var(--line);border-radius:10px;padding:11px 12px;color:var(--text);font-size:14px;resize:vertical"></textarea>
             </div>
             <button id="bkSubmitBtn" class="btn" type="submit" style="padding:15px;font-size:16px;font-weight:800;border-radius:12px;width:100%" data-i18n="bkp.submit">Request Appointment →</button>
           </form>
@@ -804,11 +838,11 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       <div id="bkSuccess" style="display:none;text-align:center;padding:60px 20px">
         <div style="font-size:56px">✅</div>
         <h2 style="font-size:28px;color:#10b981;margin:16px 0 8px" data-i18n="bkp.successTitle">Request Sent!</h2>
-        <p id="bkSuccessMsg" style="color:#dce8ff;font-size:16px;line-height:1.5;margin:0 0 8px"></p>
-        <p style="color:#5b7ca8;font-size:14px;margin:0" data-i18n="bkp.within24">We'll confirm your appointment within 24 hours.</p>
-        <button onclick="bkReset()" style="margin-top:28px;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:#fff;padding:12px 28px;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer" data-i18n="bkp.bookAnother">Book another time</button>
+        <p id="bkSuccessMsg" style="color:var(--text);font-size:16px;line-height:1.5;margin:0 0 8px"></p>
+        <p style="color:var(--muted);font-size:14px;margin:0" data-i18n="bkp.within24">We'll confirm your appointment within 24 hours.</p>
+        <button onclick="bkReset()" style="margin-top:28px;background:var(--surface2);border:1px solid var(--line);color:var(--text);padding:12px 28px;border-radius:10px;font-weight:700;font-size:14px;cursor:pointer" data-i18n="bkp.bookAnother">Book another time</button>
       </div>
-      <p style="text-align:center;color:rgba(255,255,255,0.12);font-size:12px;margin-top:40px;padding-bottom:24px" data-i18n="bkp.poweredBy">Powered by Balenco</p>
+      <p style="text-align:center;color:var(--muted);opacity:0.7;font-size:12px;margin-top:40px;padding-bottom:24px" data-i18n="bkp.poweredBy">Powered by Balenco</p>
     </div>
   </div>
 </div>
@@ -877,6 +911,24 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     if (typeof lucide !== 'undefined') { try { lucide.createIcons(); } catch (e) {} }
   }
   window.setLang = setLang;
+
+  function currentTheme() { return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light'; }
+  function updateThemeToggles() {
+    var dark = currentTheme() === 'dark';
+    document.querySelectorAll('[data-theme-toggle]').forEach(function (b) {
+      b.innerHTML = '<i data-lucide="' + (dark ? 'sun' : 'moon') + '"></i>';
+      b.setAttribute('aria-label', dark ? 'Switch to light mode' : 'Switch to dark mode');
+    });
+    if (typeof lucide !== 'undefined') { try { lucide.createIcons(); } catch (e) {} }
+  }
+  function setTheme(t) {
+    t = (t === 'dark') ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', t);
+    try { localStorage.setItem('balenco_theme', t); } catch (e) {}
+    updateThemeToggles();
+  }
+  function toggleTheme() { setTheme(currentTheme() === 'dark' ? 'light' : 'dark'); }
+  window.setTheme = setTheme; window.toggleTheme = toggleTheme; window.updateThemeToggles = updateThemeToggles;
 
   function uid() {
     return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2);
@@ -1507,11 +1559,11 @@ Date: ${date(e.createdAt)}`;
           <div class="audit owner-only">${t('g.createdBy')} ${esc(a.createdBy)} • ${date(a.createdAt)}</div>
         </div>
         <div class="actions">
-          ${a.bookingStatus === 'pending' ? `<button class="btn small" style="background:#10b981;border-color:#10b981" type="button" data-action="confirmBooking" data-id="${a.id}">${t('ap.confirm')}</button><button class="btn out small" style="color:#fca5a5;border-color:rgba(239,68,68,0.3)" type="button" data-action="declineBooking" data-id="${a.id}">${t('ap.decline')}</button>` : ''}
+          ${a.bookingStatus === 'pending' ? `<button class="btn small" style="background:#10b981;border-color:#10b981" type="button" data-action="confirmBooking" data-id="${a.id}">${t('ap.confirm')}</button><button class="btn out small" style="color:var(--danger);border-color:var(--danger)" type="button" data-action="declineBooking" data-id="${a.id}">${t('ap.decline')}</button>` : ''}
           <button class="btn small" type="button" data-action="ics" data-id="${a.id}">ICS</button>
           <button class="btn out small" type="button" data-action="googleCal" data-id="${a.id}">Google</button>
           <button class="btn out small" type="button" data-action="delete" data-col="appointments" data-id="${a.id}">${t('g.delete')}</button>
-          ${a.recurring ? `<button class="btn out small" style="color:#fca5a5;border-color:rgba(239,68,68,0.3)" type="button" data-action="deleteSeries" data-id="${a.id}" data-parent="${a.recurringParentId || a.id}">${t('ap.delSeries')}</button>` : ''}
+          ${a.recurring ? `<button class="btn out small" style="color:var(--danger);border-color:var(--danger)" type="button" data-action="deleteSeries" data-id="${a.id}" data-parent="${a.recurringParentId || a.id}">${t('ap.delSeries')}</button>` : ''}
         </div>
       </div>
     `).join('') || '<div class="empty">' + t('ap.none') + '</div>';
@@ -2354,8 +2406,8 @@ Date: ${date(e.createdAt)}`;
       '<div style="background:#062A5E;padding:28px 32px;border-radius:12px 12px 0 0">' +
         (s.logo ? '<img src="' + s.logo + '" style="max-height:50px;margin-bottom:12px;display:block" alt="' + esc(company) + '">' : '') +
         '<div style="color:#fff;font-size:22px;font-weight:900">' + esc(company) + '</div>' +
-        (s.address ? '<div style="color:#93c5fd;font-size:13px;margin-top:4px">' + esc(s.address) + '</div>' : '') +
-        (s.phone ? '<div style="color:#93c5fd;font-size:13px">' + esc(s.phone) + '</div>' : '') +
+        (s.address ? '<div style="color:var(--accent);font-size:13px;margin-top:4px">' + esc(s.address) + '</div>' : '') +
+        (s.phone ? '<div style="color:var(--accent);font-size:13px">' + esc(s.phone) + '</div>' : '') +
       '</div>' +
 
       // Body
@@ -3157,18 +3209,18 @@ Date: ${date(e.createdAt)}`;
           // Payment history rows
           var histRows = '';
           if (deposit > 0) {
-            histRows += '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px">' +
-              '<span style="color:#5b7ca8">' + t('doc.deposit') + '</span>' +
+            histRows += '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line-soft);font-size:13px">' +
+              '<span style="color:var(--muted)">' + t('doc.deposit') + '</span>' +
               '<span style="font-weight:700;color:#10b981">+' + money(deposit) + '</span></div>';
           }
           (est.payments || []).forEach(function(p) {
-            histRows += '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:13px">' +
-              '<span style="color:#5b7ca8">' + esc(p.note || t('portal.payment')) + ' · ' + new Date(p.date).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', {month:'short', day:'numeric'}) + '</span>' +
+            histRows += '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line-soft);font-size:13px">' +
+              '<span style="color:var(--muted)">' + esc(p.note || t('portal.payment')) + ' · ' + new Date(p.date).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', {month:'short', day:'numeric'}) + '</span>' +
               '<span style="font-weight:700;color:#10b981">+' + money(p.amount) + '</span></div>';
           });
           var histBlock = (deposit > 0 || pmts > 0)
             ? '<div style="margin:14px 0 0;background:rgba(0,0,0,0.25);border-radius:10px;padding:10px 14px">' +
-                '<div style="font-size:11px;font-weight:700;color:#5b7ca8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">' + t('portal.payHist') + '</div>' +
+                '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">' + t('portal.payHist') + '</div>' +
                 histRows +
               '</div>'
             : '';
@@ -3178,14 +3230,14 @@ Date: ${date(e.createdAt)}`;
               '<div style="font-size:13px;font-weight:700;color:#a5b4fc;margin-bottom:12px">' + t('portal.makePay') + '</div>' +
               '<div style="display:flex;gap:8px;align-items:center">' +
                 '<div style="position:relative;flex:1">' +
-                  '<span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#5b7ca8;font-weight:700;font-size:15px">$</span>' +
+                  '<span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:700;font-size:15px">$</span>' +
                   '<input type="number" id="payAmt-' + est.id + '" min="1" max="' + remaining.toFixed(2) + '" step="0.01" value="' + remaining.toFixed(2) + '" ' +
-                    'style="width:100%;background:#0a1628;border:1px solid rgba(255,255,255,0.12);border-radius:10px;padding:11px 12px 11px 26px;color:#fff;font-size:15px;font-weight:700">' +
+                    'style="width:100%;background:var(--well);border:1px solid var(--line);border-radius:10px;padding:11px 12px 11px 26px;color:var(--text);font-size:15px;font-weight:700">' +
                 '</div>' +
                 '<button onclick="payBalance(\'' + est.id + '\',\'' + clientId + '\')" ' +
                   'style="background:#635bff;color:#fff;border:none;border-radius:10px;padding:11px 18px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap;flex-shrink:0">' + t('portal.payCard') + '</button>' +
               '</div>' +
-              '<div style="font-size:12px;color:#5b7ca8;margin-top:8px">' + t('portal.anyAmount') + '</div>' +
+              '<div style="font-size:12px;color:var(--muted);margin-top:8px">' + t('portal.anyAmount') + '</div>' +
             '</div>';
           } else if (est.status === 'Accepted' && remaining === 0) {
             paySection = '<div style="margin-top:14px;text-align:center;padding:12px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:10px;color:#10b981;font-weight:700;font-size:14px">' + t('portal.paidFull') + '</div>';
@@ -3195,7 +3247,7 @@ Date: ${date(e.createdAt)}`;
               ? '<div style="margin-bottom:14px;background:rgba(59,130,246,0.08);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:12px 14px">' +
                   '<div style="font-size:11px;font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:.5px">' + t('portal.depConfirm') + '</div>' +
                   '<div style="font-size:20px;font-weight:900;color:#fff;margin-top:2px">' + money(deposit) + '</div>' +
-                  (est.payment_schedule ? '<div style="font-size:12px;color:#5b7ca8;margin-top:2px">' + esc(est.payment_schedule) + '</div>' : '') +
+                  (est.payment_schedule ? '<div style="font-size:12px;color:var(--muted);margin-top:2px">' + esc(est.payment_schedule) + '</div>' : '') +
                 '</div>'
               : '';
             var approveBtn = deposit > 0
@@ -3211,13 +3263,13 @@ Date: ${date(e.createdAt)}`;
               '<div style="font-size:13px;font-weight:700;color:#fbbf24;margin-bottom:12px">' + t('portal.awaiting') + '</div>' +
               depositLine +
               approveBtn +
-              '<div style="font-size:12px;color:#5b7ca8;margin-top:10px;text-align:center">' + t('portal.securePay') + '</div>' +
+              '<div style="font-size:12px;color:var(--muted);margin-top:10px;text-align:center">' + t('portal.securePay') + '</div>' +
             '</div>';
           }
 
           var invoiceBtn = est.status === 'Accepted'
             ? '<button onclick="viewInvoicePortal(\'' + est.id + '\')" ' +
-                'style="width:100%;margin-top:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.14);color:#dce8ff;border-radius:10px;padding:11px;font-weight:700;font-size:14px;cursor:pointer">' +
+                'style="width:100%;margin-top:10px;background:var(--surface2);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:11px;font-weight:700;font-size:14px;cursor:pointer">' +
                 t('portal.viewInv') +
               '</button>'
             : '';
@@ -3519,16 +3571,16 @@ Date: ${date(e.createdAt)}`;
       if (!none && !firstDay) firstDay = dk;
       tabsHtml += `<div id="bkTab_${dk}"
         onclick="${none ? '' : `bkSelectDay('${dk}')`}"
-        style="background:#0a1628;border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:8px 3px;text-align:center;cursor:${none?'default':'pointer'};opacity:${none?'0.3':'1'};transition:all .15s;user-select:none">
-        <div style="font-size:10px;font-weight:700;color:#5b7ca8;text-transform:uppercase;letter-spacing:.5px">${dayNames[d.getDay()]}</div>
+        style="background:var(--well);border:1px solid var(--line);border-radius:12px;padding:8px 3px;text-align:center;cursor:${none?'default':'pointer'};opacity:${none?'0.3':'1'};transition:all .15s;user-select:none">
+        <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">${dayNames[d.getDay()]}</div>
         <div style="font-size:16px;font-weight:800;color:#fff;margin:2px 0">${d.getDate()}</div>
-        <div style="font-size:10px;color:#4fc3f7">${none ? '—' : cnt + ' ' + t('bkp.open')}</div>
+        <div style="font-size:10px;color:var(--accent)">${none ? '—' : cnt + ' ' + t('bkp.open')}</div>
       </div>`;
     }
     document.getElementById('bkDayTabs').innerHTML = tabsHtml;
 
     if (firstDay) bkSelectDay(firstDay);
-    else document.getElementById('bkSlots').innerHTML = '<p style="text-align:center;color:#5b7ca8;padding:30px;grid-column:1/-1">' + t('bkp.noWeek') + '</p>';
+    else document.getElementById('bkSlots').innerHTML = '<p style="text-align:center;color:var(--muted);padding:30px;grid-column:1/-1">' + t('bkp.noWeek') + '</p>';
   }
 
   function bkSelectDay(dk) {
@@ -3537,19 +3589,19 @@ Date: ${date(e.createdAt)}`;
     _bkSelectedSlot = null;
 
     document.querySelectorAll('[id^="bkTab_"]').forEach(el => {
-      el.style.background = '#0a1628';
-      el.style.borderColor = 'rgba(255,255,255,0.08)';
+      el.style.background = 'var(--well)';
+      el.style.borderColor = 'var(--line)';
     });
     const tab = document.getElementById('bkTab_' + dk);
-    if (tab) { tab.style.background = 'rgba(79,195,247,0.12)'; tab.style.borderColor = 'rgba(79,195,247,0.4)'; }
+    if (tab) { tab.style.background = 'var(--accent-soft)'; tab.style.borderColor = 'var(--accent)'; }
 
     const slots = _bkSlots[dk] || [];
     const dayLabel = new Date(dk + 'T12:00:00').toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', { weekday:'long', month:'long', day:'numeric' });
     let html = '';
     if (!slots.length) {
-      html = `<p style="text-align:center;color:#5b7ca8;padding:30px;grid-column:1/-1">${t('bkp.noTimes')} ${dayLabel}</p>`;
+      html = `<p style="text-align:center;color:var(--muted);padding:30px;grid-column:1/-1">${t('bkp.noTimes')} ${dayLabel}</p>`;
     } else {
-      html = `<div style="grid-column:1/-1;font-size:13px;font-weight:700;color:#5b7ca8;margin-bottom:2px">${dayLabel}</div>`;
+      html = `<div style="grid-column:1/-1;font-size:13px;font-weight:700;color:var(--muted);margin-bottom:2px">${dayLabel}</div>`;
       slots.forEach(function(t) {
         const parts = t.split(':').map(Number);
         const h = parts[0], m = parts[1];
@@ -3558,9 +3610,9 @@ Date: ${date(e.createdAt)}`;
         const label = lang === 'fr' ? (h + ' h' + (m ? ' ' + String(m).padStart(2, '0') : '')) : (h12 + ':' + String(m).padStart(2, '0') + ' ' + ap);
         const sid = 'bkSlot_' + dk + '_' + t.replace(':', '-');
         html += `<button id="${sid}" type="button" onclick="bkSelectSlot('${dk}','${t}')"
-          style="background:#0a1628;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px 8px;color:#dce8ff;font-weight:700;font-size:14px;cursor:pointer;transition:all .15s"
-          onmouseover="this.style.background='rgba(79,195,247,0.10)';this.style.borderColor='rgba(79,195,247,0.3)'"
-          onmouseout="if(!this.dataset.sel){this.style.background='#0a1628';this.style.borderColor='rgba(255,255,255,0.08)'}">${label}</button>`;
+          style="background:var(--well);border:1px solid var(--line);border-radius:10px;padding:12px 8px;color:var(--text);font-weight:700;font-size:14px;cursor:pointer;transition:all .15s"
+          onmouseover="this.style.background='var(--accent-soft)';this.style.borderColor='var(--accent)'"
+          onmouseout="if(!this.dataset.sel){this.style.background='var(--well)';this.style.borderColor='var(--line)'}">${label}</button>`;
       });
     }
     document.getElementById('bkSlots').innerHTML = html;
@@ -3569,10 +3621,10 @@ Date: ${date(e.createdAt)}`;
   function bkSelectSlot(dk, t) {
     _bkSelectedSlot = { date:dk, time:t };
     document.querySelectorAll('[id^="bkSlot_"]').forEach(function(el) {
-      el.style.background = '#0a1628'; el.style.borderColor = 'rgba(255,255,255,0.08)'; el.style.color = '#dce8ff'; delete el.dataset.sel;
+      el.style.background = 'var(--well)'; el.style.borderColor = 'var(--line)'; el.style.color = 'var(--text)'; delete el.dataset.sel;
     });
     const btn = document.getElementById('bkSlot_' + dk + '_' + t.replace(':', '-'));
-    if (btn) { btn.style.background = 'rgba(79,195,247,0.18)'; btn.style.borderColor = '#4fc3f7'; btn.style.color = '#4fc3f7'; btn.dataset.sel = '1'; }
+    if (btn) { btn.style.background = 'var(--accent-soft)'; btn.style.borderColor = 'var(--accent)'; btn.style.color = 'var(--accent)'; btn.dataset.sel = '1'; }
     const parts = t.split(':').map(Number);
     const h = parts[0], m = parts[1];
     const ap = h >= 12 ? 'PM' : 'AM';
@@ -3587,7 +3639,7 @@ Date: ${date(e.createdAt)}`;
     _bkSelectedSlot = null;
     document.getElementById('bkFormWrap').style.display = 'none';
     document.querySelectorAll('[id^="bkSlot_"]').forEach(function(el) {
-      el.style.background = '#0a1628'; el.style.borderColor = 'rgba(255,255,255,0.08)'; el.style.color = '#dce8ff'; delete el.dataset.sel;
+      el.style.background = 'var(--well)'; el.style.borderColor = 'var(--line)'; el.style.color = 'var(--text)'; delete el.dataset.sel;
     });
   }
 
@@ -3684,11 +3736,13 @@ Date: ${date(e.createdAt)}`;
   window.setClientLang = setClientLang;
   function injectClientLangToggle() {
     var box = document.createElement('div');
-    box.style.cssText = 'position:fixed;top:12px;right:12px;z-index:9999;display:flex;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.18);border-radius:999px;overflow:hidden;font-size:12px;font-weight:800';
+    box.style.cssText = 'position:fixed;top:12px;right:12px;z-index:9999;display:flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;overflow:hidden;font-size:12px;font-weight:800;box-shadow:0 4px 14px var(--shadow)';
     box.innerHTML =
-      '<button onclick="setClientLang(\'fr\')" style="padding:6px 13px;border:none;cursor:pointer;background:' + (lang === 'fr' ? '#4fc3f7' : 'transparent') + ';color:' + (lang === 'fr' ? '#041228' : '#dce8ff') + '">FR</button>' +
-      '<button onclick="setClientLang(\'en\')" style="padding:6px 13px;border:none;cursor:pointer;background:' + (lang === 'en' ? '#4fc3f7' : 'transparent') + ';color:' + (lang === 'en' ? '#041228' : '#dce8ff') + '">EN</button>';
+      '<button type="button" data-theme-toggle onclick="toggleTheme()" aria-label="Toggle theme" style="padding:6px 11px;border:none;border-right:1px solid var(--line);cursor:pointer;background:transparent;color:var(--muted);display:inline-flex;align-items:center"><i data-lucide="moon"></i></button>' +
+      '<button onclick="setClientLang(\'fr\')" style="padding:6px 13px;border:none;cursor:pointer;background:' + (lang === 'fr' ? 'var(--accent)' : 'transparent') + ';color:' + (lang === 'fr' ? '#041228' : 'var(--text)') + '">FR</button>' +
+      '<button onclick="setClientLang(\'en\')" style="padding:6px 13px;border:none;cursor:pointer;background:' + (lang === 'en' ? 'var(--accent)' : 'transparent') + ';color:' + (lang === 'en' ? '#041228' : 'var(--text)') + '">EN</button>';
     document.body.appendChild(box);
+    updateThemeToggles();
   }
   // Public client-facing pages (?approve / ?client / ?book) default to French
   // (Québec / Bill 96) with an EN toggle, independent of the owner's app language.
@@ -3700,6 +3754,7 @@ Date: ${date(e.createdAt)}`;
     }
   })();
   applyStaticI18n();
+  updateThemeToggles();
   init();
   if (typeof lucide !== 'undefined') lucide.createIcons();
   document.addEventListener('keydown', function(ev) {
