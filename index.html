@@ -344,7 +344,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
         </div>
       </div>
       <div class="approve-card-body">
-        <div id="approveContent"><p style="color:#64748b;text-align:center;padding:40px" data-i18n="appr.loadingEst">Loading estimate…</p></div>
+        <div id="approveContent"><p style="color:var(--muted);text-align:center;padding:40px" data-i18n="appr.loadingEst">Loading estimate…</p></div>
       </div>
     </div>
   </div>
@@ -360,7 +360,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
           <p id="portalClientName">Your estimates &amp; appointments</p>
         </div>
       </div>
-      <div id="portalContent"><p style="color:#64748b;text-align:center;padding:40px" data-i18n="portal.loadingDots">Loading…</p></div>
+      <div id="portalContent"><p style="color:var(--muted);text-align:center;padding:40px" data-i18n="portal.loadingDots">Loading…</p></div>
     </div>
   </div>
 </section>
@@ -384,8 +384,8 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       <div id="panelSignIn">
         <div class="title" style="margin-top:8px"><div><h3 data-i18n="login.welcome">Welcome back</h3><p data-i18n="login.welcomeSub">Enter your credentials to continue.</p></div></div>
         <input type="email" id="loginEmail" data-i18n-ph="login.email" placeholder="Email address" autocomplete="username">
-        <div style="position:relative"><input type="password" id="loginPass" data-i18n-ph="login.password" placeholder="Password" autocomplete="current-password" style="width:100%;padding-right:42px"><button type="button" onclick="togglePass('loginPass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;color:#64748b;display:flex;align-items:center"><i data-lucide="eye" style="width:18px;height:18px"></i></button></div>
-        <div id="loginError" style="color:var(--danger);font-size:13px;display:none;padding:8px 12px;background:#fef2f2;border-radius:12px;border:1px solid #fecaca;"></div>
+        <div style="position:relative"><input type="password" id="loginPass" data-i18n-ph="login.password" placeholder="Password" autocomplete="current-password" style="width:100%;padding-right:42px"><button type="button" onclick="togglePass('loginPass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;color:var(--muted);display:flex;align-items:center"><i data-lucide="eye" style="width:18px;height:18px"></i></button></div>
+        <div id="loginError" style="color:var(--danger);font-size:13px;display:none;padding:8px 12px;background:var(--pill-red-bg);border-radius:12px;border:1px solid var(--line);"></div>
         <button class="btn" type="button" id="enterBtn" data-i18n="login.signin">Sign in</button>
         <button type="button" id="forgotBtn" style="background:none;border:none;color:var(--blue);font-size:13px;cursor:pointer;padding:4px 0;justify-self:start" data-i18n="login.forgot">Forgot password?</button>
       </div>
@@ -395,25 +395,25 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
         <input type="text" id="signupName" data-i18n-ph="login.name" placeholder="Your full name">
         <input type="text" id="signupCompany" data-i18n-ph="login.company" placeholder="Company name">
         <input type="email" id="signupEmail" data-i18n-ph="login.email" placeholder="Email address" autocomplete="username">
-        <div style="position:relative"><input type="password" id="signupPass" data-i18n-ph="login.passMin" placeholder="Password (min 6 characters)" autocomplete="new-password" style="width:100%;padding-right:42px"><button type="button" onclick="togglePass('signupPass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;color:#64748b;display:flex;align-items:center"><i data-lucide="eye" style="width:18px;height:18px"></i></button></div>
-        <div id="signupError" style="color:var(--danger);font-size:13px;display:none;padding:8px 12px;background:#fef2f2;border-radius:12px;border:1px solid #fecaca;"></div>
-        <div id="signupSuccess" style="color:#047857;font-size:13px;display:none;padding:8px 12px;background:#ecfdf5;border-radius:12px;border:1px solid #d1fae5;"></div>
+        <div style="position:relative"><input type="password" id="signupPass" data-i18n-ph="login.passMin" placeholder="Password (min 6 characters)" autocomplete="new-password" style="width:100%;padding-right:42px"><button type="button" onclick="togglePass('signupPass',this)" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:0;color:var(--muted);display:flex;align-items:center"><i data-lucide="eye" style="width:18px;height:18px"></i></button></div>
+        <div id="signupError" style="color:var(--danger);font-size:13px;display:none;padding:8px 12px;background:var(--pill-red-bg);border-radius:12px;border:1px solid var(--line);"></div>
+        <div id="signupSuccess" style="color:var(--green);font-size:13px;display:none;padding:8px 12px;background:var(--pill-green-bg);border-radius:12px;border:1px solid var(--line);"></div>
         <button class="btn" type="button" id="signupBtn" data-i18n="login.create">Create account</button>
       </div>
       <div id="panelReset" style="display:none">
         <div class="title" style="margin-top:8px"><div><h3 data-i18n="reset.title">Set a new password</h3><p data-i18n="reset.sub">Choose a new password for your account.</p></div></div>
         <input type="password" id="resetPass" data-i18n-ph="reset.new" placeholder="New password (min 6 characters)" autocomplete="new-password">
-        <div id="resetError" style="color:var(--danger);font-size:13px;display:none;padding:8px 12px;background:#fef2f2;border-radius:12px;border:1px solid #fecaca;"></div>
+        <div id="resetError" style="color:var(--danger);font-size:13px;display:none;padding:8px 12px;background:var(--pill-red-bg);border-radius:12px;border:1px solid var(--line);"></div>
         <button class="btn" type="button" id="resetBtn" data-i18n="reset.btn">Update password</button>
       </div>
     </div>
   </div>
 </section>
 
-<div id="installBanner" style="display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#062A5E;color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.3);display:none;align-items:center;gap:12px;white-space:nowrap">
+<div id="installBanner" style="display:none;position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:var(--brand-panel);color:var(--brand-on);padding:12px 20px;border-radius:12px;font-size:14px;z-index:9999;box-shadow:0 4px 20px var(--shadow);display:none;align-items:center;gap:12px;white-space:nowrap">
   📲 <strong>Install Balenco</strong> on your device for quick access
-  <button onclick="installPWA()" style="background:#fff;color:#062A5E;border:none;border-radius:8px;padding:6px 14px;font-weight:700;cursor:pointer;font-size:13px">Install</button>
-  <button onclick="document.getElementById('installBanner').style.display='none'" style="background:transparent;color:#fff;border:none;cursor:pointer;font-size:18px;line-height:1">✕</button>
+  <button onclick="installPWA()" style="background:var(--surface);color:var(--brand-panel);border:none;border-radius:8px;padding:6px 14px;font-weight:700;cursor:pointer;font-size:13px">Install</button>
+  <button onclick="document.getElementById('installBanner').style.display='none'" style="background:transparent;color:var(--brand-on);border:none;cursor:pointer;font-size:18px;line-height:1">✕</button>
 </div>
 
 <div id="app" class="app">
@@ -430,7 +430,6 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       <button data-tab="maps"><span class="nav-icon"><i data-lucide="map"></i></span> <span data-i18n="nav.maps">Map & Route</span></button>
       <button data-tab="settings"><span class="nav-icon"><i data-lucide="settings"></i></span> <span data-i18n="nav.settings">Settings</span></button>
     </div>
-    <div class="tip"><strong style="color:var(--navy)">Lead connection idea:</strong><br>Facebook, website, or Google leads can be copied/imported here now. Later this can connect automatically with Zapier/Make + a database.</div>
   </aside>
 
   <main class="content">
@@ -467,16 +466,16 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 
     <section id="dashboard" class="tab active">
       <div class="grid4">
-        <div class="card stat" onclick="showStatDetail('leads')" style="cursor:pointer"><div class="stat-icon" style="background:#eff6ff"><i data-lucide="target" style="color:#3b82f6;width:20px;height:20px"></i></div><label data-i18n="dash.activeLeads">Active leads</label><strong id="statLeads">0</strong></div>
-        <div class="card stat" onclick="showStatDetail('revenue')" style="cursor:pointer"><div class="stat-icon" style="background:#ecfdf5"><i data-lucide="trending-up" style="color:#047857;width:20px;height:20px"></i></div><label data-i18n="dash.monthRev">This month revenue</label><strong id="statAccepted">$0</strong></div>
-        <div class="card stat" onclick="showStatDetail('pipeline')" style="cursor:pointer"><div class="stat-icon" style="background:#fefce8"><i data-lucide="file-text" style="color:#b45309;width:20px;height:20px"></i></div><label data-i18n="dash.pipeline">Pipeline value</label><strong id="statEstimates">$0</strong></div>
-        <div class="card stat" onclick="showStatDetail('outstanding')" style="cursor:pointer"><div class="stat-icon" style="background:#fef2f2"><i data-lucide="circle-dollar-sign" style="color:#b91c1c;width:20px;height:20px"></i></div><label data-i18n="dash.outstanding">Outstanding</label><strong id="statBalances">$0</strong></div>
+        <div class="card stat" onclick="showStatDetail('leads')" style="cursor:pointer"><div class="stat-icon" style="background:var(--accent-soft)"><i data-lucide="target" style="color:#3b82f6;width:20px;height:20px"></i></div><label data-i18n="dash.activeLeads">Active leads</label><strong id="statLeads">0</strong></div>
+        <div class="card stat" onclick="showStatDetail('revenue')" style="cursor:pointer"><div class="stat-icon" style="background:var(--pill-green-bg)"><i data-lucide="trending-up" style="color:#047857;width:20px;height:20px"></i></div><label data-i18n="dash.monthRev">This month revenue</label><strong id="statAccepted">$0</strong></div>
+        <div class="card stat" onclick="showStatDetail('pipeline')" style="cursor:pointer"><div class="stat-icon" style="background:var(--pill-amber-bg)"><i data-lucide="file-text" style="color:#b45309;width:20px;height:20px"></i></div><label data-i18n="dash.pipeline">Pipeline value</label><strong id="statEstimates">$0</strong></div>
+        <div class="card stat" onclick="showStatDetail('outstanding')" style="cursor:pointer"><div class="stat-icon" style="background:var(--pill-red-bg)"><i data-lucide="circle-dollar-sign" style="color:#b91c1c;width:20px;height:20px"></i></div><label data-i18n="dash.outstanding">Outstanding</label><strong id="statBalances">$0</strong></div>
       </div>
       <div class="grid4" style="margin-top:16px">
-        <div class="card stat"><div class="stat-icon" style="background:#f0fdf4"><i data-lucide="percent" style="color:#047857;width:20px;height:20px"></i></div><label data-i18n="dash.winRate">Win rate</label><strong id="statWinRate">0%</strong></div>
-        <div class="card stat"><div class="stat-icon" style="background:#eff6ff"><i data-lucide="trending-up" style="color:#1d4ed8;width:20px;height:20px"></i></div><label data-i18n="dash.ytdRev">YTD revenue</label><strong id="statYTD">$0</strong></div>
-        <div class="card stat"><div class="stat-icon" style="background:#fdf4ff"><i data-lucide="users" style="color:#9333ea;width:20px;height:20px"></i></div><label data-i18n="dash.totalClients">Total clients</label><strong id="statClients">0</strong></div>
-        <div class="card stat"><div class="stat-icon" style="background:#fff7ed"><i data-lucide="briefcase" style="color:#ea580c;width:20px;height:20px"></i></div><label data-i18n="dash.avgJob">Avg job value</label><strong id="statAvgJob">$0</strong></div>
+        <div class="card stat"><div class="stat-icon" style="background:var(--pill-green-bg)"><i data-lucide="percent" style="color:#047857;width:20px;height:20px"></i></div><label data-i18n="dash.winRate">Win rate</label><strong id="statWinRate">0%</strong></div>
+        <div class="card stat"><div class="stat-icon" style="background:var(--accent-soft)"><i data-lucide="trending-up" style="color:#1d4ed8;width:20px;height:20px"></i></div><label data-i18n="dash.ytdRev">YTD revenue</label><strong id="statYTD">$0</strong></div>
+        <div class="card stat"><div class="stat-icon" style="background:var(--accent-soft)"><i data-lucide="users" style="color:#9333ea;width:20px;height:20px"></i></div><label data-i18n="dash.totalClients">Total clients</label><strong id="statClients">0</strong></div>
+        <div class="card stat"><div class="stat-icon" style="background:var(--pill-amber-bg)"><i data-lucide="briefcase" style="color:#ea580c;width:20px;height:20px"></i></div><label data-i18n="dash.avgJob">Avg job value</label><strong id="statAvgJob">$0</strong></div>
       </div>
       <div class="grid2" style="margin-top:18px">
         <div class="card"><div class="title"><div><h3 data-i18n="dash.upcoming">Upcoming appointments</h3><p data-i18n="dash.upcomingSub">Next appointments and job visits.</p></div></div><div id="dashAppointments" class="list"></div></div>
@@ -586,7 +585,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
             <button class="btn out" type="button" id="printEstimateBtn" data-i18n="es.btnPrint">Print / save PDF</button>
             <button class="btn out" type="button" id="downloadEstimateBtn" data-i18n="es.btnDownload">Download PDF</button>
             <button class="btn out" type="button" id="invoiceBtn" data-i18n="es.btnInvoice">Print invoice</button>
-            <button class="btn" type="button" id="paymentLinkBtn" style="background:#635bff" data-i18n="es.btnPayLink">Copy payment link</button>
+            <button class="btn" type="button" id="paymentLinkBtn" style="background:var(--primary)" data-i18n="es.btnPayLink">Copy payment link</button>
           </div>
           <div id="estimatePayments" style="margin-top:16px"></div>
         </div>
@@ -683,7 +682,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
             <input id="setGST" data-i18n-ph="set.gst" placeholder="GST / TPS registration number">
             <input id="setQST" data-i18n-ph="set.qst" placeholder="QST / TVQ registration number">
             <div style="display:none"><input id="setTPS" type="number" step="0.001" placeholder="TPS rate %" value="5"><input id="setTVQ" type="number" step="0.001" placeholder="TVQ rate %" value="9.975"></div>
-            <div class="card" style="padding:14px;border-radius:18px;background:#f8fafc">
+            <div class="card" style="padding:14px;border-radius:18px;background:var(--well)">
               <div class="title" style="margin-bottom:10px"><div><h3 style="font-size:16px" data-i18n="set.logoTitle">Estimate logo</h3><p data-i18n="set.logoSub">Optional: upload your own company logo for professional estimates.</p></div></div>
               <div class="form"><label class="btn out" style="justify-content:flex-start"><span data-i18n="set.uploadLogo">Upload logo</span><input id="companyLogoInput" type="file" accept="image/*" style="display:none"></label><div id="logoStatus" class="muted">No custom logo uploaded.</div><div class="actions"><button type="button" class="btn out small" id="clearLogoBtn" data-i18n="set.removeLogo">Remove logo</button></div></div>
             </div>
@@ -773,7 +772,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
       <!-- Header -->
       <div style="text-align:center;padding:36px 0 28px">
         <div id="bkLogo" style="width:80px;height:80px;background:var(--brand-panel);border-radius:18px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:36px">🐋</div>
-        <h1 id="bkCompanyName" style="font-size:26px;font-weight:800;color:#fff;margin:0 0 6px;letter-spacing:-0.5px">Book an Appointment</h1>
+        <h1 id="bkCompanyName" style="font-size:26px;font-weight:800;color:var(--text);margin:0 0 6px;letter-spacing:-0.5px">Book an Appointment</h1>
         <p style="color:var(--muted);font-size:14px;margin:0" data-i18n="bkp.subtitle">Select a date and time below</p>
       </div>
       <!-- Error -->
@@ -785,7 +784,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
         <!-- Week nav -->
         <div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px 18px;margin-bottom:18px">
           <button onclick="bkPrevWeek()" style="background:transparent;border:none;color:var(--accent);font-size:14px;font-weight:700;padding:4px 2px;cursor:pointer" data-i18n="bkp.prev">← Prev</button>
-          <span id="bkWeekLabel" style="color:#fff;font-weight:700;font-size:14px"></span>
+          <span id="bkWeekLabel" style="color:var(--text);font-weight:700;font-size:14px"></span>
           <button onclick="bkNextWeek()" style="background:transparent;border:none;color:var(--accent);font-size:14px;font-weight:700;padding:4px 2px;cursor:pointer" data-i18n="bkp.next">Next →</button>
         </div>
         <!-- Day tabs -->
@@ -847,7 +846,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
   </div>
 </div>
 
-<div id="toast"></div>
+<div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script>
 (function() {
@@ -1331,7 +1330,7 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
           <div>
             <strong>${esc(a.title)}</strong>
             <span class="muted">${esc(clientName(a.clientId))} • ${date(a.start)}</span>
-            ${c.phone ? `<br><a href="tel:${esc(c.phone)}" style="font-size:13px;color:var(--navy);font-weight:700">${esc(c.phone)}</a>` : ''}
+            ${c.phone ? `<br><a href="tel:${esc(c.phone)}" style="font-size:13px;color:var(--text);font-weight:700">${esc(c.phone)}</a>` : ''}
             ${a.location ? `<span class="muted"> • ${esc(a.location)}</span>` : ''}
           </div>
           ${a.reminderSent ? '<span class="pill green" style="font-size:11px">' + t('dash.reminded') + '</span>' : '<span class="pill amber">' + date(a.start) + '</span>'}
@@ -1559,7 +1558,7 @@ Date: ${date(e.createdAt)}`;
           <div class="audit owner-only">${t('g.createdBy')} ${esc(a.createdBy)} • ${date(a.createdAt)}</div>
         </div>
         <div class="actions">
-          ${a.bookingStatus === 'pending' ? `<button class="btn small" style="background:#10b981;border-color:#10b981" type="button" data-action="confirmBooking" data-id="${a.id}">${t('ap.confirm')}</button><button class="btn out small" style="color:var(--danger);border-color:var(--danger)" type="button" data-action="declineBooking" data-id="${a.id}">${t('ap.decline')}</button>` : ''}
+          ${a.bookingStatus === 'pending' ? `<button class="btn small" style="background:var(--approve);border-color:var(--approve)" type="button" data-action="confirmBooking" data-id="${a.id}">${t('ap.confirm')}</button><button class="btn out small" style="color:var(--danger);border-color:var(--danger)" type="button" data-action="declineBooking" data-id="${a.id}">${t('ap.decline')}</button>` : ''}
           <button class="btn small" type="button" data-action="ics" data-id="${a.id}">ICS</button>
           <button class="btn out small" type="button" data-action="googleCal" data-id="${a.id}">Google</button>
           <button class="btn out small" type="button" data-action="delete" data-col="appointments" data-id="${a.id}">${t('g.delete')}</button>
@@ -1590,7 +1589,7 @@ Date: ${date(e.createdAt)}`;
     const signed = await signedPhotoMap(photos);
     $('photoList').innerHTML = photos.map(p => {
       const src = photoSrc(p.data, signed);
-      return `<div class="card"><div class="photo">${src ? `<img src="${src}" alt="Project photo">` : '📷'}</div><strong>${esc(p.type)}</strong><p class="muted">${esc(clientName(p.clientId))}<br>${esc(p.notes)}</p><div class="audit owner-only">${t('ph.uploadedBy')} ${esc(p.createdBy)} • ${date(p.createdAt)}</div><button class="btn out small" type="button" data-action="delete" data-col="photos" data-id="${p.id}">${t('g.delete')}</button></div>`;
+      return `<div class="card"><div class="photo">${src ? `<img src="${esc(src)}" alt="Project photo">` : '📷'}</div><strong>${esc(p.type)}</strong><p class="muted">${esc(clientName(p.clientId))}<br>${esc(p.notes)}</p><div class="audit owner-only">${t('ph.uploadedBy')} ${esc(p.createdBy)} • ${date(p.createdAt)}</div><button class="btn out small" type="button" data-action="delete" data-col="photos" data-id="${p.id}">${t('g.delete')}</button></div>`;
     }).join('') || '<div class="empty">' + t('ph.none') + '</div>';
   }
 
@@ -1652,7 +1651,7 @@ Date: ${date(e.createdAt)}`;
     const clients = visible(state.clients).filter(c => c.address && c.address.trim());
     $('clientMapList').innerHTML = clients.map(c => `
       <div class="map-card">
-        <div><strong style="color:var(--navy)">${esc(c.name)}</strong><div class="muted">${esc(c.address)}<br>${esc(c.project)} • ${esc(c.phone || t('cl.noPhone'))}</div></div>
+        <div><strong style="color:var(--text)">${esc(c.name)}</strong><div class="muted">${esc(c.address)}<br>${esc(c.project)} • ${esc(c.phone || t('cl.noPhone'))}</div></div>
         <div class="actions"><button class="btn small" type="button" data-action="mapClient" data-id="${c.id}">${t('mp.openMap')}</button><button class="btn out small" type="button" data-action="directionsClient" data-id="${c.id}">${t('mp.directions')}</button></div>
       </div>
     `).join('') || '<div class="empty">' + t('mp.noAddr') + '</div>';
@@ -1671,7 +1670,7 @@ Date: ${date(e.createdAt)}`;
     $('routeSuggestion').innerHTML = clients.map((c, i) => `
       <div class="route-step">
         <div class="route-num">${i+1}</div>
-        <div style="flex:1"><strong style="color:var(--navy)">${esc(c.name)}</strong><div class="muted">${esc(c.address)}<br>${esc(c.project)} • ${esc(c.phone || t('cl.noPhone'))}</div><div class="actions" style="margin-top:8px"><button class="btn small" type="button" data-action="directionsClient" data-id="${c.id}">${t('mp.directions')}</button></div></div>
+        <div style="flex:1"><strong style="color:var(--text)">${esc(c.name)}</strong><div class="muted">${esc(c.address)}<br>${esc(c.project)} • ${esc(c.phone || t('cl.noPhone'))}</div><div class="actions" style="margin-top:8px"><button class="btn small" type="button" data-action="directionsClient" data-id="${c.id}">${t('mp.directions')}</button></div></div>
       </div>
     `).join('') + '<div class="actions"><button class="btn" type="button" data-action="openFullRoute">' + t('mp.fullRoute') + '</button></div>';
   }
@@ -2948,19 +2947,19 @@ Date: ${date(e.createdAt)}`;
     let html = `
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
         <div>
-          <h3 style="margin:0;color:var(--navy)">${esc(c.name)}</h3>
+          <h3 style="margin:0;color:var(--text)">${esc(c.name)}</h3>
           <p class="muted" style="margin:4px 0 0">${esc(c.project || '')}${c.phone ? ' • ' + esc(c.phone) : ''}${c.email ? ' • ' + esc(c.email) : ''}</p>
         </div>
-        <button onclick="closeClientHistory()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#64748b;padding:4px 8px">✕</button>
+        <button onclick="closeClientHistory()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);padding:4px 8px">✕</button>
       </div>
       <div class="grid3" style="margin-bottom:20px">
-        <div class="card" style="padding:14px;text-align:center"><div class="muted" style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.4px">Estimates</div><strong style="font-size:22px;color:var(--navy)">${ests.length}</strong></div>
-        <div class="card" style="padding:14px;text-align:center"><div class="muted" style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.4px">Total accepted</div><strong style="font-size:22px;color:#047857">${money(totalAccepted)}</strong></div>
-        <div class="card" style="padding:14px;text-align:center"><div class="muted" style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.4px">Appointments</div><strong style="font-size:22px;color:var(--navy)">${appts.length}</strong></div>
+        <div class="card" style="padding:14px;text-align:center"><div class="muted" style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.4px">Estimates</div><strong style="font-size:22px;color:var(--text)">${ests.length}</strong></div>
+        <div class="card" style="padding:14px;text-align:center"><div class="muted" style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.4px">Total accepted</div><strong style="font-size:22px;color:var(--green)">${money(totalAccepted)}</strong></div>
+        <div class="card" style="padding:14px;text-align:center"><div class="muted" style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.4px">Appointments</div><strong style="font-size:22px;color:var(--text)">${appts.length}</strong></div>
       </div>`;
 
     if (ests.length) {
-      html += '<h4 style="color:var(--navy);margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.6px">Estimates</h4><div style="display:grid;gap:8px;margin-bottom:20px">';
+      html += '<h4 style="color:var(--text);margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.6px">Estimates</h4><div style="display:grid;gap:8px;margin-bottom:20px">';
       ests.forEach(e => {
         const tax = calc(e);
         const dep = Number(e.deposit||0);
@@ -2970,7 +2969,7 @@ Date: ${date(e.createdAt)}`;
           <div><h4>${esc(e.title)}</h4><p class="muted" style="margin:0;font-size:13px">${date(e.createdAt)}</p></div>
           <div style="text-align:right;flex-shrink:0">
             <span class="pill ${statusClass(e.status)}" style="font-size:11px">${esc(e.status)}</span>
-            <div style="font-weight:700;color:var(--navy);margin-top:4px">${money(tax.total)}</div>
+            <div style="font-weight:700;color:var(--text);margin-top:4px">${money(tax.total)}</div>
             ${owing > 0 ? `<div style="font-size:12px;color:var(--danger)">Owing ${money(owing)}</div>` : ''}
           </div>
         </div>`;
@@ -2979,7 +2978,7 @@ Date: ${date(e.createdAt)}`;
     }
 
     if (appts.length) {
-      html += '<h4 style="color:var(--navy);margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.6px">Appointments</h4><div style="display:grid;gap:8px;margin-bottom:20px">';
+      html += '<h4 style="color:var(--text);margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.6px">Appointments</h4><div style="display:grid;gap:8px;margin-bottom:20px">';
       appts.forEach(a => {
         html += `<div class="history-item"><h4>${esc(a.title)}</h4><p class="muted" style="margin:0;font-size:13px">${date(a.start)}${a.location ? ' • ' + esc(a.location) : ''}${a.reminderSent ? ' <span class="pill green" style="padding:2px 7px;font-size:10px">Reminded ✓</span>' : ''}</p></div>`;
       });
@@ -2988,7 +2987,7 @@ Date: ${date(e.createdAt)}`;
 
     if (pics.length) {
       const psigned = await signedPhotoMap(pics);
-      html += `<h4 style="color:var(--navy);margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.6px">Photos (${pics.length})</h4><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">`;
+      html += `<h4 style="color:var(--text);margin:0 0 10px;font-size:14px;text-transform:uppercase;letter-spacing:.6px">Photos (${pics.length})</h4><div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">`;
       pics.forEach(p => {
         const psrc = photoSrc(p.data, psigned);
         html += `<div style="border-radius:12px;overflow:hidden;background:var(--soft);border:1px solid var(--line)">
@@ -3235,7 +3234,7 @@ Date: ${date(e.createdAt)}`;
                     'style="width:100%;background:var(--well);border:1px solid var(--line);border-radius:10px;padding:11px 12px 11px 26px;color:var(--text);font-size:15px;font-weight:700">' +
                 '</div>' +
                 '<button onclick="payBalance(\'' + est.id + '\',\'' + clientId + '\')" ' +
-                  'style="background:#635bff;color:#fff;border:none;border-radius:10px;padding:11px 18px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap;flex-shrink:0">' + t('portal.payCard') + '</button>' +
+                  'style="background:var(--primary);color:#fff;border:none;border-radius:10px;padding:11px 18px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap;flex-shrink:0">' + t('portal.payCard') + '</button>' +
               '</div>' +
               '<div style="font-size:12px;color:var(--muted);margin-top:8px">' + t('portal.anyAmount') + '</div>' +
             '</div>';
@@ -3447,7 +3446,7 @@ Date: ${date(e.createdAt)}`;
     if (type === 'leads') {
       title.textContent = 'Active Leads';
       var leads = visible(state.leads).filter(function(l){ return !['Won','Lost'].includes(l.status); });
-      if (!leads.length) { body.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">No active leads</p>'; overlay.classList.add('open'); return; }
+      if (!leads.length) { body.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px">No active leads</p>'; overlay.classList.add('open'); return; }
       rows = leads.map(function(l) {
         return '<div class="stat-detail-row"><div class="sd-left"><strong>' + esc(l.name) + '</strong><span>' + esc(l.project||'No project') + ' · ' + esc(l.source||'')+'</span></div><div class="sd-right"><span class="pill ' + statusClass(l.status) + '">' + esc(l.status) + '</span></div></div>';
       }).join('');
@@ -3455,7 +3454,7 @@ Date: ${date(e.createdAt)}`;
     } else if (type === 'revenue') {
       title.textContent = 'This Month Revenue';
       var ests = visible(state.estimates).filter(function(e){ return e.status === 'Accepted' && e.updatedAt >= monthStart; });
-      if (!ests.length) { body.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">No accepted estimates this month</p>'; overlay.classList.add('open'); return; }
+      if (!ests.length) { body.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px">No accepted estimates this month</p>'; overlay.classList.add('open'); return; }
       ests.forEach(function(e){ total += calc(e).total; });
       rows = ests.map(function(e) {
         return '<div class="stat-detail-row"><div class="sd-left"><strong>' + esc(e.title) + '</strong><span>' + esc(clientName(e.clientId)) + ' · Accepted ' + date(e.updatedAt) + '</span></div><div class="sd-right">' + money(calc(e).total) + '</div></div>';
@@ -3464,7 +3463,7 @@ Date: ${date(e.createdAt)}`;
     } else if (type === 'pipeline') {
       title.textContent = 'Pipeline Value';
       var ests = visible(state.estimates).filter(function(e){ return ['Draft','Sent'].includes(e.status); });
-      if (!ests.length) { body.innerHTML = '<p style="color:#64748b;text-align:center;padding:20px">No estimates in pipeline</p>'; overlay.classList.add('open'); return; }
+      if (!ests.length) { body.innerHTML = '<p style="color:var(--muted);text-align:center;padding:20px">No estimates in pipeline</p>'; overlay.classList.add('open'); return; }
       ests.forEach(function(e){ total += calc(e).total; });
       rows = ests.map(function(e) {
         return '<div class="stat-detail-row"><div class="sd-left"><strong>' + esc(e.title) + '</strong><span>' + esc(clientName(e.clientId)) + '</span></div><div class="sd-right">' + money(calc(e).total) + '<span class="sd-sub">' + esc(e.status) + '</span></div></div>';
@@ -3479,7 +3478,7 @@ Date: ${date(e.createdAt)}`;
         var remaining = Math.max(calc(e).total - paid, 0);
         return { e:e, remaining:remaining };
       }).filter(function(x){ return x.remaining > 0; });
-      if (!items.length) { body.innerHTML = '<p style="color:#047857;text-align:center;padding:20px">All balances are clear!</p>'; overlay.classList.add('open'); return; }
+      if (!items.length) { body.innerHTML = '<p style="color:var(--green);text-align:center;padding:20px">All balances are clear!</p>'; overlay.classList.add('open'); return; }
       items.forEach(function(x){ total += x.remaining; });
       rows = items.map(function(x) {
         var e = x.e;
@@ -3573,7 +3572,7 @@ Date: ${date(e.createdAt)}`;
         onclick="${none ? '' : `bkSelectDay('${dk}')`}"
         style="background:var(--well);border:1px solid var(--line);border-radius:12px;padding:8px 3px;text-align:center;cursor:${none?'default':'pointer'};opacity:${none?'0.3':'1'};transition:all .15s;user-select:none">
         <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px">${dayNames[d.getDay()]}</div>
-        <div style="font-size:16px;font-weight:800;color:#fff;margin:2px 0">${d.getDate()}</div>
+        <div style="font-size:16px;font-weight:800;color:var(--text);margin:2px 0">${d.getDate()}</div>
         <div style="font-size:10px;color:var(--accent)">${none ? '—' : cnt + ' ' + t('bkp.open')}</div>
       </div>`;
     }
@@ -3770,11 +3769,11 @@ Date: ${date(e.createdAt)}`;
     <div class="history-panel" id="historyPanel"></div>
   </div>
 
-  <div id="statDetailOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeStatDetail()">
-  <div id="statDetailPanel" style="background:#fff;border-radius:20px 20px 0 0;width:100%;max-width:640px;max-height:80vh;overflow-y:auto;padding:24px;box-shadow:0 -4px 32px rgba(0,0,0,.15)">
+  <div id="statDetailOverlay" style="display:none;position:fixed;inset:0;background:var(--overlay);z-index:200;align-items:flex-end;justify-content:center" onclick="if(event.target===this)closeStatDetail()">
+  <div id="statDetailPanel" style="background:var(--surface);border-radius:16px 16px 0 0;width:100%;max-width:640px;max-height:80vh;overflow-y:auto;padding:24px;box-shadow:0 -4px 32px var(--shadow)">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <h3 id="statDetailTitle" style="margin:0;font-size:18px;color:#0f172a"></h3>
-      <button onclick="closeStatDetail()" style="background:none;border:none;font-size:22px;cursor:pointer;color:#64748b;padding:4px 8px">✕</button>
+      <h3 id="statDetailTitle" style="margin:0;font-size:18px;color:var(--text)"></h3>
+      <button onclick="closeStatDetail()" style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--muted);padding:4px 8px">✕</button>
     </div>
     <div id="statDetailBody"></div>
   </div>
