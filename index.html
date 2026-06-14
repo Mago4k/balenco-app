@@ -967,9 +967,9 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
     // Settings are provisioned per-company by the signup trigger — no client insert.
     state = {
       settings: sr ? { company:sr.company, email:sr.email, phone:sr.phone, address:sr.address, tps:sr.tps, tvq:sr.tvq, logo:sr.logo||'', terms:sr.terms, gstNumber:sr.gst_number||'', qstNumber:sr.qst_number||'', rbqNumber:sr.rbq_number||'', neqNumber:sr.neq_number||'', followupDays:sr.followup_days||3 } : { company:'Your Company Name', email:'info@company.com', phone:'514-000-0000', address:'Montreal, Quebec', tps:5, tvq:9.975, logo:'', terms:'', gstNumber:'', qstNumber:'', rbqNumber:'', neqNumber:'', followupDays:3 },
-      clients: (clients||[]).map(function(r){ return { id:r.id, name:r.name, phone:r.phone||'', email:r.email||'', address:r.address||'', project:r.project||'', status:r.status||'Active', balance:r.balance||0, createdBy:r.created_by||'', createdAt:r.created_at }; }),
+      clients: (clients||[]).map(function(r){ return { id:r.id, name:r.name, phone:r.phone||'', email:r.email||'', address:r.address||'', project:r.project||'', status:r.status||'Active', balance:r.balance||0, createdBy:r.created_by||'', createdAt:r.created_at, portalToken:r.portal_token||'' }; }),
       leads: (leads||[]).map(function(r){ return { id:r.id, name:r.name, phone:r.phone||'', email:r.email||'', source:r.source||'', project:r.project||'', status:r.status||'New', notes:r.notes||'', createdBy:r.created_by||'', createdAt:r.created_at }; }),
-      estimates: (estimates||[]).map(function(r){ return { id:r.id, estimateNumber:r.estimate_number, clientId:r.client_id, title:r.title||'', subtotal:r.subtotal||0, line_items:r.line_items||[], deposit:r.deposit||0, paymentSchedule:r.payment_schedule||'', paymentNotes:r.payment_notes||'', approvedBy:r.approved_by||'', approvedAt:r.approved_at||'', status:r.status||'Draft', scope:r.scope||'', expiry:r.expiry||'', payments:r.payments||[], followupSent:r.followup_sent||false, createdBy:r.created_by||'', createdAt:r.created_at, updatedBy:r.updated_by||'', updatedAt:r.updated_at }; }),
+      estimates: (estimates||[]).map(function(r){ return { id:r.id, estimateNumber:r.estimate_number, clientId:r.client_id, title:r.title||'', subtotal:r.subtotal||0, line_items:r.line_items||[], deposit:r.deposit||0, paymentSchedule:r.payment_schedule||'', paymentNotes:r.payment_notes||'', approvedBy:r.approved_by||'', approvedAt:r.approved_at||'', status:r.status||'Draft', scope:r.scope||'', expiry:r.expiry||'', payments:r.payments||[], followupSent:r.followup_sent||false, createdBy:r.created_by||'', createdAt:r.created_at, updatedBy:r.updated_by||'', updatedAt:r.updated_at, approvalToken:r.approval_token||'' }; }),
       appointments: (appointments||[]).map(function(r){ return { id:r.id, title:r.title||'', clientId:r.client_id, start:r.start_time||'', end:r.end_time||'', location:r.location||'', notes:r.notes||'', reminder24:r.reminder24!==false, reminderSent:r.reminder_sent||false, recurring:r.recurring||'', recurringEnd:r.recurring_end||'', recurringParentId:r.recurring_parent_id||null, bookingStatus:r.booking_status||'confirmed', bookerName:r.booker_name||'', bookerEmail:r.booker_email||'', bookerPhone:r.booker_phone||'', bookedOnline:r.booked_online||false, createdBy:r.created_by||'', createdAt:r.created_at }; }),
       photos: (photos||[]).map(function(r){ return { id:r.id, clientId:r.client_id, type:r.type||'', notes:r.notes||'', data:r.storage_path||'', createdBy:r.created_by||'', createdAt:r.created_at }; }),
       logs: (logs||[]).map(function(r){ return { id:r.id, action:r.action||'', detail:r.detail||'', user:r.user_name||'', at:r.created_at }; }),
@@ -2402,7 +2402,8 @@ Date: ${date(e.createdAt)}`;
     const total = sub + tpsAmt + tvqAmt;
     const dep = Number(e.deposit || 0);
     const fmt = function(n) { return '$' + Number(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); };
-    const portalLink = e.clientId ? 'https://balenco.app/?client=' + e.clientId : null;
+    const _pc = client(e.clientId);
+    const portalLink = (_pc && _pc.portalToken) ? 'https://balenco.app/?client=' + _pc.portalToken : (e.clientId ? 'https://balenco.app/?client=' + e.clientId : null);
 
     const items = e.line_items || [];
     let itemRows = '';
@@ -3120,7 +3121,8 @@ Date: ${date(e.createdAt)}`;
   }
 
   function copyClientLink(id) {
-    const link = 'https://balenco.app/?client=' + id;
+    const c = client(id);
+    const link = 'https://balenco.app/?client=' + ((c && c.portalToken) || id);
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(link)
         .then(() => toast('Client portal link copied — send it to your client'))
@@ -3168,15 +3170,15 @@ Date: ${date(e.createdAt)}`;
 
   async function clientPortalInit() {
     const params = new URLSearchParams(window.location.search);
-    const clientId = params.get('client');
-    if (!clientId) return false;
+    const token = params.get('client');
+    if (!token) return false;
 
     document.getElementById('client-portal').style.display = '';
     document.getElementById('login').style.display = 'none';
 
     const content = document.getElementById('portalContent');
     try {
-      const { data: pd, error: pdErr } = await sb.functions.invoke('portal-data', { body: { mode: 'client', client_id: clientId } });
+      const { data: pd, error: pdErr } = await sb.functions.invoke('portal-data', { body: { mode: 'client', token: token } });
 
       if (pdErr || !pd || pd.error || !pd.client) {
         content.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger)"><strong>' + t('portal.notFound') + '</strong></div>';
@@ -3184,6 +3186,7 @@ Date: ${date(e.createdAt)}`;
       }
 
       const c = pd.client;
+      const clientId = c.id;
       const cfg = pd.settings || {};
       const estimates = pd.estimates || [];
       const nowStr = new Date().toISOString();
@@ -3333,7 +3336,7 @@ Date: ${date(e.createdAt)}`;
   function copyApprovalLink() {
     const e = currentEstimate();
     if (!e) { toast('Select an estimate first'); return; }
-    const link = 'https://balenco.app/?approve=' + e.id;
+    const link = 'https://balenco.app/?approve=' + (e.approvalToken || e.id);
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(link)
         .then(() => toast('Approval link copied — send it to your client'))
@@ -3353,7 +3356,7 @@ Date: ${date(e.createdAt)}`;
 
     const content = document.getElementById('approveContent');
     try {
-      const { data: pd, error: pdErr } = await sb.functions.invoke('portal-data', { body: { mode: 'estimate', estimate_id: estimateId } });
+      const { data: pd, error: pdErr } = await sb.functions.invoke('portal-data', { body: { mode: 'estimate', token: estimateId } });
 
       if (pdErr || !pd || pd.error || !pd.estimate) {
         content.innerHTML = '<div style="text-align:center;padding:40px"><strong style="color:var(--danger)">' + t('appr.notFound') + '</strong><br><span style="color:var(--muted);font-size:14px">' + t('appr.invalidLink') + '</span></div>';
