@@ -7,9 +7,11 @@ const cors = {
 
 // Read-only data for the no-login client portal + approval page.
 // Runs with the service role and returns ONLY the one client's / one estimate's
-// data, so the public tables no longer need an anonymous "read everything" policy.
-//   { mode: 'client',   client_id }   -> { client, estimates, appointments, settings }
-//   { mode: 'estimate', estimate_id } -> { estimate, client, settings }
+// data. Authorized by an unguessable per-record token (portal_token /
+// approval_token) that is separate from the primary key; a raw id is accepted
+// as a transitional fallback for links emailed before tokenization.
+//   { mode: 'client',   token } -> { client, estimates, appointments, settings }
+//   { mode: 'estimate', token } -> { estimate, client, settings }
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
 
@@ -22,7 +24,7 @@ Deno.serve(async (req) => {
   const json = (obj: unknown, status = 200) =>
     new Response(JSON.stringify(obj), { status, headers: { ...cors, 'Content-Type': 'application/json' } })
 
-  const SETTINGS = 'company,logo,address,phone,email,tps,tvq,terms,gst_number,qst_number'
+  const SETTINGS = 'company,logo,address,phone,email,tps,tvq,terms,gst_number,qst_number,rbq_number,neq_number'
   const settingsFor = async (orgId: string | null) => {
     if (orgId) {
       const { data } = await sb.from('settings').select(SETTINGS).eq('org_id', orgId).maybeSingle()
@@ -32,36 +34,49 @@ Deno.serve(async (req) => {
     return data ?? {}
   }
 
-  if (mode === 'client') {
-    const clientId = body.client_id
-    if (!clientId) return json({ error: 'Missing client_id' }, 400)
+  // Strip internal payment metadata (e.g. stripe session ids) before returning.
+  const safePayments = (arr: any) => (arr ?? []).map((p: any) => ({ amount: p.amount, date: p.date, note: p.note }))
 
-    const { data: client } = await sb.from('clients')
-      .select('id,name,phone,email,address,project,status,balance,org_id')
-      .eq('id', clientId).maybeSingle()
+  const CLIENT_COLS = 'id,name,phone,email,address,project,status,balance,org_id'
+  const EST_LIST    = 'id,estimate_number,title,scope,subtotal,deposit,payment_schedule,status,payments,client_id'
+  const EST_FULL    = 'id,estimate_number,client_id,org_id,title,scope,subtotal,line_items,deposit,payment_schedule,payment_notes,status,expiry,approved_by,approved_at,created_by,created_at,updated_at,payments'
+
+  if (mode === 'client') {
+    const key = body.token || body.client_id
+    if (!key) return json({ error: 'Missing token' }, 400)
+
+    let { data: client } = await sb.from('clients').select(CLIENT_COLS).eq('portal_token', key).maybeSingle()
+    if (!client) {
+      ({ data: client } = await sb.from('clients').select(CLIENT_COLS).eq('id', key).maybeSingle())
+    }
     if (!client) return json({ error: 'Client not found' }, 404)
 
     const [{ data: estimates }, { data: appointments }] = await Promise.all([
-      sb.from('estimates').select('*').eq('client_id', clientId).order('created_at', { ascending: false }),
+      sb.from('estimates').select(EST_LIST).eq('client_id', client.id).order('created_at', { ascending: false }),
       sb.from('appointments').select('id,title,start_time,location,booking_status')
-        .eq('client_id', clientId).gte('start_time', new Date().toISOString())
+        .eq('client_id', client.id).gte('start_time', new Date().toISOString())
         .order('start_time', { ascending: true }),
     ])
+    const safeEstimates = (estimates ?? []).map((e: any) => ({ ...e, payments: safePayments(e.payments) }))
 
     return json({
       client,
-      estimates: estimates ?? [],
+      estimates: safeEstimates,
       appointments: appointments ?? [],
       settings: await settingsFor(client.org_id),
     })
   }
 
   if (mode === 'estimate') {
-    const estimateId = body.estimate_id
-    if (!estimateId) return json({ error: 'Missing estimate_id' }, 400)
+    const key = body.token || body.estimate_id
+    if (!key) return json({ error: 'Missing token' }, 400)
 
-    const { data: estimate } = await sb.from('estimates').select('*').eq('id', estimateId).maybeSingle()
+    let { data: estimate } = await sb.from('estimates').select(EST_FULL).eq('approval_token', key).maybeSingle()
+    if (!estimate) {
+      ({ data: estimate } = await sb.from('estimates').select(EST_FULL).eq('id', key).maybeSingle())
+    }
     if (!estimate) return json({ error: 'Estimate not found' }, 404)
+    estimate.payments = safePayments(estimate.payments)
 
     const { data: client } = estimate.client_id
       ? await sb.from('clients').select('id,name,phone,email,address').eq('id', estimate.client_id).maybeSingle()
