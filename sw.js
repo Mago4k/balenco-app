@@ -1,4 +1,4 @@
-const CACHE = 'balenco-v22';
+const CACHE = 'balenco-v23';
 const SHELL = ['/', '/index.html', '/logo.png', '/icon-192.png', '/icon-512.png', '/apple-touch-icon.png'];
 
 // Install — cache the app shell
