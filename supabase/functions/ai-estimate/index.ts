@@ -34,6 +34,25 @@ Deno.serve(async (req) => {
   const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
   if (!apiKey) return json({ error: 'AI estimates are not set up yet (no Anthropic API key configured).' }, 503)
 
+  // Per-org monthly cap + usage logging — the Anthropic key is shared and billed
+  // to the owner, so cap each tenant before spending it (denial-of-wallet guard).
+  const sbAdmin = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
+  )
+  const { data: profile } = await sbAdmin.from('profiles').select('org_id').eq('id', user.id).maybeSingle()
+  const orgId = profile?.org_id
+  if (!orgId) return json({ error: 'Your account is not set up yet.' }, 403)
+  const CAP = Number(Deno.env.get('AI_MONTHLY_CAP') || 50)
+  const _now = new Date()
+  const monthStart = new Date(Date.UTC(_now.getUTCFullYear(), _now.getUTCMonth(), 1)).toISOString()
+  const { count: usedThisMonth } = await sbAdmin.from('ai_usage')
+    .select('id', { count: 'exact', head: true })
+    .eq('org_id', orgId).gte('created_at', monthStart)
+  if ((usedThisMonth ?? 0) >= CAP) {
+    return json({ error: `Monthly AI limit reached (${CAP} drafts). It resets at the start of next month.` }, 429)
+  }
+
   const body = await req.json().catch(() => ({}))
   const note = String(body.note || '').slice(0, 4000)
   const images: string[] = Array.isArray(body.images)
@@ -131,6 +150,15 @@ Rules:
   try { parsed = JSON.parse(textBlock.text) } catch {
     return json({ error: 'The AI returned an unreadable estimate. Try again.' }, 502)
   }
+
+  // Log usage for the monthly cap + per-tenant cost attribution.
+  try {
+    await sbAdmin.from('ai_usage').insert({
+      org_id: orgId, user_id: user.id, model: MODEL,
+      input_tokens: data.usage?.input_tokens ?? null,
+      output_tokens: data.usage?.output_tokens ?? null,
+    })
+  } catch (e) { console.error('ai_usage log failed', e) }
 
   return json({ ok: true, ...parsed })
 })
