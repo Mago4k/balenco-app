@@ -1,4 +1,4 @@
-const CACHE = 'balenco-v33';
+const CACHE = 'balenco-v34';
 const SHELL = ['/', '/index.html', '/logo.png', '/icon-192.png', '/icon-512.png', '/apple-touch-icon.png'];
 
 // Install — cache the app shell
@@ -28,6 +28,23 @@ self.addEventListener('fetch', e => {
     url.includes('resend.com') ||
     !url.startsWith(self.location.origin)
   ) return;
+
+  // Network-first for the app shell (HTML / navigations) so a new deploy is
+  // picked up on the very next load instead of the one after. Falls back to the
+  // cached copy when offline.
+  const isShell = e.request.mode === 'navigate' || url.endsWith('/') || url.endsWith('/index.html');
+  if (isShell) {
+    e.respondWith(
+      fetch(e.request).then(res => {
+        if (res && res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, copy));
+        }
+        return res;
+      }).catch(() => caches.match(e.request).then(c => c || caches.match('/index.html')))
+    );
+    return;
+  }
 
   e.respondWith(
     caches.match(e.request).then(cached => {
