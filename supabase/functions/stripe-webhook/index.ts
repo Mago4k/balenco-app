@@ -9,7 +9,7 @@ Deno.serve(async (req) => {
 
   let event: Stripe.Event
   try {
-    event = stripe.webhooks.constructEvent(body, sig, secret)
+    event = await stripe.webhooks.constructEventAsync(body, sig, secret)
   } catch (err: any) {
     return new Response(`Webhook error: ${err.message}`, { status: 400 })
   }
