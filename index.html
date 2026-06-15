@@ -638,7 +638,6 @@ html.lp-show #login { display:none; }
             <input id="clientAddress" data-i18n-ph="cl.address" placeholder="Full address for map / area">
             <input id="clientProject" data-i18n-ph="cl.project" placeholder="Project type" required>
             <select id="clientStatus"><option value="Active" data-i18n="cst.active">Active</option><option value="Estimate sent" data-i18n="cst.estSent">Estimate sent</option><option value="Payment due" data-i18n="cst.payDue">Payment due</option><option value="Completed" data-i18n="cst.completed">Completed</option></select>
-            <input id="clientBalance" type="number" min="0" step="1" data-i18n-ph="cl.balance" placeholder="Open balance" value="0">
             <button class="btn" type="submit" data-i18n="cl.save">Save client</button>
           </form>
         </div>
@@ -1245,6 +1244,24 @@ html.lp-show #login { display:none; }
     return { tps, tvq, total: subtotal + tps + tvq };
   }
 
+  // Outstanding owed on one estimate — same formula as the dashboard + invoices.
+  function estimateOwing(e) {
+    if (!e || e.status !== 'Accepted') return 0;
+    var paid = Number(e.deposit || 0) + (e.payments || []).reduce(function (x, p) { return x + Number(p.amount || 0); }, 0);
+    return Math.max(calc(e).total - paid, 0);
+  }
+  // Derive every client's balance from their accepted estimates minus payments.
+  // Runs at the top of renderAll so balances are always current (no stored value).
+  function recomputeBalances() {
+    if (!state || !state.clients) return;
+    var owing = {};
+    (state.estimates || []).forEach(function (e) {
+      var o = estimateOwing(e);
+      if (o > 0) owing[e.clientId] = (owing[e.clientId] || 0) + o;
+    });
+    state.clients.forEach(function (c) { c.balance = owing[c.id] || 0; });
+  }
+
   function taxIds() {
     const g = state.settings.gstNumber, q = state.settings.qstNumber, r = state.settings.rbqNumber, n = state.settings.neqNumber;
     if (!g && !q && !r && !n) return '';
@@ -1516,6 +1533,7 @@ html.lp-show #login { display:none; }
   window.dismissOnboarding = dismissOnboarding;
 
   function renderAll() {
+    recomputeBalances();
     renderSelects();
     renderDashboard();
     renderLeads();
@@ -2333,14 +2351,13 @@ Date: ${date(e.createdAt)}`;
 
   function addClient(event) {
     event.preventDefault();
-    const c = { id:uid(), name:$('clientNameInput').value, phone:$('clientPhone').value, email:$('clientEmail').value, address:$('clientAddress').value, project:$('clientProject').value, status:$('clientStatus').value, balance:Number($('clientBalance').value || 0), createdBy:user, createdAt:new Date().toISOString() };
+    const c = { id:uid(), name:$('clientNameInput').value, phone:$('clientPhone').value, email:$('clientEmail').value, address:$('clientAddress').value, project:$('clientProject').value, status:$('clientStatus').value, balance:0, createdBy:user, createdAt:new Date().toISOString() };
     state.clients.unshift(c);
     sb.from('clients').insert({ id:c.id, name:c.name, phone:c.phone, email:c.email, address:c.address, project:c.project, status:c.status, balance:c.balance, created_by:c.createdBy, created_at:c.createdAt, org_id:orgId })
       .then(({ error }) => { if (error) { toast('Save error: ' + error.message); console.error('Client insert error:', error); } });
     log('Added client', `${user} added ${c.name}.`);
     save();
     event.target.reset();
-    $('clientBalance').value = 0;
     renderAll();
     toast('Client saved');
   }
