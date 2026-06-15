@@ -14,6 +14,30 @@ Deno.serve(async (req) => {
     return new Response(`Webhook error: ${err.message}`, { status: 400 })
   }
 
+  const sb = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  )
+
+  // ── SaaS subscription lifecycle → keep the subscriptions table in sync ──
+  if (event.type.startsWith('customer.subscription.')) {
+    const subObj = event.data.object as Stripe.Subscription
+    const orgId  = subObj.metadata?.org_id
+    if (orgId) {
+      await sb.from('subscriptions').update({
+        status:                 subObj.status,
+        plan:                   subObj.metadata?.plan ?? null,
+        stripe_subscription_id: subObj.id,
+        stripe_customer_id:     typeof subObj.customer === 'string' ? subObj.customer : subObj.customer.id,
+        current_period_end:     subObj.current_period_end ? new Date(subObj.current_period_end * 1000).toISOString() : null,
+        cancel_at_period_end:   !!subObj.cancel_at_period_end,
+        trial_end:              subObj.trial_end ? new Date(subObj.trial_end * 1000).toISOString() : null,
+        updated_at:             new Date().toISOString(),
+      }).eq('org_id', orgId)
+    }
+    return new Response(JSON.stringify({ received: true }), { headers: { 'Content-Type': 'application/json' } })
+  }
+
   if (event.type !== 'checkout.session.completed') {
     return new Response(JSON.stringify({ received: true }), {
       headers: { 'Content-Type': 'application/json' }
@@ -28,11 +52,6 @@ Deno.serve(async (req) => {
       headers: { 'Content-Type': 'application/json' }
     })
   }
-
-  const sb = createClient(
-    Deno.env.get('SUPABASE_URL')!,
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-  )
 
   // ── Partial payment (client portal) ──────────────────────────
   if (meta.type === 'partial_payment') {
