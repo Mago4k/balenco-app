@@ -1909,7 +1909,7 @@ Date: ${date(e.createdAt)}`;
 
         ${e.paymentNotes ? `<div class="estimate-scope"><h4>${t('doc.paymentNotesH')}</h4><p>${esc(e.paymentNotes)}</p></div>` : ''}
 
-        <div class="estimate-terms"><h4>${t('doc.terms')}</h4><p>${esc(state.settings.terms || '')}</p></div>
+        <div class="estimate-terms"><h4>${t('doc.terms')}</h4><p style="white-space:pre-wrap">${esc(state.settings.terms || '')}</p></div>
 
         <div class="signature-box">
           <div class="signature-line"><small>${t('doc.clientSig')}</small></div>
