@@ -1255,7 +1255,7 @@ html.lp-show #login { display:none; }
 
   function log(action, detail) {
     state.logs.unshift({ id:uid(), action, detail, user, at:new Date().toISOString() });
-    sb.from('logs').insert({ action, detail, user_name:user, org_id:orgId });
+    sb.from('logs').insert({ action, detail, user_name:user, org_id:orgId }).then(({ error }) => { if (error) console.error('log insert failed:', error); });
   }
 
   // Toast / confirm / alert messages are built as English string literals at
@@ -1982,7 +1982,7 @@ Date: ${date(e.createdAt)}`;
     const a = state.appointments.find(x => x.id === id);
     if (!a) return;
     a.reminderSent = true;
-    sb.from('appointments').update({ reminder_sent:true }).eq('id', id);
+    sb.from('appointments').update({ reminder_sent:true }).eq('id', id).then(({ error }) => { if (error) console.error('reminder update failed:', error); });
     log('Marked reminder sent', `${user} marked a reminder sent for ${clientName(a.clientId)}.`);
     save();
     renderAll();
@@ -2269,7 +2269,7 @@ Date: ${date(e.createdAt)}`;
     event.preventDefault();
     const lead = { id:uid(), name:$('leadName').value, phone:$('leadPhone').value, email:$('leadEmail').value, source:$('leadSource').value, project:$('leadProject').value, status:$('leadStatus').value, notes:$('leadNotes').value, createdBy:user, createdAt:new Date().toISOString() };
     state.leads.unshift(lead);
-    sb.from('leads').insert({ id:lead.id, name:lead.name, phone:lead.phone, email:lead.email, source:lead.source, project:lead.project, status:lead.status, notes:lead.notes, created_by:lead.createdBy, created_at:lead.createdAt, org_id:orgId });
+    sb.from('leads').insert({ id:lead.id, name:lead.name, phone:lead.phone, email:lead.email, source:lead.source, project:lead.project, status:lead.status, notes:lead.notes, created_by:lead.createdBy, created_at:lead.createdAt, org_id:orgId }).then(({ error }) => { if (error) { console.error('lead insert failed:', error); toast('Save error: ' + error.message); } });
     log('Added lead', `${user} added ${lead.name} from ${lead.source}.`);
     save();
     event.target.reset();
@@ -2480,7 +2480,7 @@ Date: ${date(e.createdAt)}`;
     const recurringEnd = recurring ? ($('apptRecurringEnd').value || '') : '';
     const a = { id:uid(), title:$('apptTitle').value, clientId:$('apptClient').value, start:$('apptStart').value, end:$('apptEnd').value, location:$('apptLocation').value, notes:$('apptNotes').value, reminder24:$('apptReminder24').checked, reminderSent:false, recurring, recurringEnd, recurringParentId:null, createdBy:user, createdAt:new Date().toISOString() };
     state.appointments.unshift(a);
-    sb.from('appointments').insert({ id:a.id, title:a.title, client_id:a.clientId, start_time:a.start?new Date(a.start).toISOString():null, end_time:a.end?new Date(a.end).toISOString():null, location:a.location, notes:a.notes, reminder24:a.reminder24, reminder_sent:false, recurring:a.recurring||null, recurring_end:a.recurringEnd||null, recurring_parent_id:null, created_by:a.createdBy, created_at:a.createdAt, org_id:orgId });
+    sb.from('appointments').insert({ id:a.id, title:a.title, client_id:a.clientId, start_time:a.start?new Date(a.start).toISOString():null, end_time:a.end?new Date(a.end).toISOString():null, location:a.location, notes:a.notes, reminder24:a.reminder24, reminder_sent:false, recurring:a.recurring||null, recurring_end:a.recurringEnd||null, recurring_parent_id:null, created_by:a.createdBy, created_at:a.createdAt, org_id:orgId }).then(({ error }) => { if (error) { console.error('appointment insert failed:', error); toast('Save error: ' + error.message); } });
     if (recurring) generateRecurringInstances(a, recurring, recurringEnd);
     log('Created appointment', `${user} created appointment ${a.title} for ${clientName(a.clientId)}.`);
     save();
@@ -2591,11 +2591,14 @@ Date: ${date(e.createdAt)}`;
       neqNumber:$('setNEQ') ? $('setNEQ').value : (state.settings.neqNumber || ''),
       followupDays:Number($('setFollowupDays').value || 3)
     };
-    sb.from('settings').upsert({ org_id:orgId, company:state.settings.company, email:state.settings.email, phone:state.settings.phone, address:state.settings.address, tps:state.settings.tps, tvq:state.settings.tvq, logo:state.settings.logo, terms:state.settings.terms, gst_number:state.settings.gstNumber, qst_number:state.settings.qstNumber, rbq_number:state.settings.rbqNumber, neq_number:state.settings.neqNumber, payment_instructions:state.settings.paymentInstructions, followup_days:state.settings.followupDays }, { onConflict:'org_id' });
+    sb.from('settings').upsert({ org_id:orgId, company:state.settings.company, email:state.settings.email, phone:state.settings.phone, address:state.settings.address, tps:state.settings.tps, tvq:state.settings.tvq, logo:state.settings.logo, terms:state.settings.terms, gst_number:state.settings.gstNumber, qst_number:state.settings.qstNumber, rbq_number:state.settings.rbqNumber, neq_number:state.settings.neqNumber, payment_instructions:state.settings.paymentInstructions, followup_days:state.settings.followupDays }, { onConflict:'org_id' })
+      .then(({ error }) => {
+        if (error) { console.error('settings upsert failed:', error); toast('Could not save settings: ' + error.message); return; }
+        toast('Settings saved');
+      });
     log('Updated settings', `${user} updated company settings.`);
     save();
     renderAll();
-    toast('Settings saved');
   }
 
   function convertLead(id) {
@@ -2606,7 +2609,7 @@ Date: ${date(e.createdAt)}`;
     sb.from('clients').insert({ id:c.id, name:c.name, phone:c.phone, email:c.email, address:c.address, project:c.project, status:c.status, balance:c.balance, created_by:c.createdBy, created_at:c.createdAt, org_id:orgId })
       .then(({ error }) => { if (error) toast('Save error: ' + error.message); });
     lead.status = 'Won';
-    sb.from('leads').update({ status:'Won' }).eq('id', id);
+    sb.from('leads').update({ status:'Won' }).eq('id', id).then(({ error }) => { if (error) { console.error('lead convert failed:', error); toast('Save error: ' + error.message); } });
     log('Converted lead', `${user} converted ${lead.name} into a client.`);
     save();
     renderAll();
@@ -2624,7 +2627,7 @@ Date: ${date(e.createdAt)}`;
     const lead = state.leads.find(l => l.id === id);
     if (!lead) return;
     lead.status = status;
-    sb.from('leads').update({ status }).eq('id', id);
+    sb.from('leads').update({ status }).eq('id', id).then(({ error }) => { if (error) { console.error('lead status failed:', error); toast('Save error: ' + error.message); } });
     log('Updated lead', `${user} marked ${lead.name} as ${status}.`);
     save();
     renderAll();
@@ -2845,7 +2848,7 @@ Date: ${date(e.createdAt)}`;
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       e.status = 'Sent';
-      sb.from('estimates').update({ status: 'Sent', updated_at: new Date().toISOString() }).eq('id', e.id).neq('status', 'Accepted');
+      sb.from('estimates').update({ status: 'Sent', updated_at: new Date().toISOString() }).eq('id', e.id).neq('status', 'Accepted').then(({ error }) => { if (error) console.error('mark sent failed:', error); });
       save();
       renderAll();
       toast('Estimate sent to ' + c.email);
@@ -2933,7 +2936,7 @@ Date: ${date(e.createdAt)}`;
     const reader = new FileReader();
     reader.onload = () => {
       state.settings.logo = reader.result;
-      sb.from('settings').upsert({ org_id:orgId, logo:state.settings.logo }, { onConflict:'org_id' });
+      sb.from('settings').upsert({ org_id:orgId, logo:state.settings.logo }, { onConflict:'org_id' }).then(({ error }) => { if (error) { console.error('logo save failed:', error); toast('Logo save error: ' + error.message); } });
       renderAll();
       toast('Company logo uploaded');
     };
@@ -2942,7 +2945,7 @@ Date: ${date(e.createdAt)}`;
 
   function clearCompanyLogo() {
     state.settings.logo = '';
-    sb.from('settings').upsert({ org_id:orgId, logo:'' }, { onConflict:'org_id' });
+    sb.from('settings').upsert({ org_id:orgId, logo:'' }, { onConflict:'org_id' }).then(({ error }) => { if (error) { console.error('logo remove failed:', error); toast('Logo error: ' + error.message); } });
     renderAll();
     toast('Company logo removed');
   }
@@ -2952,7 +2955,7 @@ Date: ${date(e.createdAt)}`;
     if (!c) return;
     const pr = { id:uid(), title:'Payment follow-up', clientId:id, start:new Date(Date.now()+86400000).toISOString(), end:'', location:c.address, notes:`Follow up for open balance of ${money(c.balance)}`, createdBy:user, createdAt:new Date().toISOString() };
     state.appointments.unshift(pr);
-    sb.from('appointments').insert({ id:pr.id, title:pr.title, client_id:pr.clientId, start_time:pr.start, end_time:null, location:pr.location, notes:pr.notes, reminder24:true, reminder_sent:false, created_by:pr.createdBy, created_at:pr.createdAt, org_id:orgId });
+    sb.from('appointments').insert({ id:pr.id, title:pr.title, client_id:pr.clientId, start_time:pr.start, end_time:null, location:pr.location, notes:pr.notes, reminder24:true, reminder_sent:false, created_by:pr.createdBy, created_at:pr.createdAt, org_id:orgId }).then(({ error }) => { if (error) { console.error('payment follow-up failed:', error); toast('Save error: ' + error.message); } });
     log('Created payment follow-up', `${user} created payment follow-up for ${c.name}.`);
     save();
     renderAll();
@@ -2963,7 +2966,7 @@ Date: ${date(e.createdAt)}`;
     if (!confirm(tr('Delete this item?'))) return;
     state[collection] = state[collection].filter(x => x.id !== id);
     const _tbl = { clients:'clients', leads:'leads', estimates:'estimates', appointments:'appointments', photos:'photos' }[collection];
-    if (_tbl) sb.from(_tbl).delete().eq('id', id);
+    if (_tbl) sb.from(_tbl).delete().eq('id', id).then(({ error }) => { if (error) { console.error('delete failed:', error); toast('Delete error: ' + error.message); } });
     log('Deleted item', `${user} deleted an item from ${collection}.`);
     save();
     renderAll();
