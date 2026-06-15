@@ -1711,7 +1711,7 @@ Date: ${date(e.createdAt)}`;
       <div class="estimate-doc">
         <div class="estimate-head">
           <div class="estimate-brand">
-            <div>${logo || `<div class="estimate-brand-title">${esc(state.settings.company)}</div>`}</div>
+            ${logo ? `<div>${logo}</div>` : ''}
             <div>
               <div class="estimate-brand-title">${esc(state.settings.company)}</div>
               <div class="estimate-brand-meta">${esc(state.settings.address)}<br>${esc(state.settings.phone)} • ${esc(state.settings.email)}</div>${taxIds()}
@@ -3243,7 +3243,7 @@ Date: ${date(e.createdAt)}`;
       <div class="estimate-doc">
         <div class="estimate-head">
           <div class="estimate-brand">
-            <div>${logo || `<div class="estimate-brand-title">${esc(state.settings.company)}</div>`}</div>
+            ${logo ? `<div>${logo}</div>` : ''}
             <div>
               <div class="estimate-brand-title">${esc(state.settings.company)}</div>
               <div class="estimate-brand-meta">${esc(state.settings.address)}<br>${esc(state.settings.phone)} • ${esc(state.settings.email)}</div>${taxIds()}
