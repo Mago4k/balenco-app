@@ -419,6 +419,9 @@ html.lp-show #login { display:none; }
 .wc-box.on { background:var(--approve); border-color:var(--approve); }
 .wc-box i { width:12px; height:12px; }
 .wc-done { color:var(--muted); }
+.page-head { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap; }
+.page-head h2 { font-size:24px; font-weight:800; letter-spacing:-0.02em; margin:0; color:var(--text); }
+.page-actions { display:flex; gap:8px; flex-wrap:wrap; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
@@ -605,14 +608,11 @@ html.lp-show #login { display:none; }
       </div>
     </div>
 
-    <div class="hero">
-      <div class="hero-in">
-        <div>
-          <div class="logo"><img src="/logo.png" alt="Balenco"></div>
-          <h2 data-i18n="hero.title">Run the job from lead to payment.</h2>
-          <p data-i18n="hero.sub">Create tax-ready estimates, send polished quote emails, book appointments, track balances, and keep a clean client archive.</p>
-        </div>
-        <div class="actions"><button class="btn light" type="button" data-open="leads" data-i18n="hero.addLead">+ Add lead</button><button class="btn light" type="button" data-open="estimates" data-i18n="hero.newEstimate">+ New estimate</button></div>
+    <div class="page-head">
+      <h2 id="pageTitle">Dashboard</h2>
+      <div class="page-actions">
+        <button class="btn out small" type="button" data-open="leads" data-i18n="hero.addLead">+ Add lead</button>
+        <button class="btn small" type="button" data-open="estimates" data-i18n="hero.newEstimate">+ New estimate</button>
       </div>
     </div>
 
@@ -1768,6 +1768,18 @@ html.lp-show #login { display:none; }
     renderAll();
   }
   window.openTab = openTab;
+  // Clean per-page header (replaces the old marketing hero) — title reflects the
+  // active tab; the dashboard greets the user by name.
+  function setPageHead(tabId) {
+    var el = $('pageTitle'); if (!el) return;
+    tabId = tabId || (document.querySelector('.tab.active') ? document.querySelector('.tab.active').id : 'dashboard');
+    if (tabId === 'dashboard') {
+      el.textContent = t('login.welcome') + (user ? ', ' + String(user).split(' ')[0] : '');
+    } else {
+      var map = { leads: 'nav.leads', clients: 'nav.clients', estimates: 'nav.estimates', calendar: 'nav.calendar', photos: 'nav.photos', balances: 'nav.balances', maps: 'nav.maps', settings: 'nav.settings' };
+      el.textContent = t(map[tabId] || 'nav.dashboard');
+    }
+  }
 
   // First-run setup checklist on the dashboard — guides a new owner through the
   // 4 things that make the product usable, then auto-hides (or can be dismissed).
@@ -1806,6 +1818,7 @@ html.lp-show #login { display:none; }
 
   function renderAll() {
     recomputeBalances();
+    setPageHead();
     renderSelects();
     renderDashboard();
     renderLeads();
