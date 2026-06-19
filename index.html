@@ -81,6 +81,7 @@ button { cursor:pointer; }
 .tip { background:var(--well); border:1px solid var(--line); border-radius:var(--r-md); padding:14px; color:var(--muted); font-size:13px; line-height:1.45; margin-top:16px; }
 /* ── Top bar & hero ── */
 .top { display:flex; align-items:center; justify-content:flex-end; gap:12px; background:transparent; border:0; border-bottom:1px solid var(--line); border-radius:0; padding:0 2px; height:56px; margin-bottom:18px; }
+.top-right { display:flex; align-items:center; gap:12px; }
 .acct { position:relative; }
 summary.acct-chip { display:flex; align-items:center; gap:8px; padding:5px 8px; border-radius:8px; cursor:pointer; list-style:none; }
 summary.acct-chip::-webkit-details-marker { display:none; }
@@ -647,14 +648,16 @@ html.lp-show #login { display:none; }
   <main class="content">
     <div class="top">
       <div></div>
-      <details class="acct">
-        <summary class="acct-chip"><span class="acct-avatar" id="acctAvatar">CR</span><span id="userText" class="acct-name">Carlos Reyes</span><i data-lucide="chevron-down" class="acct-chev"></i></summary>
-        <div class="acct-menu">
-          <span id="rolePill" class="acct-role">Owner / Admin account</span>
-          <button class="btn out" type="button" id="switchBtn" data-i18n="top.switch">Switch account</button>
-          <div class="acct-row"><div class="lang-toggle"><button type="button" data-lang="en" onclick="setLang('en')">EN</button><button type="button" data-lang="fr" onclick="setLang('fr')">FR</button></div></div>
-        </div>
-      </details>
+      <div class="top-right">
+        <div class="lang-toggle"><button type="button" data-lang="en" onclick="setLang('en')">EN</button><button type="button" data-lang="fr" onclick="setLang('fr')">FR</button></div>
+        <details class="acct">
+          <summary class="acct-chip"><span class="acct-avatar" id="acctAvatar">CR</span><span id="userText" class="acct-name">Carlos Reyes</span><i data-lucide="chevron-down" class="acct-chev"></i></summary>
+          <div class="acct-menu">
+            <span id="rolePill" class="acct-role">Owner / Admin account</span>
+            <button class="btn out" type="button" id="switchBtn" data-i18n="top.switch">Switch account</button>
+          </div>
+        </details>
+      </div>
     </div>
 
     <div class="page-head">
