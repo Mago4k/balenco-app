@@ -3105,17 +3105,27 @@ Date: ${date(e.createdAt)}`;
     calcLineItems();
     const e = { id:uid(), clientId:$('estimateClient').value, title:$('estimateTitle').value, line_items:getLineItems(), subtotal:Number($('estimateSubtotal').value || 0), deposit:Number($('estimateDeposit').value || 0), paymentSchedule:$('estimatePaymentSchedule').value, paymentNotes:$('estimatePaymentNotes').value, approvedBy:'', approvedAt:'', status:$('estimateStatus').value, scope:$('estimateScope').value, expiry:$('estimateExpiry').value || '', createdBy:user, createdAt:new Date().toISOString(), updatedBy:user, updatedAt:new Date().toISOString() };
     if (Number(e.deposit || 0) > calc(e).total + 0.005 && !confirm(lang === 'fr' ? 'L’acompte (' + money(e.deposit) + ') dépasse le total (' + money(calc(e).total) + '). Continuer?' : 'Deposit (' + money(e.deposit) + ') is more than the total (' + money(calc(e).total) + '). Continue?')) return;
-    state.estimates.unshift(e);
-    sb.from('estimates').insert({ id:e.id, client_id:e.clientId, title:e.title, line_items:e.line_items||[], payments:[], subtotal:e.subtotal, deposit:e.deposit, payment_schedule:e.paymentSchedule, payment_notes:e.paymentNotes, approved_by:'', approved_at:null, status:e.status, scope:e.scope, expiry:e.expiry||null, created_by:e.createdBy, created_at:e.createdAt, updated_by:e.updatedBy, updated_at:e.updatedAt, org_id:orgId }).select('estimate_number').single().then(function(res){ if(res.error){ toast('Save error: '+res.error.message); return; } if(res.data){ e.estimateNumber = res.data.estimate_number; renderEstimates(); renderPreviewOptions(); } });
-    log('Created estimate', `${user} created ${e.title} for ${clientName(e.clientId)}.`);
-    save();
-    event.target.reset();
-    resetLineItems();
-    clearAiDraft();
-    renderAll();
-    $('previewEstimate').value = e.id;
-    renderEstimatePreview();
-    toast('Estimate saved');
+    const _form = event.target;
+    const _sbtn = _form.querySelector('button[type="submit"]');
+    if (_sbtn) _sbtn.disabled = true;
+    // Insert first; only show the estimate as saved once the DB confirms (with its
+    // atomic per-org number), so a rejected or double-tapped save can't leave a
+    // phantom row in the UI that vanishes on reload.
+    sb.from('estimates').insert({ id:e.id, client_id:e.clientId, title:e.title, line_items:e.line_items||[], payments:[], subtotal:e.subtotal, deposit:e.deposit, payment_schedule:e.paymentSchedule, payment_notes:e.paymentNotes, approved_by:'', approved_at:null, status:e.status, scope:e.scope, expiry:e.expiry||null, created_by:e.createdBy, created_at:e.createdAt, updated_by:e.updatedBy, updated_at:e.updatedAt, org_id:orgId }).select('estimate_number').single().then(function(res){
+      if (_sbtn) _sbtn.disabled = false;
+      if (res.error) { toast('Save error: ' + res.error.message); return; }
+      if (res.data) e.estimateNumber = res.data.estimate_number;
+      state.estimates.unshift(e);
+      log('Created estimate', `${user} created ${e.title} for ${clientName(e.clientId)}.`);
+      save();
+      _form.reset();
+      resetLineItems();
+      clearAiDraft();
+      renderAll();
+      $('previewEstimate').value = e.id;
+      renderEstimatePreview();
+      toast(lang === 'fr' ? 'Soumission enregistrée' : 'Estimate saved');
+    });
   }
 
   function addAppointment(event) {
