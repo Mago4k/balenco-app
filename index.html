@@ -426,6 +426,15 @@ html.lp-show #login { display:none; }
 .client-tools { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
 .back-link { display:inline-flex; align-items:center; gap:4px; background:none; border:none; color:var(--muted); font-size:13px; font-weight:700; cursor:pointer; padding:0 0 12px; }
 .back-link:hover { color:var(--text); }
+.kpi { padding:16px 18px; }
+.kpi label { display:block; color:var(--muted); font-weight:600; font-size:12px; text-transform:none; letter-spacing:0; margin:0 0 8px; }
+.kpi strong { display:block; color:var(--text); font-size:24px; font-weight:800; letter-spacing:-.02em; margin:0; }
+.kpi.mini { padding:13px 16px; }
+.kpi.mini label { font-size:11px; margin-bottom:5px; }
+.kpi.mini strong { font-size:18px; font-weight:700; }
+.kpi strong.v-accent { color:var(--accent); }
+.kpi strong.v-amber { color:var(--amber); }
+.kpi strong.v-green { color:var(--green); }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
@@ -639,16 +648,16 @@ html.lp-show #login { display:none; }
     <section id="dashboard" class="tab active">
       <div id="onboarding"></div>
       <div class="grid4">
-        <div class="card stat" onclick="showStatDetail('leads')" style="cursor:pointer"><div class="stat-icon" style="background:var(--accent-soft)"><i data-lucide="target" style="color:#3b82f6;width:20px;height:20px"></i></div><label data-i18n="dash.activeLeads">Active leads</label><strong id="statLeads">0</strong></div>
-        <div class="card stat" onclick="showStatDetail('revenue')" style="cursor:pointer"><div class="stat-icon" style="background:var(--pill-green-bg)"><i data-lucide="trending-up" style="color:#047857;width:20px;height:20px"></i></div><label data-i18n="dash.monthRev">This month revenue</label><strong id="statAccepted">$0</strong></div>
-        <div class="card stat" onclick="showStatDetail('pipeline')" style="cursor:pointer"><div class="stat-icon" style="background:var(--pill-amber-bg)"><i data-lucide="file-text" style="color:#b45309;width:20px;height:20px"></i></div><label data-i18n="dash.pipeline">Pipeline value</label><strong id="statEstimates">$0</strong></div>
-        <div class="card stat" onclick="showStatDetail('outstanding')" style="cursor:pointer"><div class="stat-icon" style="background:var(--pill-red-bg)"><i data-lucide="circle-dollar-sign" style="color:var(--danger);width:20px;height:20px"></i></div><label data-i18n="dash.outstanding">Outstanding</label><strong id="statBalances">$0</strong></div>
+        <div class="card kpi" onclick="showStatDetail('revenue')" style="cursor:pointer"><label data-i18n="dash.monthRev">This month revenue</label><strong id="statAccepted" class="v-accent">$0</strong></div>
+        <div class="card kpi" onclick="showStatDetail('outstanding')" style="cursor:pointer"><label data-i18n="dash.outstanding">Outstanding</label><strong id="statBalances" class="v-amber">$0</strong></div>
+        <div class="card kpi" onclick="showStatDetail('pipeline')" style="cursor:pointer"><label data-i18n="dash.pipeline">Pipeline value</label><strong id="statEstimates">$0</strong></div>
+        <div class="card kpi"><label data-i18n="dash.winRate">Win rate</label><strong id="statWinRate" class="v-green">0%</strong></div>
       </div>
-      <div class="grid4" style="margin-top:16px">
-        <div class="card stat"><div class="stat-icon" style="background:var(--pill-green-bg)"><i data-lucide="percent" style="color:#047857;width:20px;height:20px"></i></div><label data-i18n="dash.winRate">Win rate</label><strong id="statWinRate">0%</strong></div>
-        <div class="card stat"><div class="stat-icon" style="background:var(--accent-soft)"><i data-lucide="trending-up" style="color:#1d4ed8;width:20px;height:20px"></i></div><label data-i18n="dash.ytdRev">YTD revenue</label><strong id="statYTD">$0</strong></div>
-        <div class="card stat"><div class="stat-icon" style="background:var(--accent-soft)"><i data-lucide="users" style="color:#9333ea;width:20px;height:20px"></i></div><label data-i18n="dash.totalClients">Total clients</label><strong id="statClients">0</strong></div>
-        <div class="card stat"><div class="stat-icon" style="background:var(--pill-amber-bg)"><i data-lucide="briefcase" style="color:#ea580c;width:20px;height:20px"></i></div><label data-i18n="dash.avgJob">Avg job value</label><strong id="statAvgJob">$0</strong></div>
+      <div class="grid4" style="margin-top:14px">
+        <div class="card kpi mini"><label data-i18n="dash.ytdRev">YTD revenue</label><strong id="statYTD">$0</strong></div>
+        <div class="card kpi mini"><label data-i18n="dash.totalClients">Total clients</label><strong id="statClients">0</strong></div>
+        <div class="card kpi mini"><label data-i18n="dash.avgJob">Avg job value</label><strong id="statAvgJob">$0</strong></div>
+        <div class="card kpi mini" onclick="showStatDetail('leads')" style="cursor:pointer"><label data-i18n="dash.activeLeads">Active leads</label><strong id="statLeads">0</strong></div>
       </div>
       <div class="grid2" style="margin-top:18px">
         <div class="card"><div class="title"><div><h3 data-i18n="dash.upcoming">Upcoming appointments</h3><p data-i18n="dash.upcomingSub">Next appointments and job visits.</p></div></div><div id="dashAppointments" class="list"></div></div>
