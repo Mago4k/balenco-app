@@ -596,6 +596,9 @@ html.lp-show #login { display:none; }
       <button data-tab="leads"><span class="nav-icon"><i data-lucide="target"></i></span> <span data-i18n="nav.leads">Leads</span></button>
       <button data-tab="clients"><span class="nav-icon"><i data-lucide="users"></i></span> <span data-i18n="nav.clients">Clients</span></button>
       <button data-tab="estimates"><span class="nav-icon"><i data-lucide="file-text"></i></span> <span data-i18n="nav.estimates">Estimates</span></button>
+      <div class="nav-group" data-i18n="navgrp.tools">Client tools</div>
+      <button data-tab="photos"><span class="nav-icon"><i data-lucide="image"></i></span> <span data-i18n="nav.photos">Photos</span></button>
+      <button data-tab="maps"><span class="nav-icon"><i data-lucide="map"></i></span> <span data-i18n="nav.maps">Map & Route</span></button>
       <div class="nav-group" data-i18n="navgrp.schedule">Schedule & money</div>
       <button data-tab="calendar"><span class="nav-icon"><i data-lucide="calendar-days"></i></span> <span data-i18n="nav.calendar">Calendar</span></button>
       <button data-tab="balances"><span class="nav-icon"><i data-lucide="circle-dollar-sign"></i></span> <span data-i18n="nav.balances">Balances</span></button>
@@ -626,7 +629,11 @@ html.lp-show #login { display:none; }
       <button data-tab="leads"><span class="mob-icon" style="background:#f97316"><i data-lucide="target"></i></span><span data-i18n="mnav.leads">Leads</span></button>
       <button data-tab="clients"><span class="mob-icon" style="background:#8b5cf6"><i data-lucide="users"></i></span><span data-i18n="mnav.clients">Clients</span></button>
       <button data-tab="estimates"><span class="mob-icon" style="background:#0d9488"><i data-lucide="file-text"></i></span><span data-i18n="mnav.quotes">Quotes</span></button>
-      <button data-tab="calendar"><span class="mob-icon" style="background:#0ea5e9"><i data-lucide="calendar-days"></i></span><span data-i18n="mnav.calendar">Calendar</span></button>      <button data-tab="balances"><span class="mob-icon" style="background:#22c55e"><i data-lucide="circle-dollar-sign"></i></span><span data-i18n="mnav.money">Money</span></button>      <button data-tab="settings"><span class="mob-icon" style="background:#64748b"><i data-lucide="settings"></i></span><span data-i18n="mnav.setup">Setup</span></button>
+      <button data-tab="calendar"><span class="mob-icon" style="background:#0ea5e9"><i data-lucide="calendar-days"></i></span><span data-i18n="mnav.calendar">Calendar</span></button>
+      <button data-tab="photos"><span class="mob-icon" style="background:#ec4899"><i data-lucide="image"></i></span><span data-i18n="mnav.photos">Photos</span></button>
+      <button data-tab="balances"><span class="mob-icon" style="background:#22c55e"><i data-lucide="circle-dollar-sign"></i></span><span data-i18n="mnav.money">Money</span></button>
+      <button data-tab="maps"><span class="mob-icon" style="background:#f59e0b"><i data-lucide="map"></i></span><span data-i18n="mnav.map">Map</span></button>
+      <button data-tab="settings"><span class="mob-icon" style="background:#64748b"><i data-lucide="settings"></i></span><span data-i18n="mnav.setup">Setup</span></button>
     </nav>
 
     <section id="dashboard" class="tab active">
@@ -683,10 +690,6 @@ html.lp-show #login { display:none; }
     </section>
 
     <section id="clients" class="tab">
-      <div class="client-tools">
-        <button class="btn out small" type="button" data-open="photos"><i data-lucide="image" style="width:15px;height:15px;vertical-align:-2px"></i> <span data-i18n="nav.photos">Photos</span></button>
-        <button class="btn out small" type="button" data-open="maps"><i data-lucide="map" style="width:15px;height:15px;vertical-align:-2px"></i> <span data-i18n="nav.maps">Map & Route</span></button>
-      </div>
       <div class="grid2" style="grid-template-columns:.8fr 1.2fr">
         <div class="card">
           <div class="title"><div><h3 data-i18n="cl.add">Add client</h3><p data-i18n="cl.addSub">Client archive for active and past jobs.</p></div></div>
@@ -791,7 +794,6 @@ html.lp-show #login { display:none; }
     </section>
 
     <section id="photos" class="tab">
-      <button class="back-link" type="button" data-open="clients"><i data-lucide="chevron-left" style="width:16px;height:16px"></i> <span data-i18n="nav.clients">Clients</span></button>
       <div class="grid2" style="grid-template-columns:.8fr 1.2fr">
         <div class="card">
           <div class="title"><div><h3 data-i18n="ph.upload">Upload job photo</h3><p data-i18n="ph.uploadSub">Save before, progress, proof, and after photos.</p></div></div>
@@ -817,7 +819,6 @@ html.lp-show #login { display:none; }
     </section>
 
     <section id="maps" class="tab">
-      <button class="back-link" type="button" data-open="clients"><i data-lucide="chevron-left" style="width:16px;height:16px"></i> <span data-i18n="nav.clients">Clients</span></button>
       <div class="grid2">
         <div class="card">
           <div class="title"><div><h3 data-i18n="mp.title">Client map links</h3><p data-i18n="mp.sub">Open client addresses in Google Maps and get directions.</p></div></div>
@@ -1159,7 +1160,7 @@ html.lp-show #login { display:none; }
     en: {
       'login.signin':'Sign in','login.create':'Create account','login.welcome':'Welcome back','login.welcomeSub':'Enter your credentials to continue.','login.email':'Email address','login.password':'Password','login.forgot':'Forgot password?','login.createCompany':'Create your company','login.createCompanySub':'Sign up and get your own private Balenco workspace instantly.','login.name':'Your full name','login.company':'Company name','login.passMin':'Password (min 6 characters)','login.brandTitle':'Contractor management made simple.','login.brandSub':'Leads, clients, estimates with taxes, appointments, balances, photos, reminders, and owner/employee tracking.','login.secure':'Secure cloud storage powered by Supabase.','login.consentPre':'I agree to the ','login.consentTerms':'Terms of Service','login.consentMid':' and ','login.consentPriv':'Privacy Policy','login.consentPost':'.','login.consentError':'Please accept the Terms of Service and Privacy Policy to continue.',
       'reset.title':'Set a new password','reset.sub':'Choose a new password for your account.','reset.new':'New password (min 6 characters)','reset.btn':'Update password',
-      'nav.dashboard':'Dashboard','nav.leads':'Leads','nav.clients':'Clients','nav.estimates':'Estimates','nav.calendar':'Calendar','nav.photos':'Photos','nav.balances':'Balances','nav.maps':'Map & Route','nav.settings':'Settings','navgrp.sales':'Sales','navgrp.schedule':'Schedule & money','navgrp.account':'Account',
+      'nav.dashboard':'Dashboard','nav.leads':'Leads','nav.clients':'Clients','nav.estimates':'Estimates','nav.calendar':'Calendar','nav.photos':'Photos','nav.balances':'Balances','nav.maps':'Map & Route','nav.settings':'Settings','navgrp.sales':'Sales','navgrp.schedule':'Schedule & money','navgrp.account':'Account','navgrp.tools':'Client tools',
       'mnav.home':'Home','mnav.leads':'Leads','mnav.clients':'Clients','mnav.quotes':'Quotes','mnav.calendar':'Calendar','mnav.photos':'Photos','mnav.money':'Money','mnav.map':'Map','mnav.setup':'Setup',
       'top.switch':'Switch account','top.owner':'Owner / Admin account','top.employee':'Employee account','top.loggedIn':'Logged in as ',
       'hero.title':'Run the job from lead to payment.','hero.sub':'Create tax-ready estimates, send polished quote emails, book appointments, track balances, and keep a clean client archive.','hero.addLead':'+ Add lead','hero.newEstimate':'+ New estimate',
@@ -1169,7 +1170,7 @@ html.lp-show #login { display:none; }
     fr: {
       'login.signin':'Se connecter','login.create':'Créer un compte','login.welcome':'Bon retour','login.welcomeSub':'Entrez vos identifiants pour continuer.','login.email':'Adresse courriel','login.password':'Mot de passe','login.forgot':'Mot de passe oublié?','login.createCompany':'Créez votre entreprise','login.createCompanySub':'Inscrivez-vous et obtenez instantanément votre espace Balenco privé.','login.name':'Votre nom complet','login.company':'Nom de l’entreprise','login.passMin':'Mot de passe (min. 6 caractères)','login.brandTitle':'La gestion d’entrepreneur, simplifiée.','login.brandSub':'Prospects, clients, soumissions avec taxes, rendez-vous, soldes, photos, rappels et suivi propriétaire/employé.','login.secure':'Stockage infonuagique sécurisé propulsé par Supabase.','login.consentPre':'J’accepte les ','login.consentTerms':'Conditions d’utilisation','login.consentMid':' et la ','login.consentPriv':'Politique de confidentialité','login.consentPost':'.','login.consentError':'Veuillez accepter les Conditions d’utilisation et la Politique de confidentialité pour continuer.',
       'reset.title':'Définir un nouveau mot de passe','reset.sub':'Choisissez un nouveau mot de passe pour votre compte.','reset.new':'Nouveau mot de passe (min. 6 caractères)','reset.btn':'Mettre à jour',
-      'nav.dashboard':'Tableau de bord','nav.leads':'Prospects','nav.clients':'Clients','nav.estimates':'Soumissions','nav.calendar':'Calendrier','nav.photos':'Photos','nav.balances':'Soldes','nav.maps':'Carte et trajet','nav.settings':'Paramètres','navgrp.sales':'Ventes','navgrp.schedule':'Agenda et argent','navgrp.account':'Compte',
+      'nav.dashboard':'Tableau de bord','nav.leads':'Prospects','nav.clients':'Clients','nav.estimates':'Soumissions','nav.calendar':'Calendrier','nav.photos':'Photos','nav.balances':'Soldes','nav.maps':'Carte et trajet','nav.settings':'Paramètres','navgrp.sales':'Ventes','navgrp.schedule':'Agenda et argent','navgrp.account':'Compte','navgrp.tools':'Outils clients',
       'mnav.home':'Accueil','mnav.leads':'Prospects','mnav.clients':'Clients','mnav.quotes':'Soumissions','mnav.calendar':'Calendrier','mnav.photos':'Photos','mnav.money':'Argent','mnav.map':'Carte','mnav.setup':'Config',
       'top.switch':'Changer de compte','top.owner':'Compte propriétaire / admin','top.employee':'Compte employé','top.loggedIn':'Connecté : ',
       'hero.title':'Gérez le chantier, du prospect au paiement.','hero.sub':'Créez des soumissions avec taxes, envoyez de beaux courriels, planifiez des rendez-vous, suivez les soldes et gardez un dossier client impeccable.','hero.addLead':'+ Ajouter un prospect','hero.newEstimate':'+ Nouvelle soumission',
@@ -1769,8 +1770,7 @@ html.lp-show #login { display:none; }
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     const target = $(tabId);
     if (target) target.classList.add('active');
-    const navId = (tabId === 'photos' || tabId === 'maps') ? 'clients' : tabId;
-    document.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === navId));
+    document.querySelectorAll('[data-tab]').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
     const mBtn = document.querySelector('.mobile button[data-tab="' + tabId + '"]');
     if (mBtn) mBtn.scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'});
     renderAll();
