@@ -1836,21 +1836,35 @@ html.lp-show #login { display:none; }
     if (!name || !email || !pass || (!joinToken && !company)) { errEl.textContent = 'Please fill in all fields.'; errEl.style.display = 'block'; return; }
     if (pass.length < 6) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.style.display = 'block'; return; }
     if (!$('signupConsent').checked) { errEl.textContent = t('login.consentError'); errEl.style.display = 'block'; return; }
-    $('signupBtn').textContent = 'Creating account…';
-    $('signupBtn').disabled = true;
+    const _sbtn = $('signupBtn'); const _slabel = _sbtn.textContent;
+    _sbtn.textContent = lang === 'fr' ? 'Création du compte…' : 'Creating account…';
+    _sbtn.disabled = true;
     // The server (handle_new_user trigger) joins the company (join_token) or creates a new one.
     const meta = joinToken ? { name, join_token: joinToken } : { name, company };
     const { data, error } = await sb.auth.signUp({ email, password: pass, options: { data: meta } });
-    $('signupBtn').textContent = 'Create account';
-    $('signupBtn').disabled = false;
+    _sbtn.textContent = _slabel;
+    _sbtn.disabled = false;
     if (error) { errEl.textContent = error.message; errEl.style.display = 'block'; return; }
-    sucEl.textContent = joinToken ? 'Account created — you can now sign in.' : 'Company created! You can now sign in.';
-    sucEl.style.display = 'block';
+    // Supabase returns a user with an empty identities[] when the email already exists (anti-enumeration).
+    if (data && data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+      errEl.textContent = lang === 'fr' ? 'Ce courriel est déjà enregistré — connectez-vous plutôt.' : 'This email is already registered — please sign in instead.';
+      errEl.style.display = 'block';
+      return;
+    }
     $('signupName').value = '';
     $('signupCompany').value = '';
     $('signupEmail').value = '';
     $('signupPass').value = '';
-    setTimeout(showSignIn, 1800);
+    if (data && data.session) {
+      // Email confirmation is off → already signed in; the auth listener takes over.
+      sucEl.textContent = lang === 'fr' ? 'Compte créé. Connexion…' : 'Account created. Signing you in…';
+      sucEl.style.display = 'block';
+      return;
+    }
+    // Email confirmation is required → do NOT tell them they can sign in yet.
+    sucEl.textContent = lang === 'fr' ? 'Compte créé. Vérifiez vos courriels pour confirmer votre compte, puis connectez-vous.' : 'Account created. Check your email to confirm your account, then sign in.';
+    sucEl.style.display = 'block';
+    setTimeout(showSignIn, 3200);
   }
 
   async function enterApp() {
@@ -4404,10 +4418,14 @@ Date: ${date(e.createdAt)}`;
     bindEvents();
     await checkJoinInvite();
     const { data: { session } } = await sb.auth.getSession();
-    if (session && !recoveryMode) { await startSession(session.user); return; }
-    // Logged out at the root: show the marketing landing (not during password
-    // recovery, and not when following an employee invite link).
-    if (!recoveryMode && !new URLSearchParams(window.location.search).get('join')) showLanding();
+    // Password-recovery link: the PASSWORD_RECOVERY event can race the listener on a
+    // fast load, so also detect it synchronously from the URL hash. Never drop a
+    // recovering user into the app — always show the reset panel.
+    const isRecovery = recoveryMode || /type=recovery/.test(window.location.hash);
+    if (isRecovery) { recoveryMode = true; showResetPanel(); return; }
+    if (session) { await startSession(session.user); return; }
+    // Logged out at the root: show the marketing landing (unless following an invite).
+    if (!new URLSearchParams(window.location.search).get('join')) showLanding();
   }
   function showStatDetail(type) {
     var overlay = document.getElementById('statDetailOverlay');
