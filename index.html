@@ -2543,6 +2543,7 @@ Date: ${date(e.createdAt)}`;
   }
 
   async function toggleRole(profileId, currentRole) {
+    if (role !== 'owner') return;
     var newRole = currentRole === 'owner' ? 'employee' : 'owner';
     var res = await sb.from('profiles').update({ role: newRole }).eq('id', profileId);
     if (res.error) { toast('Error updating role'); return; }
@@ -2567,7 +2568,7 @@ Date: ${date(e.createdAt)}`;
   }
 
   async function regenerateInvite() {
-    if (!orgId) return;
+    if (role !== 'owner' || !orgId) return;
     if (!confirm(tr('Generate a new invite link? Your current link will stop working.'))) return;
     const newToken = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : null;
     if (!newToken) { toast('Not supported on this browser'); return; }
@@ -3046,6 +3047,7 @@ Date: ${date(e.createdAt)}`;
     event.preventDefault();
     calcLineItems();
     const e = { id:uid(), clientId:$('estimateClient').value, title:$('estimateTitle').value, line_items:getLineItems(), subtotal:Number($('estimateSubtotal').value || 0), deposit:Number($('estimateDeposit').value || 0), paymentSchedule:$('estimatePaymentSchedule').value, paymentNotes:$('estimatePaymentNotes').value, approvedBy:'', approvedAt:'', status:$('estimateStatus').value, scope:$('estimateScope').value, expiry:$('estimateExpiry').value || '', createdBy:user, createdAt:new Date().toISOString(), updatedBy:user, updatedAt:new Date().toISOString() };
+    if (Number(e.deposit || 0) > calc(e).total + 0.005 && !confirm(lang === 'fr' ? 'L’acompte (' + money(e.deposit) + ') dépasse le total (' + money(calc(e).total) + '). Continuer?' : 'Deposit (' + money(e.deposit) + ') is more than the total (' + money(calc(e).total) + '). Continue?')) return;
     state.estimates.unshift(e);
     sb.from('estimates').insert({ id:e.id, client_id:e.clientId, title:e.title, line_items:e.line_items||[], payments:[], subtotal:e.subtotal, deposit:e.deposit, payment_schedule:e.paymentSchedule, payment_notes:e.paymentNotes, approved_by:'', approved_at:null, status:e.status, scope:e.scope, expiry:e.expiry||null, created_by:e.createdBy, created_at:e.createdAt, updated_by:e.updatedBy, updated_at:e.updatedAt, org_id:orgId }).select('estimate_number').single().then(function(res){ if(res.error){ toast('Save error: '+res.error.message); return; } if(res.data){ e.estimateNumber = res.data.estimate_number; renderEstimates(); renderPreviewOptions(); } });
     log('Created estimate', `${user} created ${e.title} for ${clientName(e.clientId)}.`);
@@ -3064,6 +3066,7 @@ Date: ${date(e.createdAt)}`;
     const recurring    = $('apptRecurring').checked ? $('apptRecurringFreq').value : '';
     const recurringEnd = recurring ? ($('apptRecurringEnd').value || '') : '';
     const a = { id:uid(), title:$('apptTitle').value, clientId:$('apptClient').value, start:$('apptStart').value, end:$('apptEnd').value, location:$('apptLocation').value, notes:$('apptNotes').value, reminder24:$('apptReminder24').checked, reminderSent:false, recurring, recurringEnd, recurringParentId:null, createdBy:user, createdAt:new Date().toISOString() };
+    if (a.start && a.end && new Date(a.end) < new Date(a.start)) { toast(lang === 'fr' ? 'L’heure de fin est avant le début.' : 'End time is before the start time.'); return; }
     state.appointments.unshift(a);
     sb.from('appointments').insert({ id:a.id, title:a.title, client_id:a.clientId, start_time:a.start?new Date(a.start).toISOString():null, end_time:a.end?new Date(a.end).toISOString():null, location:a.location, notes:a.notes, reminder24:a.reminder24, reminder_sent:false, recurring:a.recurring||null, recurring_end:a.recurringEnd||null, recurring_parent_id:null, created_by:a.createdBy, created_at:a.createdAt, org_id:orgId }).then(({ error }) => { if (error) { console.error('appointment insert failed:', error); toast('Save error: ' + error.message); } });
     if (recurring) generateRecurringInstances(a, recurring, recurringEnd);
@@ -3274,6 +3277,8 @@ Date: ${date(e.createdAt)}`;
     const amount = parseFloat(amountInput ? amountInput.value : 0);
     const note = noteInput ? noteInput.value.trim() : '';
     if (!amount || amount <= 0) { toast('Enter a valid amount'); return; }
+    const _remaining = Math.max(calc(e).total - (Number(e.deposit || 0) + (e.payments || []).reduce(function (s, p) { return s + Number(p.amount || 0); }, 0)), 0);
+    if (amount > _remaining + 0.005 && !confirm(lang === 'fr' ? 'Ce paiement (' + money(amount) + ') dépasse le solde restant (' + money(_remaining) + '). Continuer?' : 'This payment (' + money(amount) + ') is more than the remaining balance (' + money(_remaining) + '). Continue?')) return;
     e.payments = e.payments || [];
     e.payments.push({ id:uid(), amount:amount, note:note, date:new Date().toISOString(), by:user });
     sb.from('estimates').update({ payments:e.payments }).eq('id', e.id)
@@ -3548,11 +3553,32 @@ Date: ${date(e.createdAt)}`;
   }
 
   function deleteItem(collection, id) {
-    if (!confirm(tr('Delete this item?'))) return;
+    const fr = (lang === 'fr');
+    const rec = (state[collection] || []).find(x => x.id === id);
+    const nm = rec ? (rec.name || rec.title || '') : '';
+    let msg = nm ? (fr ? 'Supprimer « ' + nm + ' »?' : 'Delete “' + nm + '”?') : tr('Delete this item?');
+    if (collection === 'clients' && rec) {
+      const deps = (state.estimates || []).filter(e => e.clientId === id).length + (state.appointments || []).filter(a => a.clientId === id).length + (state.photos || []).filter(p => p.clientId === id).length;
+      const bal = Number(rec.balance || 0);
+      if (bal > 0 || deps > 0) {
+        msg = (fr ? 'Supprimer le client « ' + nm + ' »?\n\n' : 'Delete client “' + nm + '”?\n\n')
+          + (bal > 0 ? (fr ? 'Solde dû : ' + money(bal) + '.\n' : 'Open balance: ' + money(bal) + '.\n') : '')
+          + (deps > 0 ? (fr ? deps + ' fiche(s) liée(s) (soumissions, rendez-vous, photos) seront dissociées.\n' : deps + ' linked record(s) (estimates, appointments, photos) will be unlinked.\n') : '')
+          + (fr ? '\nCette action est irréversible.' : '\nThis cannot be undone.');
+      }
+    } else if (collection === 'estimates' && rec) {
+      const paid = Number(rec.deposit || 0) + (rec.payments || []).reduce((s, p) => s + Number(p.amount || 0), 0);
+      if (rec.status === 'Accepted' || paid > 0) {
+        msg = (fr ? 'Supprimer la soumission « ' + nm + ' »?\n\n' : 'Delete estimate “' + nm + '”?\n\n')
+          + (paid > 0 ? (fr ? money(paid) + ' en paiements enregistrés seront perdus.\n' : money(paid) + ' in recorded payments will be lost.\n') : (fr ? 'Cette soumission acceptée sera retirée de vos revenus.\n' : 'This accepted estimate will be removed from your revenue.\n'))
+          + (fr ? '\nCette action est irréversible.' : '\nThis cannot be undone.');
+      }
+    }
+    if (!confirm(msg)) return;
     state[collection] = state[collection].filter(x => x.id !== id);
     const _tbl = { clients:'clients', leads:'leads', estimates:'estimates', appointments:'appointments', photos:'photos' }[collection];
     if (_tbl) sb.from(_tbl).delete().eq('id', id).then(({ error }) => { if (error) { console.error('delete failed:', error); toast('Delete error: ' + error.message); } });
-    log('Deleted item', `${user} deleted an item from ${collection}.`);
+    log('Deleted item', `${user} deleted ${nm || 'an item'} from ${collection}.`);
     save();
     renderAll();
   }
@@ -3596,12 +3622,13 @@ Date: ${date(e.createdAt)}`;
     const reader = new FileReader();
     reader.onload = async () => {
       try {
-        state = JSON.parse(reader.result);
-        if (state.clients?.length) await sb.from('clients').upsert(state.clients.map(c => ({ id:c.id, name:c.name, phone:c.phone, email:c.email, address:c.address, project:c.project, status:c.status, balance:c.balance, created_by:c.createdBy, created_at:c.createdAt })));
-        if (state.leads?.length) await sb.from('leads').upsert(state.leads.map(l => ({ id:l.id, name:l.name, phone:l.phone, email:l.email, source:l.source, project:l.project, status:l.status, notes:l.notes, created_by:l.createdBy, created_at:l.createdAt })));
-        if (state.estimates?.length) await sb.from('estimates').upsert(state.estimates.map(e => ({ id:e.id, client_id:e.clientId, title:e.title, subtotal:e.subtotal, deposit:e.deposit, payment_schedule:e.paymentSchedule, payment_notes:e.paymentNotes, approved_by:e.approvedBy||'', approved_at:e.approvedAt||null, status:e.status, scope:e.scope, created_by:e.createdBy, created_at:e.createdAt, updated_by:e.updatedBy, updated_at:e.updatedAt })));
+        const data = JSON.parse(reader.result);
+        if (data.clients?.length) await sb.from('clients').upsert(data.clients.map(c => ({ id:c.id, name:c.name, phone:c.phone, email:c.email, address:c.address, project:c.project, status:c.status, balance:c.balance, created_by:c.createdBy, created_at:c.createdAt, org_id:orgId })));
+        if (data.leads?.length) await sb.from('leads').upsert(data.leads.map(l => ({ id:l.id, name:l.name, phone:l.phone, email:l.email, source:l.source, project:l.project, status:l.status, notes:l.notes, created_by:l.createdBy, created_at:l.createdAt, org_id:orgId })));
+        if (data.estimates?.length) await sb.from('estimates').upsert(data.estimates.map(e => ({ id:e.id, client_id:e.clientId, title:e.title, subtotal:e.subtotal, deposit:e.deposit, payment_schedule:e.paymentSchedule, payment_notes:e.paymentNotes, approved_by:e.approvedBy||'', approved_at:e.approvedAt||null, status:e.status, scope:e.scope, created_by:e.createdBy, created_at:e.createdAt, updated_by:e.updatedBy, updated_at:e.updatedAt, org_id:orgId })));
+        await fetchState();
         renderAll();
-        toast('Backup imported and synced to Supabase');
+        toast(lang === 'fr' ? 'Sauvegarde importée et synchronisée' : 'Backup imported and synced');
       } catch (err) { alert(tr('Invalid backup file')); }
     };
     reader.readAsText(file);
