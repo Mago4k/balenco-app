@@ -69,7 +69,7 @@ button { cursor:pointer; }
 .app { display:none; max-width:1480px; margin:0 auto; padding:22px; grid-template-columns:248px 1fr; gap:22px; }
 .sidebar { position:sticky; top:22px; height:calc(100vh - 44px); overflow:auto; background:var(--well); border:1px solid var(--line); border-radius:var(--r-card); padding:0; }
 .brand { display:flex; align-items:center; height:60px; padding:0 16px; border-bottom:1px solid var(--line); }
-.brand img { height:34px; width:auto; display:block; border-radius:6px; }
+.brand-word { font-size:21px; font-weight:800; color:var(--text); letter-spacing:-.02em; }
 .nav { padding:12px 10px; }
 .nav button { width:100%; border:0; background:transparent; text-align:left; border-radius:var(--r-sm); padding:9px 12px; margin:2px 0; font-weight:500; font-size:14px; color:var(--muted); display:flex; align-items:center; }
 .nav button svg { width:18px; height:18px; stroke-width:1.6; }
@@ -626,7 +626,7 @@ html.lp-show #login { display:none; }
 
 <div id="app" class="app">
   <aside class="sidebar">
-    <div class="brand"><img src="/logo.png" alt="Balenco"></div>
+    <div class="brand"><span class="brand-word">Balenco</span></div>
     <div class="nav">
       <button class="active" data-tab="dashboard"><span class="nav-icon"><i data-lucide="layout-dashboard"></i></span> <span data-i18n="nav.dashboard">Dashboard</span></button>
       <div class="nav-group" data-i18n="navgrp.sales">Sales</div>
