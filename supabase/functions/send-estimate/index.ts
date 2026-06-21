@@ -5,6 +5,11 @@ const cors = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// HTML-escape any client/settings-controlled value before interpolating into email markup.
+const esc = (value: unknown): string =>
+  String(value ?? '').replace(/[&<>"']/g, (ch) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' } as Record<string, string>)[ch])
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
 
@@ -81,7 +86,7 @@ Deno.serve(async (req) => {
   const items: any[] = est.line_items || []
   const itemRows = items.map((item: any) => `
     <tr>
-      <td style="padding:10px 14px;border-top:1px solid #eef2f7;font-size:14px;color:#334155">${item.desc || item.description || ''}</td>
+      <td style="padding:10px 14px;border-top:1px solid #eef2f7;font-size:14px;color:#334155">${esc(item.desc || item.description || '')}</td>
       <td style="padding:10px 14px;border-top:1px solid #eef2f7;font-size:14px;text-align:center;color:#64748b">${item.qty || 1}</td>
       <td style="padding:10px 14px;border-top:1px solid #eef2f7;font-size:14px;text-align:right;color:#64748b">${fmt(Number(item.price || 0))}</td>
       <td style="padding:10px 14px;border-top:1px solid #eef2f7;font-size:14px;text-align:right;font-weight:700;color:#0f172a">${fmt(Number(item.qty || 1) * Number(item.price || 0))}</td>
@@ -91,20 +96,20 @@ Deno.serve(async (req) => {
 <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff">
 
   <div style="background:#062A5E;padding:28px 32px;border-radius:12px 12px 0 0">
-    ${cfg.logo ? `<img src="${cfg.logo}" style="max-height:50px;margin-bottom:12px;display:block" alt="${company}">` : ''}
-    <div style="color:#ffffff;font-size:22px;font-weight:900">${company}</div>
-    ${cfg.address ? `<div style="color:#93c5fd;font-size:13px;margin-top:4px">${cfg.address}</div>` : ''}
-    ${cfg.phone   ? `<div style="color:#93c5fd;font-size:13px">${cfg.phone}</div>` : ''}
+    ${cfg.logo ? `<img src="${esc(cfg.logo)}" style="max-height:50px;margin-bottom:12px;display:block" alt="${esc(company)}">` : ''}
+    <div style="color:#ffffff;font-size:22px;font-weight:900">${esc(company)}</div>
+    ${cfg.address ? `<div style="color:#93c5fd;font-size:13px;margin-top:4px">${esc(cfg.address)}</div>` : ''}
+    ${cfg.phone   ? `<div style="color:#93c5fd;font-size:13px">${esc(cfg.phone)}</div>` : ''}
   </div>
 
   <div style="padding:28px 32px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px">
 
-    <p style="font-size:16px;color:#334155;margin:0 0 6px">Bonjour <strong>${client.name}</strong>,</p>
+    <p style="font-size:16px;color:#334155;margin:0 0 6px">Bonjour <strong>${esc(client.name)}</strong>,</p>
     <p style="font-size:15px;color:#64748b;margin:0 0 24px">Voici votre soumission ci-dessous. Utilisez le bouton au bas pour la consulter et l’approuver.</p>
 
     <div style="margin-bottom:20px">
-      <div style="font-size:20px;font-weight:900;color:#062A5E">${est.title}</div>
-      ${est.scope ? `<div style="font-size:14px;color:#64748b;margin-top:6px;white-space:pre-wrap">${est.scope}</div>` : ''}
+      <div style="font-size:20px;font-weight:900;color:#062A5E">${esc(est.title)}</div>
+      ${est.scope ? `<div style="font-size:14px;color:#64748b;margin-top:6px;white-space:pre-wrap">${esc(est.scope)}</div>` : ''}
     </div>
 
     ${items.length ? `
@@ -147,13 +152,13 @@ Deno.serve(async (req) => {
     <div style="background:#eff6ff;border:1px solid #dbeafe;border-radius:10px;padding:14px 18px;margin-bottom:24px">
       <div style="font-size:12px;color:#3b82f6;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Acompte requis pour confirmer</div>
       <div style="font-size:26px;font-weight:900;color:#1d4ed8;margin:6px 0">${fmt(deposit)}</div>
-      <div style="font-size:13px;color:#64748b">${est.payment_schedule || 'Dû à l’acceptation'}</div>
+      <div style="font-size:13px;color:#64748b">${esc(est.payment_schedule || 'Dû à l’acceptation')}</div>
     </div>` : ''}
 
     ${cfg.terms ? `
     <div style="background:#f8fafc;border-radius:10px;padding:14px 18px;margin-bottom:24px">
       <div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Conditions et notes</div>
-      <div style="font-size:13px;color:#64748b;white-space:pre-wrap">${cfg.terms}</div>
+      <div style="font-size:13px;color:#64748b;white-space:pre-wrap">${esc(cfg.terms)}</div>
     </div>` : ''}
 
     <div style="text-align:center;margin:32px 0">
@@ -164,8 +169,8 @@ Deno.serve(async (req) => {
     </div>
 
     <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e2e8f0;font-size:13px;color:#94a3b8;text-align:center">
-      ${cfg.email ? cfg.email : ''}${cfg.email && cfg.phone ? ' &nbsp;&middot;&nbsp; ' : ''}${cfg.phone ? cfg.phone : ''}
-      ${(cfg.gst_number || cfg.qst_number) ? `<div style="margin-top:6px;font-size:11px;color:#cbd5e1">${cfg.gst_number ? 'TPS/GST: ' + cfg.gst_number : ''}${cfg.gst_number && cfg.qst_number ? ' &middot; ' : ''}${cfg.qst_number ? 'TVQ/QST: ' + cfg.qst_number : ''}</div>` : ''}
+      ${cfg.email ? esc(cfg.email) : ''}${cfg.email && cfg.phone ? ' &nbsp;&middot;&nbsp; ' : ''}${cfg.phone ? esc(cfg.phone) : ''}
+      ${(cfg.gst_number || cfg.qst_number) ? `<div style="margin-top:6px;font-size:11px;color:#cbd5e1">${cfg.gst_number ? 'TPS/GST: ' + esc(cfg.gst_number) : ''}${cfg.gst_number && cfg.qst_number ? ' &middot; ' : ''}${cfg.qst_number ? 'TVQ/QST: ' + esc(cfg.qst_number) : ''}</div>` : ''}
     </div>
 
   </div>

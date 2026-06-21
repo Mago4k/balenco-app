@@ -5,6 +5,11 @@ const cors = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// HTML-escape any client/settings-controlled value before interpolating into email markup.
+const esc = (value: unknown): string =>
+  String(value ?? '').replace(/[&<>"']/g, (ch) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' } as Record<string, string>)[ch])
+
 // Daily follow-up sender — called by pg_cron.
 // Body (all optional): { dry_run: true } → report only, send nothing
 //                      { estimate_id: '...' } → follow up one estimate now (ignores age/expiry)
@@ -75,14 +80,14 @@ Deno.serve(async (req) => {
     const html = `
 <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#ffffff">
   <div style="background:#062A5E;padding:24px 28px;border-radius:12px 12px 0 0">
-    ${cfg.logo ? `<img src="${cfg.logo}" style="max-height:44px;margin-bottom:10px;display:block" alt="${company}">` : ''}
-    <div style="color:#ffffff;font-size:20px;font-weight:900">${company}</div>
+    ${cfg.logo ? `<img src="${esc(cfg.logo)}" style="max-height:44px;margin-bottom:10px;display:block" alt="${esc(company)}">` : ''}
+    <div style="color:#ffffff;font-size:20px;font-weight:900">${esc(company)}</div>
   </div>
   <div style="padding:24px 28px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px">
-    <p style="font-size:16px;color:#334155;margin:0 0 6px">Bonjour <strong>${client.name}</strong>,</p>
+    <p style="font-size:16px;color:#334155;margin:0 0 6px">Bonjour <strong>${esc(client.name)}</strong>,</p>
     <p style="font-size:15px;color:#64748b;margin:0 0 20px">Petit suivi concernant la soumission que nous vous avons envoyée${ageDays > 0 ? ` il y a ${ageDays} jours` : ''} — nous aimerions connaître vos commentaires ou répondre à vos questions.</p>
     <div style="border:1px solid #e2e8f0;border-radius:10px;padding:16px 18px;margin-bottom:20px">
-      <div style="font-size:17px;font-weight:900;color:#062A5E">${est.title}</div>
+      <div style="font-size:17px;font-weight:900;color:#062A5E">${esc(est.title)}</div>
       <div style="font-size:14px;color:#64748b;margin-top:6px">Total : <strong style="color:#0f172a">${fmt(total)}</strong>${deposit > 0 ? ` &nbsp;·&nbsp; Acompte requis pour confirmer : <strong style="color:#0f172a">${fmt(deposit)}</strong>` : ''}</div>
       ${est.expiry ? `<div style="font-size:13px;color:#94a3b8;margin-top:4px">Valide jusqu’au ${est.expiry}</div>` : ''}
     </div>
@@ -92,9 +97,9 @@ Deno.serve(async (req) => {
       </a>
       <div style="margin-top:8px;font-size:12px;color:#94a3b8">Portail client sécurisé &middot; Aucun compte requis</div>
     </div>
-    <p style="font-size:14px;color:#64748b;margin:0">Des questions ou besoin d’ajuster quelque chose? Répondez simplement à ce courriel${cfg.phone ? ` ou appelez le ${cfg.phone}` : ''}.</p>
+    <p style="font-size:14px;color:#64748b;margin:0">Des questions ou besoin d’ajuster quelque chose? Répondez simplement à ce courriel${cfg.phone ? ` ou appelez le ${esc(cfg.phone)}` : ''}.</p>
     <div style="margin-top:18px;padding-top:14px;border-top:1px solid #e2e8f0;font-size:13px;color:#94a3b8;text-align:center">
-      ${cfg.email || ''}${cfg.email && cfg.phone ? ' &nbsp;&middot;&nbsp; ' : ''}${cfg.phone || ''}
+      ${esc(cfg.email || '')}${cfg.email && cfg.phone ? ' &nbsp;&middot;&nbsp; ' : ''}${esc(cfg.phone || '')}
     </div>
   </div>
 </div>`

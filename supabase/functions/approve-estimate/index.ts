@@ -5,6 +5,11 @@ const cors = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// HTML-escape any client/settings-controlled value before interpolating into email markup.
+const esc = (value: unknown): string =>
+  String(value ?? '').replace(/[&<>"']/g, (ch) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' } as Record<string, string>)[ch])
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
 
@@ -78,14 +83,14 @@ Deno.serve(async (req) => {
   <div style="background:#062A5E;padding:28px 32px;border-radius:12px 12px 0 0;text-align:center">
     <div style="font-size:52px;margin-bottom:8px">✅</div>
     <h2 style="color:#fff;margin:0;font-size:22px">Soumission approuvée!</h2>
-    <p style="color:#93c5fd;margin:8px 0 0;font-size:14px">${company}</p>
+    <p style="color:#93c5fd;margin:8px 0 0;font-size:14px">${esc(company)}</p>
   </div>
   <div style="padding:28px 32px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px">
-    <p style="font-size:16px;color:#334155;margin:0 0 8px">Bonjour <strong>${client.name}</strong>,</p>
+    <p style="font-size:16px;color:#334155;margin:0 0 8px">Bonjour <strong>${esc(client.name)}</strong>,</p>
     <p style="font-size:15px;color:#64748b;margin:0 0 24px">Votre soumission a été confirmée. Voici votre résumé :</p>
     <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:24px">
       <table style="width:100%;border-collapse:collapse">
-        <tr><td style="padding:12px 16px;font-size:14px;color:#64748b">Soumission</td><td style="padding:12px 16px;font-size:14px;font-weight:700;text-align:right;color:#0f172a">${est.title}</td></tr>
+        <tr><td style="padding:12px 16px;font-size:14px;color:#64748b">Soumission</td><td style="padding:12px 16px;font-size:14px;font-weight:700;text-align:right;color:#0f172a">${esc(est.title)}</td></tr>
         <tr style="background:#062A5E"><td style="padding:13px 16px;font-size:15px;color:#fff;font-weight:900">Total</td><td style="padding:13px 16px;font-size:15px;color:#fff;font-weight:900;text-align:right">${fmt(total)}</td></tr>
       </table>
     </div>
@@ -96,7 +101,7 @@ Deno.serve(async (req) => {
       <div style="margin-top:8px;font-size:12px;color:#94a3b8">Suivez les paiements et rendez-vous à venir</div>
     </div>
     <div style="font-size:13px;color:#94a3b8;text-align:center;margin-top:16px;padding-top:16px;border-top:1px solid #f1f5f9">
-      Des questions? ${cfg.email ? cfg.email : ''}${cfg.email && cfg.phone ? ' · ' : ''}${cfg.phone ? cfg.phone : ''}
+      Des questions? ${cfg.email ? esc(cfg.email) : ''}${cfg.email && cfg.phone ? ' · ' : ''}${cfg.phone ? esc(cfg.phone) : ''}
     </div>
   </div>
 </div>`,
@@ -122,7 +127,7 @@ Deno.serve(async (req) => {
     <h2 style="color:#fff;margin:0;font-size:20px">✅ Soumission approuvée</h2>
   </div>
   <p style="font-size:15px;color:#333">
-    <strong>${client?.name || 'Votre client'}</strong> a approuvé <strong>${est.title}</strong>
+    <strong>${esc(client?.name || 'Votre client')}</strong> a approuvé <strong>${esc(est.title)}</strong>
     pour <strong style="color:#10b981">${fmt(total)}</strong>.
   </p>
   <p style="font-size:14px;color:#666">La soumission a été marquée comme acceptée dans Balenco.</p>

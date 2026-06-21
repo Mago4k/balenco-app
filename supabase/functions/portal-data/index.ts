@@ -39,6 +39,7 @@ Deno.serve(async (req) => {
 
   const CLIENT_COLS = 'id,name,phone,email,address,project,status,balance,org_id'
   const EST_LIST    = 'id,estimate_number,title,scope,subtotal,deposit,payment_schedule,status,payments,client_id'
+  const JOB_LIST    = 'id,job_number,title,scope,subtotal,deposit,payment_schedule,status,payments,client_id'
   const EST_FULL    = 'id,estimate_number,client_id,org_id,title,scope,subtotal,line_items,deposit,payment_schedule,payment_notes,status,expiry,approved_by,approved_at,created_by,created_at,updated_at,payments'
 
   if (mode === 'client') {
@@ -51,17 +52,20 @@ Deno.serve(async (req) => {
     }
     if (!client) return json({ error: 'Client not found' }, 404)
 
-    const [{ data: estimates }, { data: appointments }] = await Promise.all([
+    const [{ data: estimates }, { data: jobs }, { data: appointments }] = await Promise.all([
       sb.from('estimates').select(EST_LIST).eq('client_id', client.id).order('created_at', { ascending: false }),
+      sb.from('jobs').select(JOB_LIST).eq('client_id', client.id).order('created_at', { ascending: false }),
       sb.from('appointments').select('id,title,start_time,location,booking_status')
         .eq('client_id', client.id).gte('start_time', new Date().toISOString())
         .order('start_time', { ascending: true }),
     ])
     const safeEstimates = (estimates ?? []).map((e: any) => ({ ...e, payments: safePayments(e.payments) }))
+    const safeJobs      = (jobs ?? []).map((j: any) => ({ ...j, payments: safePayments(j.payments) }))
 
     return json({
       client,
       estimates: safeEstimates,
+      jobs: safeJobs,
       appointments: appointments ?? [],
       settings: await settingsFor(client.org_id),
     })

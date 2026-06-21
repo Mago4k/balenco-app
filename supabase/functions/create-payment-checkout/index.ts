@@ -9,9 +9,11 @@ const cors = {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
 
-  const { estimate_id, amount, client_id } = await req.json()
-  if (!estimate_id || !amount || Number(amount) <= 0) {
-    return new Response(JSON.stringify({ error: 'Missing estimate_id or invalid amount.' }), {
+  const { estimate_id, job_id, amount, client_id } = await req.json()
+  const isJob    = !!job_id && !estimate_id
+  const recordId = isJob ? job_id : estimate_id
+  if (!recordId || !amount || Number(amount) <= 0) {
+    return new Response(JSON.stringify({ error: 'Missing estimate_id/job_id or invalid amount.' }), {
       status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
     })
   }
@@ -21,10 +23,10 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   )
 
-  // Fetch estimate + settings
-  const { data: est } = await sb.from('estimates').select('*').eq('id', estimate_id).single()
+  // Fetch the billable record (estimate or job) + settings
+  const { data: est } = await sb.from(isJob ? 'jobs' : 'estimates').select('*').eq('id', recordId).single()
   if (!est) {
-    return new Response(JSON.stringify({ error: 'Estimate not found.' }), {
+    return new Response(JSON.stringify({ error: isJob ? 'Job not found.' : 'Estimate not found.' }), {
       status: 404, headers: { ...cors, 'Content-Type': 'application/json' }
     })
   }
@@ -63,8 +65,14 @@ Deno.serve(async (req) => {
       },
       quantity: 1,
     }],
-    metadata: {
-      estimate_id,
+    metadata: isJob ? {
+      job_id: recordId,
+      client_id: client_id || '',
+      type: 'partial_payment',
+      kind: 'job',
+      amount: String(amtNum),
+    } : {
+      estimate_id: recordId,
       client_id: client_id || '',
       type: 'partial_payment',
       amount: String(amtNum),

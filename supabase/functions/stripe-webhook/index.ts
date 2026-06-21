@@ -1,6 +1,11 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import Stripe from 'https://esm.sh/stripe@14'
 
+// HTML-escape any client/settings-controlled value before interpolating into email markup.
+const esc = (value: unknown): string =>
+  String(value ?? '').replace(/[&<>"']/g, (ch) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' } as Record<string, string>)[ch])
+
 Deno.serve(async (req) => {
   const sig    = req.headers.get('stripe-signature') ?? ''
   const body   = await req.text()
@@ -46,7 +51,8 @@ Deno.serve(async (req) => {
 
   const session    = event.data.object as Stripe.Checkout.Session
   const meta       = session.metadata ?? {}
-  const estimateId = meta.estimate_id
+  const isJob      = meta.kind === 'job'
+  const estimateId = isJob ? meta.job_id : meta.estimate_id
   if (!estimateId) {
     return new Response(JSON.stringify({ received: true }), {
       headers: { 'Content-Type': 'application/json' }
@@ -60,24 +66,22 @@ Deno.serve(async (req) => {
 
     // Atomic + idempotent: locks the estimate row, and skips if this Stripe
     // session was already recorded (handles Stripe retries / double delivery).
-    const { data: rpc, error: rpcErr } = await sb.rpc('record_stripe_payment', {
-      p_estimate_id: estimateId,
-      p_amount:      amount,
-      p_session:     session.id,
-    })
+    const { data: rpc, error: rpcErr } = isJob
+      ? await sb.rpc('record_job_payment',    { p_job_id:      estimateId, p_amount: amount, p_session: session.id })
+      : await sb.rpc('record_stripe_payment', { p_estimate_id: estimateId, p_amount: amount, p_session: session.id })
     if (rpcErr)        return new Response(JSON.stringify({ error: rpcErr.message }), { status: 500, headers: { 'Content-Type': 'application/json' } })
     if (!rpc?.ok)      return new Response('Estimate not found', { status: 404 })
     if (rpc.duplicate) return new Response(JSON.stringify({ received: true, duplicate: true }), { headers: { 'Content-Type': 'application/json' } })
 
-    // Estimate info for the owner notification
-    const { data: est } = await sb.from('estimates').select('title,org_id').eq('id', estimateId).single()
+    // Record info for the owner notification
+    const { data: est } = await sb.from(isJob ? 'jobs' : 'estimates').select('title,org_id').eq('id', estimateId).single()
     if (!est) return new Response(JSON.stringify({ received: true }), { headers: { 'Content-Type': 'application/json' } })
 
     // Notify owner by email
     const { data: cfg } = await sb.from('settings').select('email,company,tps,tvq').eq('org_id', est.org_id).maybeSingle()
     if (cfg?.email) {
       // Recalculate remaining after this payment
-      const { data: fresh } = await sb.from('estimates').select('subtotal,deposit,payments').eq('id', estimateId).single()
+      const { data: fresh } = await sb.from(isJob ? 'jobs' : 'estimates').select('subtotal,deposit,payments').eq('id', estimateId).single()
       const sub       = Number(fresh?.subtotal || 0)
       const tps       = sub * Number(cfg.tps ?? 5) / 100
       const tvq       = sub * Number(cfg.tvq ?? 9.975) / 100
@@ -103,7 +107,7 @@ Deno.serve(async (req) => {
     <h2 style="color:#fff;margin:0;font-size:20px">💳 Paiement reçu</h2>
   </div>
   <table style="width:100%;border-collapse:collapse;font-size:15px">
-    <tr><td style="padding:10px 0;color:#666;width:140px;border-bottom:1px solid #f0f0f0">Soumission</td><td style="padding:10px 0;border-bottom:1px solid #f0f0f0"><strong>${est.title}</strong></td></tr>
+    <tr><td style="padding:10px 0;color:#666;width:140px;border-bottom:1px solid #f0f0f0">Soumission</td><td style="padding:10px 0;border-bottom:1px solid #f0f0f0"><strong>${esc(est.title)}</strong></td></tr>
     <tr><td style="padding:10px 0;color:#666;border-bottom:1px solid #f0f0f0">Montant payé</td><td style="padding:10px 0;border-bottom:1px solid #f0f0f0"><strong style="color:#10b981">${fmt(amount)}</strong></td></tr>
     <tr><td style="padding:10px 0;color:#666;border-bottom:1px solid #f0f0f0">Solde restant</td><td style="padding:10px 0;border-bottom:1px solid #f0f0f0"><strong style="color:${remaining > 0 ? '#ef4444' : '#10b981'}">${remaining > 0 ? fmt(remaining) : 'Payé en totalité ✅'}</strong></td></tr>
     <tr><td style="padding:10px 0;color:#666">Session Stripe</td><td style="padding:10px 0;font-size:12px;color:#999">${session.id}</td></tr>
@@ -155,14 +159,14 @@ Deno.serve(async (req) => {
   <div style="background:#062A5E;padding:28px 32px;border-radius:12px 12px 0 0;text-align:center">
     <div style="font-size:52px;margin-bottom:8px">✅</div>
     <h2 style="color:#fff;margin:0;font-size:22px">Acompte reçu!</h2>
-    <p style="color:#93c5fd;margin:8px 0 0;font-size:14px">${cfg?.company || 'Balenco'}</p>
+    <p style="color:#93c5fd;margin:8px 0 0;font-size:14px">${esc(cfg?.company || 'Balenco')}</p>
   </div>
   <div style="padding:28px 32px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px">
-    <p style="font-size:16px;color:#334155;margin:0 0 8px">Bonjour <strong>${clientRow.name}</strong>,</p>
-    <p style="font-size:15px;color:#64748b;margin:0 0 24px">Votre acompte pour <strong>${est.title}</strong> a été reçu et votre soumission est maintenant confirmée. 🎉</p>
+    <p style="font-size:16px;color:#334155;margin:0 0 8px">Bonjour <strong>${esc(clientRow.name)}</strong>,</p>
+    <p style="font-size:15px;color:#64748b;margin:0 0 24px">Votre acompte pour <strong>${esc(est.title)}</strong> a été reçu et votre soumission est maintenant confirmée. 🎉</p>
     <div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:24px">
       <table style="width:100%;border-collapse:collapse">
-        <tr><td style="padding:12px 16px;font-size:14px;color:#64748b">Soumission</td><td style="padding:12px 16px;font-size:14px;font-weight:700;text-align:right;color:#0f172a">${est.title}</td></tr>
+        <tr><td style="padding:12px 16px;font-size:14px;color:#64748b">Soumission</td><td style="padding:12px 16px;font-size:14px;font-weight:700;text-align:right;color:#0f172a">${esc(est.title)}</td></tr>
         <tr><td style="padding:12px 16px;font-size:14px;color:#64748b;border-top:1px solid #f1f5f9">Acompte payé</td><td style="padding:12px 16px;font-size:15px;font-weight:900;color:#10b981;text-align:right;border-top:1px solid #f1f5f9">${fmt(amtPaid)}</td></tr>
       </table>
     </div>
@@ -173,7 +177,7 @@ Deno.serve(async (req) => {
       <div style="margin-top:8px;font-size:12px;color:#94a3b8">Suivez votre solde et vos rendez-vous à venir</div>
     </div>
     <div style="font-size:13px;color:#94a3b8;text-align:center;margin-top:16px;padding-top:16px;border-top:1px solid #f1f5f9">
-      Des questions? ${cfg?.email || ''}${cfg?.email && cfg?.phone ? ' · ' : ''}${cfg?.phone || ''}
+      Des questions? ${esc(cfg?.email || '')}${cfg?.email && cfg?.phone ? ' · ' : ''}${esc(cfg?.phone || '')}
     </div>
   </div>
 </div>`,
@@ -199,7 +203,7 @@ Deno.serve(async (req) => {
   <div style="background:#062A5E;border-radius:12px;padding:20px 24px;margin-bottom:24px">
     <h2 style="color:#fff;margin:0;font-size:20px">💳 Acompte reçu</h2>
   </div>
-  <p style="font-size:15px;color:#333">Un acompte de <strong style="color:#10b981">${fmt(amtPaid)}</strong> a été payé pour <strong>${est.title}</strong>.</p>
+  <p style="font-size:15px;color:#333">Un acompte de <strong style="color:#10b981">${fmt(amtPaid)}</strong> a été payé pour <strong>${esc(est.title)}</strong>.</p>
   <p style="font-size:14px;color:#666">La soumission a été marquée comme acceptée dans Balenco.</p>
 </div>`,
       }),
