@@ -2287,6 +2287,7 @@ html.lp-show #login { display:none; }
             <div class="actions">
               <button class="btn small" type="button" data-action="jobInvoice" data-id="${j.id}">${t('jb.invoice')}</button>
               <button class="btn out small" type="button" data-action="jobPayLink" data-id="${j.id}">${t('jb.payLink')}</button>
+              <button class="btn out small" type="button" data-action="jobPayment" data-id="${j.id}">${t('pay.record')}</button>
               <button class="btn out small" type="button" data-action="delete" data-col="jobs" data-id="${j.id}">${t('g.delete')}</button>
             </div>
           </td>
@@ -3529,6 +3530,27 @@ Date: ${date(e.createdAt)}`;
     toast(t('pay.recorded') + ' — ' + money(amount));
   }
 
+  function addJobPayment(id) {
+    const j = state.jobs.find(x => x.id === id);
+    if (!j) { toast('Job not found'); return; }
+    const remaining = jobOwing(j);
+    const raw = prompt(lang === 'fr'
+      ? 'Paiement reçu (comptant, chèque, virement) — solde restant ' + money(remaining) + ' :'
+      : 'Payment received (cash, cheque, e-transfer) — remaining ' + money(remaining) + ':', remaining > 0 ? remaining.toFixed(2) : '');
+    if (raw === null) return;
+    const amount = parseFloat(raw);
+    if (!amount || amount <= 0) { toast(t('pay.invalid')); return; }
+    if (amount > remaining + 0.005 && !confirm(lang === 'fr' ? 'Ce paiement (' + money(amount) + ') dépasse le solde restant (' + money(remaining) + '). Continuer?' : 'This payment (' + money(amount) + ') is more than the remaining balance (' + money(remaining) + '). Continue?')) return;
+    j.payments = j.payments || [];
+    j.payments.push({ id:uid(), amount:amount, note:(lang === 'fr' ? 'Paiement manuel' : 'Manual payment'), date:new Date().toISOString(), by:user });
+    sb.from('jobs').update({ payments:j.payments }).eq('id', j.id)
+      .then(function(res){ if(res.error) toast('Save error: ' + res.error.message); });
+    log('Job payment recorded', user + ' recorded ' + money(amount) + ' payment for job ' + j.title);
+    save();
+    renderAll();
+    toast(t('pay.recorded') + ' — ' + money(amount));
+  }
+
   function approveEstimate() {
     const e = currentEstimate();
     if (!e) { toast('Select an estimate first'); return; }
@@ -3895,6 +3917,7 @@ Date: ${date(e.createdAt)}`;
     if (action === 'estimateLost') setEstimateStatus(id, 'Lost');
     if (action === 'jobInvoice') printJobInvoice(id);
     if (action === 'jobPayLink') copyJobPaymentLink(id);
+    if (action === 'jobPayment') addJobPayment(id);
     if (action === 'ics') downloadICS(id);
     if (action === 'googleCal') openGoogleCal(id);
     if (action === 'paymentReminder') paymentReminder(id);
