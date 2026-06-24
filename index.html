@@ -2059,7 +2059,7 @@ html.lp-show #login { display:none; }
 
   function renderSelects() {
     const options = state.clients.map(c => `<option value="${c.id}">${esc(c.name)} — ${esc(c.project)}</option>`).join('') || '<option value="">Add a client first</option>';
-    ['estimateClient','apptClient','photoClient'].forEach(id => { if ($(id)) $(id).innerHTML = options; });
+    ['estimateClient','jobClient','apptClient','photoClient'].forEach(id => { if ($(id)) $(id).innerHTML = options; });
   }
 
   function renderDashboard() {
