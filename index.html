@@ -136,6 +136,12 @@ input:focus,select:focus,textarea:focus { background:var(--surface2); border-col
 /* ── Lists ── */
 .form { display:grid; gap:12px; }
 .form2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.ss-wrap { position:relative; }
+.ss-panel { position:absolute; z-index:60; left:0; right:0; top:calc(100% + 4px); max-height:240px; overflow-y:auto; background:var(--surface2); border:1px solid var(--line); border-radius:var(--r-md); box-shadow:0 10px 28px var(--shadow); padding:4px; display:none; }
+.ss-panel.open { display:block; }
+.ss-opt { padding:10px 12px; border-radius:var(--r-sm); cursor:pointer; font-size:14px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ss-opt.active, .ss-opt:hover { background:var(--accent-soft); }
+.ss-empty { padding:10px 12px; color:var(--muted); font-size:13px; }
 .list { display:grid; gap:12px; }
 .item { background:var(--well); border:1px solid var(--line); border-radius:var(--r-md); padding:15px; display:flex; justify-content:space-between; gap:12px; align-items:flex-start; }
 .item strong { display:block; color:var(--text); margin-bottom:5px; }
@@ -2057,9 +2063,89 @@ html.lp-show #login { display:none; }
     renderSettings();
   }
 
+  function searchPlaceholder() {
+    return lang === 'fr' ? 'Rechercher un client…' : 'Search clients…';
+  }
+  // Turn a native client <select> into a type-to-search combobox (dependency-free).
+  // The hidden <select> stays the source of truth, so every `$(id).value` read still works.
+  function makeSearchable(selectId) {
+    const sel = $(selectId);
+    if (!sel || sel.dataset.ss) return;
+    sel.dataset.ss = '1';
+    const wrap = document.createElement('div');
+    wrap.className = 'ss-wrap';
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.setAttribute('autocomplete', 'off');
+    input.placeholder = searchPlaceholder();
+    const panel = document.createElement('div');
+    panel.className = 'ss-panel';
+    sel.parentNode.insertBefore(wrap, sel);
+    wrap.appendChild(sel);
+    wrap.appendChild(input);
+    wrap.appendChild(panel);
+    sel.style.display = 'none';
+    let rows = [], active = -1;
+    function syncDisplay() {
+      const o = sel.options[sel.selectedIndex];
+      input.value = (o && o.value) ? o.text : '';
+    }
+    function close() { panel.classList.remove('open'); active = -1; }
+    function choose(value, text) {
+      sel.value = value;
+      sel.dispatchEvent(new Event('change'));
+      input.value = text;
+      close();
+    }
+    function highlight() {
+      rows.forEach((r, i) => r.el.classList.toggle('active', i === active));
+      if (active >= 0 && rows[active]) rows[active].el.scrollIntoView({ block: 'nearest' });
+    }
+    function renderList(q) {
+      q = (q || '').trim().toLowerCase();
+      panel.innerHTML = '';
+      rows = [];
+      Array.from(sel.options).forEach(o => {
+        if (!o.value) return;                                   // skip the "Add a client first" placeholder
+        if (q && o.text.toLowerCase().indexOf(q) < 0) return;
+        const el = document.createElement('div');
+        el.className = 'ss-opt';
+        el.textContent = o.text;
+        el.addEventListener('mousedown', e => { e.preventDefault(); choose(o.value, o.text); });
+        panel.appendChild(el);
+        rows.push({ el, value: o.value, text: o.text });
+      });
+      if (!rows.length) {
+        const d = document.createElement('div');
+        d.className = 'ss-empty';
+        d.textContent = lang === 'fr' ? 'Aucun client trouvé' : 'No clients found';
+        panel.appendChild(d);
+      }
+      active = rows.length ? 0 : -1;
+      highlight();
+    }
+    input.addEventListener('focus', () => { input.value = ''; renderList(''); panel.classList.add('open'); });
+    input.addEventListener('input', () => { renderList(input.value); panel.classList.add('open'); });
+    input.addEventListener('blur', () => setTimeout(() => { close(); syncDisplay(); }, 150));
+    input.addEventListener('keydown', e => {
+      if (e.key === 'ArrowDown') { e.preventDefault(); if (active < rows.length - 1) { active++; highlight(); } }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); if (active > 0) { active--; highlight(); } }
+      else if (e.key === 'Enter') { if (active >= 0 && rows[active]) { e.preventDefault(); choose(rows[active].value, rows[active].text); } }
+      else if (e.key === 'Escape') { close(); syncDisplay(); input.blur(); }
+    });
+    sel._ssSync = syncDisplay;
+    syncDisplay();
+  }
+
   function renderSelects() {
     const options = state.clients.map(c => `<option value="${c.id}">${esc(c.name)} — ${esc(c.project)}</option>`).join('') || '<option value="">Add a client first</option>';
-    ['estimateClient','jobClient','apptClient','photoClient'].forEach(id => { if ($(id)) $(id).innerHTML = options; });
+    ['estimateClient','jobClient','apptClient','photoClient'].forEach(id => {
+      const sel = $(id);
+      if (!sel) return;
+      sel.innerHTML = options;
+      makeSearchable(id);
+      if (sel._ssSync) sel._ssSync();
+    });
   }
 
   function renderDashboard() {
