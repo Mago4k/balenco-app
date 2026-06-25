@@ -3606,14 +3606,17 @@ Date: ${date(e.createdAt)}`;
     if (!amount || amount <= 0) { toast(t('pay.invalid')); return; }
     const _remaining = Math.max(calc(e).total - (Number(e.deposit || 0) + (e.payments || []).reduce(function (s, p) { return s + Number(p.amount || 0); }, 0)), 0);
     if (amount > _remaining + 0.005 && !confirm(lang === 'fr' ? 'Ce paiement (' + money(amount) + ') dépasse le solde restant (' + money(_remaining) + '). Continuer?' : 'This payment (' + money(amount) + ') is more than the remaining balance (' + money(_remaining) + '). Continue?')) return;
-    e.payments = e.payments || [];
-    e.payments.push({ id:uid(), amount:amount, note:note, date:new Date().toISOString(), by:user });
-    sb.from('estimates').update({ payments:e.payments }).eq('id', e.id)
-      .then(function(res){ if(res.error) toast('Save error: ' + res.error.message); });
-    log('Payment recorded', user + ' recorded ' + money(amount) + ' payment for ' + e.title);
-    save();
-    renderAll();
-    toast(t('pay.recorded') + ' — ' + money(amount));
+    const _pid = uid();
+    sb.rpc('record_manual_payment', { p_kind:'estimate', p_id:e.id, p_payment_id:_pid, p_amount:amount, p_note:note, p_by:user })
+      .then(function(res){
+        if (res.error) { toast('Save error: ' + res.error.message); return; }
+        if (res.data && res.data.ok === false) { toast(lang === 'fr' ? 'Soumission introuvable' : 'Estimate not found'); return; }
+        e.payments = e.payments || [];
+        if (!(res.data && res.data.duplicate)) e.payments.push({ id:_pid, amount:amount, note:note, date:new Date().toISOString(), by:user });
+        log('Payment recorded', user + ' recorded ' + money(amount) + ' payment for ' + e.title);
+        renderAll();
+        toast(t('pay.recorded') + ' — ' + money(amount));
+      });
   }
 
   function addJobPayment(id) {
@@ -3627,14 +3630,18 @@ Date: ${date(e.createdAt)}`;
     const amount = parseFloat(raw);
     if (!amount || amount <= 0) { toast(t('pay.invalid')); return; }
     if (amount > remaining + 0.005 && !confirm(lang === 'fr' ? 'Ce paiement (' + money(amount) + ') dépasse le solde restant (' + money(remaining) + '). Continuer?' : 'This payment (' + money(amount) + ') is more than the remaining balance (' + money(remaining) + '). Continue?')) return;
-    j.payments = j.payments || [];
-    j.payments.push({ id:uid(), amount:amount, note:(lang === 'fr' ? 'Paiement manuel' : 'Manual payment'), date:new Date().toISOString(), by:user });
-    sb.from('jobs').update({ payments:j.payments }).eq('id', j.id)
-      .then(function(res){ if(res.error) toast('Save error: ' + res.error.message); });
-    log('Job payment recorded', user + ' recorded ' + money(amount) + ' payment for job ' + j.title);
-    save();
-    renderAll();
-    toast(t('pay.recorded') + ' — ' + money(amount));
+    const _pid = uid();
+    const _note = (lang === 'fr' ? 'Paiement manuel' : 'Manual payment');
+    sb.rpc('record_manual_payment', { p_kind:'job', p_id:j.id, p_payment_id:_pid, p_amount:amount, p_note:_note, p_by:user })
+      .then(function(res){
+        if (res.error) { toast('Save error: ' + res.error.message); return; }
+        if (res.data && res.data.ok === false) { toast(lang === 'fr' ? 'Job introuvable' : 'Job not found'); return; }
+        j.payments = j.payments || [];
+        if (!(res.data && res.data.duplicate)) j.payments.push({ id:_pid, amount:amount, note:_note, date:new Date().toISOString(), by:user });
+        log('Job payment recorded', user + ' recorded ' + money(amount) + ' payment for job ' + j.title);
+        renderAll();
+        toast(t('pay.recorded') + ' — ' + money(amount));
+      });
   }
 
   function approveEstimate() {
