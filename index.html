@@ -519,6 +519,7 @@ html.lp-show #login { display:none; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/lucide@1.21.0/dist/umd/lucide.min.js"></script>
+<script src="lib.js"></script>
 <!-- Error monitoring (Sentry). Paste your DSN below to turn it on; leave blank = off (nothing loads). -->
 <script>
   window.BALENCO_SENTRY_DSN = 'https://af4add43d5f34e9f1f766ce528aa9c3e@o4511572006731776.ingest.us.sentry.io/4511572019183616';  /* Sentry error monitoring */
@@ -1656,7 +1657,7 @@ html.lp-show #login { display:none; }
   }
 
   function money(value) {
-    return new Intl.NumberFormat('en-CA', { style:'currency', currency:'CAD', maximumFractionDigits:2 }).format(Number(value || 0));
+    return BalencoLib.money(value);
   }
 
   function date(value) {
@@ -1706,23 +1707,18 @@ html.lp-show #login { display:none; }
   }
 
   function calc(est) {
-    const subtotal = Number(est?.subtotal || 0);
-    const tps = subtotal * Number(state.settings.tps || 0) / 100;
-    const tvq = subtotal * Number(state.settings.tvq || 0) / 100;
-    return { tps, tvq, total: subtotal + tps + tvq };
+    return BalencoLib.calc(est?.subtotal, state.settings.tps, state.settings.tvq);
   }
 
   // Outstanding owed on one estimate — same formula as the dashboard + invoices.
   function estimateOwing(e) {
     if (!e || e.status !== 'Accepted') return 0;
-    var paid = Number(e.deposit || 0) + (e.payments || []).reduce(function (x, p) { return x + Number(p.amount || 0); }, 0);
-    return Math.max(calc(e).total - paid, 0);
+    return BalencoLib.owing(calc(e).total, e.deposit, e.payments);
   }
   // Outstanding owed on one job — active work counts; cancelled jobs don't.
   function jobOwing(j) {
     if (!j || j.status === 'Cancelled') return 0;
-    var paid = Number(j.deposit || 0) + (j.payments || []).reduce(function (x, p) { return x + Number(p.amount || 0); }, 0);
-    return Math.max(calc(j).total - paid, 0);
+    return BalencoLib.owing(calc(j).total, j.deposit, j.payments);
   }
   // Derive every client's balance from their accepted estimates minus payments.
   // Runs at the top of renderAll so balances are always current (no stored value).
