@@ -9,6 +9,9 @@
 <meta name="apple-mobile-web-app-title" content="Balenco">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
 <title>Balenco Contractor Manager</title>
 <script>(function(){try{var t=localStorage.getItem('balenco_theme');if(t!=='light'&&t!=='dark'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
 <style>
@@ -475,12 +478,12 @@ html.lp-show #login { display:none; }
 .dash-bento { display:grid; grid-template-columns:1.5fr 1fr 1fr; gap:14px; grid-template-areas:'hero hero win' 'hero hero out' 'act pipe quick'; }
 .dash-hero{grid-area:hero;} .dash-win{grid-area:win;} .dash-out{grid-area:out;} .dash-act{grid-area:act;} .dash-pipe{grid-area:pipe;} .dash-quick{grid-area:quick;}
 .dash-tile { background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:18px; }
-.dash-hero { background:var(--brand-panel); position:relative; overflow:hidden; min-height:228px; }
-.d-eyebrow { font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:var(--brand-sub); position:relative; z-index:2; }
+.dash-hero { background:var(--surface); position:relative; overflow:hidden; min-height:228px; }
+.d-eyebrow { font-size:12.5px; letter-spacing:0; font-weight:500; color:var(--muted); position:relative; z-index:2; }
 .d-hero-num { display:block; font-size:clamp(32px,3.2vw,44px); font-weight:600; letter-spacing:-.02em; color:#fff; margin-top:8px; font-variant-numeric:tabular-nums; position:relative; z-index:2; }
 .d-trend { margin-top:10px; font-size:12.5px; padding:5px 11px; border-radius:999px; position:relative; z-index:2; }
 .d-hero-chart { position:absolute; left:0; right:0; bottom:0; height:94px; z-index:1; }
-.d-lbl { font-size:12px; letter-spacing:.04em; text-transform:uppercase; color:var(--muted); display:flex; align-items:center; gap:6px; }
+.d-lbl { font-size:12.5px; letter-spacing:0; font-weight:500; color:var(--muted); display:flex; align-items:center; gap:6px; }
 .dash-win { display:flex; flex-direction:column; align-items:center; }
 .dash-win .d-lbl { align-self:flex-start; }
 .d-ring { position:relative; width:84px; height:84px; margin:10px 0; }
