@@ -6,9 +6,8 @@ const cors = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Sends a web push to every subscribed device.
+// Sends a web push to the booking org's subscribed devices.
 // Called by a DB trigger when a client books online: { record: <appointment row> }
-// Manual test from anywhere:                          { test: true }
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
 
@@ -31,10 +30,10 @@ Deno.serve(async (req) => {
   let text = ''
   let orgId: string | null = null
 
-  if (body.test === true) {
-    title = '🔔 Balenco test'
-    text = 'Push notifications are working on this device.'
-  } else if (body.record?.id) {
+  // The unauthenticated global "test" path was removed — with no caller auth it
+  // blasted a push to every subscribed device of every org. Only the org-scoped
+  // { record } path (re-fetched + filtered by the appointment's org_id) remains.
+  if (body.record?.id) {
     // Never trust the payload's text — re-fetch the row so a spoofed request
     // can't push arbitrary content to the owner's phone.
     const { data: apt } = await sb.from('appointments')
@@ -51,7 +50,7 @@ Deno.serve(async (req) => {
     title = '📅 New booking request'
     text = `${apt.booker_name || 'A client'} requested "${apt.title}" on ${when}.`
   } else {
-    return new Response(JSON.stringify({ error: 'expected { record } or { test: true }' }), {
+    return new Response(JSON.stringify({ error: 'expected { record: { id } }' }), {
       status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
     })
   }

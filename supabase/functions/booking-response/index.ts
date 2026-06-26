@@ -5,6 +5,11 @@ const cors = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// HTML-escape any booker/settings-controlled value before interpolating into email markup.
+const esc = (value: unknown): string =>
+  String(value ?? '').replace(/[&<>"']/g, (ch) =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' } as Record<string, string>)[ch])
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
 
@@ -69,15 +74,15 @@ Deno.serve(async (req) => {
 <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:32px;text-align:center;background:#fff">
   <div style="font-size:56px;margin-bottom:16px">✅</div>
   <h2 style="color:#10b981;font-size:26px;margin:0 0 12px">Rendez-vous confirmé!</h2>
-  <p style="font-size:16px;color:#333">Bonjour <strong>${appt.booker_name}</strong>,</p>
-  <p style="font-size:15px;color:#333">Votre rendez-vous avec <strong>${company}</strong> est confirmé :</p>
+  <p style="font-size:16px;color:#333">Bonjour <strong>${esc(appt.booker_name)}</strong>,</p>
+  <p style="font-size:15px;color:#333">Votre rendez-vous avec <strong>${esc(company)}</strong> est confirmé :</p>
   <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:16px 24px;margin:20px 0;font-size:17px;font-weight:700;color:#166534">📅 ${dateStr}</div>
   <p style="font-size:13px;color:#888;margin-top:24px">Besoin de reporter? Contactez-nous directement.</p>
 </div>` : `
 <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:32px;text-align:center;background:#fff">
   <div style="font-size:56px;margin-bottom:16px">😔</div>
   <h2 style="color:#ef4444;font-size:26px;margin:0 0 12px">Toutes nos excuses</h2>
-  <p style="font-size:16px;color:#333">Bonjour <strong>${appt.booker_name}</strong>,</p>
+  <p style="font-size:16px;color:#333">Bonjour <strong>${esc(appt.booker_name)}</strong>,</p>
   <p style="font-size:15px;color:#333">Malheureusement, nous ne pouvons pas répondre à votre demande pour le <strong>${dateStr}</strong>.</p>
   <p style="font-size:15px;color:#555">Veuillez nous contacter directement pour trouver une autre plage horaire.</p>
 </div>`
