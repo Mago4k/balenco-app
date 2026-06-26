@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
       ? await sb.rpc('record_job_payment',    { p_job_id:      estimateId, p_amount: amount, p_session: session.id })
       : await sb.rpc('record_stripe_payment', { p_estimate_id: estimateId, p_amount: amount, p_session: session.id })
     if (rpcErr)        return new Response(JSON.stringify({ error: rpcErr.message }), { status: 500, headers: { 'Content-Type': 'application/json' } })
-    if (!rpc?.ok)      return new Response('Estimate not found', { status: 404 })
+    if (!rpc?.ok)      return new Response('Record not found', { status: 404 })
     if (rpc.duplicate) return new Response(JSON.stringify({ received: true, duplicate: true }), { headers: { 'Content-Type': 'application/json' } })
 
     // Record info for the owner notification
@@ -141,9 +141,10 @@ Deno.serve(async (req) => {
 
   // ── Email client confirmation ─────────────────────────────────
   if (est.client_id) {
-    const { data: clientRow } = await sb.from('clients').select('name,email').eq('id', est.client_id).single()
+    const { data: clientRow } = await sb.from('clients').select('name,email,portal_token').eq('id', est.client_id).single()
     if (clientRow?.email) {
-      const portalLink = `https://balenco.app/?client=${est.client_id}`
+      // Tokenized portal link — portal-data accepts the unguessable portal_token only.
+      const portalLink = `https://balenco.app/?client=${clientRow.portal_token}`
       await fetch('https://api.resend.com/emails', {
         method: 'POST',
         headers: {

@@ -47,14 +47,17 @@ Deno.serve(async (req) => {
 
   const clientIds = [...new Set((candidates || []).map((e: any) => e.client_id).filter(Boolean))]
   const { data: clientRows } = clientIds.length
-    ? await sb.from('clients').select('id,name,email').in('id', clientIds)
+    ? await sb.from('clients').select('id,name,email,portal_token').in('id', clientIds)
     : { data: [] }
   const clientById = new Map((clientRows || []).map((c: any) => [c.id, c]))
 
   const today = new Date().toISOString().slice(0, 10)
   const fmt = (n: number) => '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-  const sent: any[] = []
-  const skipped: any[] = []
+  // Counts only — never return per-record ids / titles / client emails in the
+  // HTTP response (this endpoint is reachable without auth; detail = cross-tenant leak).
+  let sentCount = 0
+  let skippedCount = 0
+  let wouldSendCount = 0
 
   for (const est of candidates || []) {
     const cfg = cfgFor(est.org_id)
@@ -62,12 +65,12 @@ Deno.serve(async (req) => {
     const ageDays = Math.floor((Date.now() - new Date(est.created_at).getTime()) / 86400000)
     const client = clientById.get(est.client_id)
 
-    if (!client?.email) { skipped.push({ id: est.id, title: est.title, reason: 'no client email' }); continue }
-    if (!onlyId && ageDays < followupDays) { skipped.push({ id: est.id, title: est.title, reason: `only ${ageDays}d old (needs ${followupDays}d)` }); continue }
-    if (!onlyId && est.expiry && est.expiry < today) { skipped.push({ id: est.id, title: est.title, reason: 'estimate expired' }); continue }
+    if (!client?.email) { skippedCount++; continue }
+    if (!onlyId && ageDays < followupDays) { skippedCount++; continue }
+    if (!onlyId && est.expiry && est.expiry < today) { skippedCount++; continue }
 
     if (dryRun) {
-      sent.push({ id: est.id, title: est.title, to: client.email, age_days: ageDays, dry_run: true })
+      wouldSendCount++
       continue
     }
 
@@ -75,7 +78,8 @@ Deno.serve(async (req) => {
     const total = subtotal * (1 + Number(cfg.tps ?? 5) / 100 + Number(cfg.tvq ?? 9.975) / 100)
     const deposit = Number(est.deposit || 0)
     const company = cfg.company || 'Balenco'
-    const portalLink = `https://balenco.app/?client=${est.client_id}`
+    // Tokenized portal link — portal-data accepts the unguessable portal_token only.
+    const portalLink = `https://balenco.app/?client=${client.portal_token}`
 
     const html = `
 <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#ffffff">
@@ -119,7 +123,8 @@ Deno.serve(async (req) => {
     })
 
     if (!sendRes.ok) {
-      skipped.push({ id: est.id, title: est.title, reason: 'email failed: ' + (await sendRes.text()).slice(0, 200) })
+      console.error('follow-up email failed for estimate', est.id, (await sendRes.text()).slice(0, 200))
+      skippedCount++
       continue
     }
 
@@ -130,10 +135,10 @@ Deno.serve(async (req) => {
       user_name: 'System',
       org_id: est.org_id,
     })
-    sent.push({ id: est.id, title: est.title, to: client.email, age_days: ageDays })
+    sentCount++
   }
 
-  return new Response(JSON.stringify({ dry_run: dryRun, checked: (candidates || []).length, sent, skipped }), {
+  return new Response(JSON.stringify({ dry_run: dryRun, checked: (candidates || []).length, sent: sentCount, skipped: skippedCount, would_send: wouldSendCount }), {
     headers: { ...cors, 'Content-Type': 'application/json' }
   })
 })

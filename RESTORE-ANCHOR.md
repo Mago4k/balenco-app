@@ -51,6 +51,29 @@ Backward-compatible (`kind:'job'` discriminator; estimate path unchanged). Rollb
 | stripe-webhook | 14 | **15** |
 | portal-data | 6 | **7** |
 
+## Phase 2a deploy log (2026-06-26) — portal tokenization + IDOR fix
+Closed an IDOR: `portal-data` accepted a raw primary key as a fallback credential, so any
+client/estimate UUID granted full portal/approval data on an unauthenticated endpoint. Now
+**token-only** (`portal_token` / `approval_token`). All six server-side senders were converted
+to emit tokenized links **first**, then the fallback was removed, so no in-flight link breaks.
+Each function deployed from **exact live source + the minimal token edit** (some local copies
+had drifted behind live; live was authoritative). `verify_jwt` preserved on every function.
+
+| Function | Prior (rollback) | Now live | Change |
+|---|---|---|---|
+| send-estimate | 23 | **24** | portal link → `portal_token` (verify_jwt=true) |
+| approve-estimate | 9 | **10** | portal link → `portal_token` |
+| stripe-webhook | 15 | **16** | deposit-confirm link → `portal_token` |
+| send-followups | 9 | **10** | portal link → `portal_token` (keeps counts-only leak fix) |
+| create-checkout | 7 | **8** | Stripe success/cancel → `approval_token` |
+| create-payment-checkout | 6 | **7** | Stripe success/cancel → client `portal_token` (fallback to app root) |
+| portal-data | 7 | **8** | removed raw-id fallback (token-only) — **deploy LAST** |
+
+Verified live: `portal-data` with a raw client/estimate id → **404**; with the token → **200**.
+Rollback any one by redeploying the prior version above. Frontend `|| id` link fallbacks
+(index.html 3690/4494/4737) are now dead code (all rows have tokens) — slated for cleanup in the UX push.
+
 ## Migration log
 - **30 — `jobs` table** (2026-06-19, applied live): additive only, 0 rows touched. New `public.jobs` + `assign_job_number()` + `trg_assign_job_number` + RLS `org_members_all`. **Rollback:** run [`20260619_0030_jobs_table_DOWN.sql`](supabase/migrations/20260619_0030_jobs_table_DOWN.sql) (drops table/function/trigger; estimates untouched).
 - **31 — `record_job_payment()`** (2026-06-19, applied live): additive new function, mirrors `record_stripe_payment` on `public.jobs`; execute locked to postgres + service_role. **Rollback:** run [`20260619_0031_record_job_payment_DOWN.sql`](supabase/migrations/20260619_0031_record_job_payment_DOWN.sql).
+- **32 — `record_manual_payment()` + grant lockdown** (2026-06-20, applied live): additive SECURITY INVOKER fn for atomic manual cash/cheque payments (estimate + job), idempotent by client payment id; closes a read-modify-write lost-update. Also revoked anon/authenticated EXECUTE on `assign_job_number` + `create_trial_subscription` (advisor fix). **Rollback:** [`20260620_0032_record_manual_payment_DOWN.sql`](supabase/migrations/20260620_0032_record_manual_payment_DOWN.sql) (drops the fn; grant revokes are intentional, not reversed).

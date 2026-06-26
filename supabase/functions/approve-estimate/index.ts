@@ -58,7 +58,8 @@ Deno.serve(async (req) => {
   const client = clientRes.data
   const cfg = cfgRes.data || {}
   const company = cfg.company || 'Your contractor'
-  const portalLink = `https://balenco.app/?client=${client_id}`
+  // Tokenized portal link — portal-data accepts the unguessable portal_token only.
+  const portalLink = `https://balenco.app/?client=${client?.portal_token}`
 
   const fmt = (n: number) => '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
   const subtotal = Number(est.subtotal || 0)

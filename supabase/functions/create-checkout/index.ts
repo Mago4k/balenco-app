@@ -57,8 +57,8 @@ Deno.serve(async (req) => {
       estimate_id,
       type: 'deposit',
     },
-    success_url: `https://balenco.app/?approve=${estimate_id}&paid=1`,
-    cancel_url:  `https://balenco.app/?approve=${estimate_id}`,
+    success_url: `https://balenco.app/?approve=${est.approval_token}&paid=1`,
+    cancel_url:  `https://balenco.app/?approve=${est.approval_token}`,
   })
 
   return new Response(JSON.stringify({ url: session.url }), {

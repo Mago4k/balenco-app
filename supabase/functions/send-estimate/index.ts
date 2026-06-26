@@ -81,7 +81,8 @@ Deno.serve(async (req) => {
   const total     = subtotal + tps + tvq
   const deposit   = Number(est.deposit || 0)
   const company   = cfg.company || 'Balenco'
-  const portalLink = `https://balenco.app/?client=${est.client_id}`
+  // Tokenized portal link — portal-data accepts the unguessable portal_token only.
+  const portalLink = `https://balenco.app/?client=${client.portal_token}`
 
   const items: any[] = est.line_items || []
   const itemRows = items.map((item: any) => `

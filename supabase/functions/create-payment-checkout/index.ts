@@ -51,6 +51,14 @@ Deno.serve(async (req) => {
   const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, { apiVersion: '2023-10-16' })
   const origin  = req.headers.get('origin') || 'https://balenco.app'
 
+  // Resolve the client's portal token so the post-payment redirect lands on the
+  // tokenized portal (portal-data no longer accepts raw client ids).
+  let portalToken = ''
+  if (client_id) {
+    const { data: clientRow } = await sb.from('clients').select('portal_token').eq('id', client_id).single()
+    portalToken = clientRow?.portal_token || ''
+  }
+
   const session = await stripe.checkout.sessions.create({
     mode: 'payment',
     currency: 'cad',
@@ -77,8 +85,8 @@ Deno.serve(async (req) => {
       type: 'partial_payment',
       amount: String(amtNum),
     },
-    success_url: `${origin}/?client=${client_id}&paid=1`,
-    cancel_url:  `${origin}/?client=${client_id}`,
+    success_url: portalToken ? `${origin}/?client=${portalToken}&paid=1` : `${origin}/?paid=1`,
+    cancel_url:  portalToken ? `${origin}/?client=${portalToken}` : `${origin}/`,
   })
 
   return new Response(JSON.stringify({ url: session.url }), {
