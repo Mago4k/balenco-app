@@ -58,6 +58,19 @@ Deno.serve(async (req) => {
     })
   }
 
+  // Mirror the app's billing gate server-side (client subOk): a lapsed plan can't
+  // spend email credits. Fail OPEN on a missing row, exactly like the UI, so a data
+  // hiccup never blocks a paying user.
+  const { data: sub } = await sb.from('subscriptions').select('status,trial_end').eq('org_id', est.org_id).maybeSingle()
+  const planOk = !sub
+    || sub.status === 'active' || sub.status === 'past_due'
+    || (sub.status === 'trialing' && sub.trial_end && new Date(sub.trial_end) > new Date())
+  if (!planOk) {
+    return new Response(JSON.stringify({ error: 'Your Balenco plan is inactive. Open Billing to choose a plan to keep sending estimates.' }), {
+      status: 402, headers: { ...cors, 'Content-Type': 'application/json' }
+    })
+  }
+
   const [clientRes, cfgRes] = await Promise.all([
     sb.from('clients').select('*').eq('id', est.client_id).single(),
     sb.from('settings').select('*').eq('org_id', est.org_id).maybeSingle(),

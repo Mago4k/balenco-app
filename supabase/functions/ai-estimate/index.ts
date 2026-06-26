@@ -43,6 +43,16 @@ Deno.serve(async (req) => {
   const { data: profile } = await sbAdmin.from('profiles').select('org_id').eq('id', user.id).maybeSingle()
   const orgId = profile?.org_id
   if (!orgId) return json({ error: 'Your account is not set up yet.' }, 403)
+
+  // Mirror the app's billing gate server-side (client subOk): a lapsed plan can't
+  // spend the shared Anthropic key. Fail OPEN on a missing row, exactly like the UI,
+  // so a data hiccup never locks out a paying user.
+  const { data: sub } = await sbAdmin.from('subscriptions').select('status,trial_end').eq('org_id', orgId).maybeSingle()
+  const planOk = !sub
+    || sub.status === 'active' || sub.status === 'past_due'
+    || (sub.status === 'trialing' && sub.trial_end && new Date(sub.trial_end) > new Date())
+  if (!planOk) return json({ error: 'Your Balenco plan is inactive. Open Billing to choose a plan and keep using AI estimates.' }, 402)
+
   const CAP = Number(Deno.env.get('AI_MONTHLY_CAP') || 50)
   const _now = new Date()
   const monthStart = new Date(Date.UTC(_now.getUTCFullYear(), _now.getUTCMonth(), 1)).toISOString()

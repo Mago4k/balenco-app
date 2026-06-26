@@ -43,6 +43,49 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ received: true }), { headers: { 'Content-Type': 'application/json' } })
   }
 
+  // ── Dunning: a subscription invoice failed → email the owner to update their card ──
+  if (event.type === 'invoice.payment_failed') {
+    const inv = event.data.object as Stripe.Invoice
+    const customerId = typeof inv.customer === 'string' ? inv.customer : inv.customer?.id
+    if (customerId) {
+      const { data: subRow } = await sb.from('subscriptions').select('org_id').eq('stripe_customer_id', customerId).maybeSingle()
+      if (subRow?.org_id) {
+        const { data: cfg } = await sb.from('settings').select('email,company').eq('org_id', subRow.org_id).maybeSingle()
+        if (cfg?.email) {
+          const fmt = (n: number) => '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+          const amount = inv.amount_due ? inv.amount_due / 100 : 0
+          await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${Deno.env.get('RESEND_API_KEY')}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: 'Balenco <notifications@mail.balenco.app>',
+              to:   cfg.email,
+              subject: 'Action requise — échec du paiement de votre abonnement Balenco',
+              html: `
+<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#fff">
+  <div style="background:#b91c1c;padding:24px 28px;border-radius:12px 12px 0 0">
+    <h2 style="color:#fff;margin:0;font-size:20px">⚠️ Paiement refusé</h2>
+  </div>
+  <div style="padding:24px 28px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px">
+    <p style="font-size:16px;color:#334155;margin:0 0 12px">Bonjour,</p>
+    <p style="font-size:15px;color:#64748b;margin:0 0 16px">Le paiement de votre abonnement Balenco${amount > 0 ? ` de <strong>${fmt(amount)}</strong>` : ''} n'a pas pu être traité. Veuillez mettre à jour votre moyen de paiement pour éviter toute interruption de service.</p>
+    <div style="text-align:center;margin:24px 0">
+      <a href="https://balenco.app/" style="background:#062A5E;color:#fff;text-decoration:none;padding:14px 30px;border-radius:10px;font-size:15px;font-weight:800;display:inline-block">Mettre à jour mon paiement →</a>
+    </div>
+    <p style="font-size:13px;color:#94a3b8;margin:0">Connectez-vous à Balenco et ouvrez la section Facturation. Stripe réessaiera automatiquement; après plusieurs échecs, l'accès aux fonctions payantes sera suspendu.</p>
+  </div>
+</div>`,
+            }),
+          })
+        }
+      }
+    }
+    return new Response(JSON.stringify({ received: true }), { headers: { 'Content-Type': 'application/json' } })
+  }
+
   if (event.type !== 'checkout.session.completed') {
     return new Response(JSON.stringify({ received: true }), {
       headers: { 'Content-Type': 'application/json' }

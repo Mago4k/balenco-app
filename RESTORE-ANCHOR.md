@@ -73,6 +73,28 @@ Verified live: `portal-data` with a raw client/estimate id → **404**; with the
 Rollback any one by redeploying the prior version above. Frontend `|| id` link fallbacks
 (index.html 3690/4494/4737) are now dead code (all rows have tokens) — slated for cleanup in the UX push.
 
+## Phase 2b deploy log (2026-06-26) — revenue protection (plan gate + dunning)
+Server-side billing enforcement + failed-payment dunning. The plan gate **mirrors the app's
+client `subOk()` exactly** — allow `active`/`past_due`, allow `trialing` only while `trial_end`
+is in the future, and **fail OPEN on a missing subscription row** (never lock out on unknown
+status). Both live orgs pass today (Balenco trial→2027, longnuts trial→2026-06-29), so nobody
+is locked out now; longnuts correctly gates after their trial ends.
+
+| Function | Prior (rollback) | Now live | Change |
+|---|---|---|---|
+| ai-estimate | 5 | **6** | server plan gate before spending the Anthropic key (402 if lapsed) |
+| send-estimate | 24 | **25** | server plan gate before sending email (402 if lapsed) |
+| stripe-webhook | 16 | **17** | new `invoice.payment_failed` handler → dunning email to owner |
+
+NOT gated on purpose: `create-checkout` / `create-payment-checkout` (client-initiated payments —
+blocking them would block the contractor's incoming money). Rollback any one by redeploying the
+prior version.
+
+> ⚠️ **Carlos — Stripe config needed for dunning:** the webhook only receives `invoice.payment_failed`
+> if that event is enabled on the Balenco webhook endpoint in the Stripe Dashboard
+> (Developers → Webhooks → your endpoint → "Select events"). Add `invoice.payment_failed`
+> (and optionally `invoice.payment_succeeded`) or the dunning handler is dead code.
+
 ## Migration log
 - **30 — `jobs` table** (2026-06-19, applied live): additive only, 0 rows touched. New `public.jobs` + `assign_job_number()` + `trg_assign_job_number` + RLS `org_members_all`. **Rollback:** run [`20260619_0030_jobs_table_DOWN.sql`](supabase/migrations/20260619_0030_jobs_table_DOWN.sql) (drops table/function/trigger; estimates untouched).
 - **31 — `record_job_payment()`** (2026-06-19, applied live): additive new function, mirrors `record_stripe_payment` on `public.jobs`; execute locked to postgres + service_role. **Rollback:** run [`20260619_0031_record_job_payment_DOWN.sql`](supabase/migrations/20260619_0031_record_job_payment_DOWN.sql).
