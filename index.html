@@ -3483,8 +3483,8 @@ Date: ${date(e.createdAt)}`;
       compressImage(file).then(compressed => {
         fetch(compressed).then(r => r.blob()).then(blob => {
           sb.storage.from('photos').upload(path, blob, { contentType: 'image/jpeg', upsert: false }).then(({ error }) => {
-            if (error) { toast('Upload failed: ' + error.message); finish(''); }
-            else { finish(path); }
+            if (error) { toast('Upload failed: ' + error.message); return; }
+            finish(path);
           });
         });
       });
@@ -3519,13 +3519,15 @@ Date: ${date(e.createdAt)}`;
     renderAll();
   }
 
-  function convertLead(id) {
+  async function convertLead(id) {
     const lead = state.leads.find(l => l.id === id);
     if (!lead) return;
     const c = { id:uid(), name:lead.name, phone:lead.phone, email:lead.email, address:'', project:lead.project, status:'Active', balance:0, createdBy:user, createdAt:new Date().toISOString() };
+    // Write the client FIRST — only mark the lead "Won" once the client row actually
+    // exists, so a failed insert can't leave a "Won" lead with no client behind it.
+    const { error:cErr } = await sb.from('clients').insert({ id:c.id, name:c.name, phone:c.phone, email:c.email, address:c.address, project:c.project, status:c.status, balance:c.balance, created_by:c.createdBy, created_at:c.createdAt, org_id:orgId });
+    if (cErr) { toast('Save error: ' + cErr.message); return; }
     state.clients.unshift(c);
-    sb.from('clients').insert({ id:c.id, name:c.name, phone:c.phone, email:c.email, address:c.address, project:c.project, status:c.status, balance:c.balance, created_by:c.createdBy, created_at:c.createdAt, org_id:orgId })
-      .then(({ error }) => { if (error) toast('Save error: ' + error.message); });
     lead.status = 'Won';
     sb.from('leads').update({ status:'Won' }).eq('id', id).then(({ error }) => { if (error) { console.error('lead convert failed:', error); toast('Save error: ' + error.message); } });
     log('Converted lead', `${user} converted ${lead.name} into a client.`);
@@ -3795,7 +3797,7 @@ Date: ${date(e.createdAt)}`;
       });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
-      e.status = 'Sent';
+      if (e.status !== 'Accepted') e.status = 'Sent';   // DB update is guarded with .neq('status','Accepted') — keep local state in sync so an already-Accepted quote isn't transiently dropped from revenue
       sb.from('estimates').update({ status: 'Sent', updated_at: new Date().toISOString() }).eq('id', e.id).neq('status', 'Accepted').then(({ error }) => { if (error) console.error('mark sent failed:', error); });
       save();
       renderAll();
@@ -3934,7 +3936,7 @@ Date: ${date(e.createdAt)}`;
     }
     if (!confirm(msg)) return;
     state[collection] = state[collection].filter(x => x.id !== id);
-    const _tbl = { clients:'clients', leads:'leads', estimates:'estimates', appointments:'appointments', photos:'photos' }[collection];
+    const _tbl = { clients:'clients', leads:'leads', estimates:'estimates', appointments:'appointments', photos:'photos', jobs:'jobs' }[collection];
     if (_tbl) sb.from(_tbl).delete().eq('id', id).then(({ error }) => { if (error) { console.error('delete failed:', error); toast('Delete error: ' + error.message); } });
     log('Deleted item', `${user} deleted ${nm || 'an item'} from ${collection}.`);
     save();
@@ -4174,6 +4176,7 @@ Date: ${date(e.createdAt)}`;
       .on('postgres_changes', { event:'*', schema:'public', table:'estimates' },   refetch)
       .on('postgres_changes', { event:'*', schema:'public', table:'appointments' },refetch)
       .on('postgres_changes', { event:'*', schema:'public', table:'photos' },      refetch)
+      .on('postgres_changes', { event:'*', schema:'public', table:'jobs' },        refetch)
       .on('postgres_changes', { event:'*', schema:'public', table:'logs' },        refetch)
       .subscribe();
   }
@@ -4528,7 +4531,10 @@ Date: ${date(e.createdAt)}`;
         e.status || ''
       ]);
     });
-    const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
+    // Guard against spreadsheet formula injection: a cell starting with = + - @ (or a
+    // leading tab/CR) is executed as a formula by Excel/Sheets — prefix it with a quote.
+    const csvCell = function(v){ var s = String(v); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
+    const csv = rows.map(r => r.map(csvCell).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -4974,7 +4980,7 @@ Date: ${date(e.createdAt)}`;
       document.getElementById('bkCompanyName').textContent = t('bkp.bookWith') + ' ' + data.settings.company;
       document.title = t('bkp.bookWith') + ' ' + data.settings.company;
       if (data.settings.logo) {
-        document.getElementById('bkLogo').innerHTML = '<img src="' + data.settings.logo + '" style="width:100%;height:100%;object-fit:contain">';
+        document.getElementById('bkLogo').innerHTML = '<img src="' + esc(data.settings.logo) + '" style="width:100%;height:100%;object-fit:contain">';
       }
     }
 
