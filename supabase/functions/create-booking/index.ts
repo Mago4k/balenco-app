@@ -67,6 +67,37 @@ Deno.serve(async (req) => {
   const slotMin: number = avail.slot_minutes
   const end = new Date(start.getTime() + slotMin * 60000)
 
+  // Re-validate the requested slot server-side against the org's own availability
+  // rules — never trust the client's date/time. Mirrors get-slots so a booking
+  // can't be placed in the past, on a non-working day, outside business hours, or
+  // off the slot grid (defends the public, unauthenticated endpoint).
+  if (isNaN(start.getTime())) {
+    return new Response(JSON.stringify({ error: 'Invalid date or time.' }), {
+      status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
+    })
+  }
+  const cutoff = new Date(Date.now() + 60 * 60 * 1000) // 1-hour buffer, matches get-slots
+  const [vy, vmo, vd] = String(date).split('-').map(Number)
+  const dow = new Date(Date.UTC(vy, (vmo || 1) - 1, vd || 1)).getUTCDay() // 0=Sun..6=Sat calendar weekday
+  const [vh, vmi] = String(time).split(':').map(Number)
+  const reqMin = (vh || 0) * 60 + (vmi || 0)
+  const [ash, asm] = String(avail.start_time || '09:00').split(':').map(Number)
+  const [aeh, aem] = String(avail.end_time || '17:00').split(':').map(Number)
+  const winStart = ash * 60 + asm
+  const winEnd = aeh * 60 + aem
+  const workingDays: number[] = Array.isArray(avail.working_days) ? avail.working_days : []
+  const slotValid =
+    start > cutoff &&
+    workingDays.includes(dow) &&
+    reqMin >= winStart &&
+    reqMin + slotMin <= winEnd &&
+    (reqMin - winStart) % slotMin === 0
+  if (!slotValid) {
+    return new Response(JSON.stringify({ error: "That time isn't available. Please pick a slot from the calendar." }), {
+      status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
+    })
+  }
+
   // Race-condition check — verify slot is still open
   const { data: conflict } = await sb.from('appointments')
     .select('id')
