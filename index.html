@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com https://browser.sentry-cdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://wvqqazdzejjksjcjdbcm.supabase.co wss://wvqqazdzejjksjcjdbcm.supabase.co https://o4511572006731776.ingest.us.sentry.io; worker-src 'self'; object-src 'none'; base-uri 'self'">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#062A5E">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1845,6 +1846,26 @@ html.lp-show #login { display:none; }
     setTimeout(() => { el.style.display = 'none'; }, 2200);
   }
 
+  // Turn a Supabase/Postgres error into a short, friendly, bilingual message —
+  // users should never see raw SQL. The raw error is kept in the console.
+  function friendlyError(err) {
+    try { console.error('[balenco]', err); } catch (e) {}
+    var m = (err && (err.message || err.error_description || err.msg || err.hint)) || (typeof err === 'string' ? err : '');
+    var code = err && err.code;
+    var fr = (lang === 'fr');
+    if (/Failed to fetch|NetworkError|network ?error|timeout|offline/i.test(m))
+      return fr ? "Problème de connexion. Vérifiez votre Internet et réessayez." : "Connection problem — check your internet and try again.";
+    if (code === '42501' || /permission denied|row-level security|violates row-level/i.test(m))
+      return fr ? "Vous n'avez pas la permission d'effectuer cette action." : "You don't have permission to do that.";
+    if (code === '23505' || /duplicate key|already exists|unique constraint/i.test(m))
+      return fr ? "Cet élément existe déjà." : "That already exists.";
+    if (code === '23503' || /foreign key/i.test(m))
+      return fr ? "Impossible : cet élément est lié à d'autres données." : "Can't do that — this item is linked to other records.";
+    if (code === '23502' || code === '23514' || /null value|check constraint|invalid input/i.test(m))
+      return fr ? "Certaines informations sont manquantes ou invalides." : "Some information is missing or invalid.";
+    return fr ? "Une erreur s'est produite. Veuillez réessayer." : "Something went wrong. Please try again.";
+  }
+
   function showSignIn() {
     $('panelSignIn').style.display = '';
     $('panelSignUp').style.display = 'none';
@@ -2824,7 +2845,7 @@ Date: ${date(e.createdAt)}`;
     const newToken = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : null;
     if (!newToken) { toast('Not supported on this browser'); return; }
     const { error } = await sb.from('orgs').update({ join_token: newToken }).eq('id', orgId);
-    if (error) { toast('Error: ' + error.message); return; }
+    if (error) { toast(friendlyError(error)); return; }
     await renderInviteLink();
     toast('New invite link generated');
   }
@@ -3097,7 +3118,7 @@ Date: ${date(e.createdAt)}`;
         log('Push enabled', `${user} turned on booking alerts on a device.`);
       }
     } catch (e) {
-      toast('Could not update notifications: ' + (e.message || e));
+      toast(friendlyError(e));
     }
     btn.disabled = false;
     refreshPushUI();
@@ -3107,7 +3128,7 @@ Date: ${date(e.createdAt)}`;
     event.preventDefault();
     const lead = { id:uid(), name:$('leadName').value, phone:$('leadPhone').value, email:$('leadEmail').value, source:$('leadSource').value, project:$('leadProject').value, status:$('leadStatus').value, notes:$('leadNotes').value, createdBy:user, createdAt:new Date().toISOString() };
     state.leads.unshift(lead);
-    sb.from('leads').insert({ id:lead.id, name:lead.name, phone:lead.phone, email:lead.email, source:lead.source, project:lead.project, status:lead.status, notes:lead.notes, created_by:lead.createdBy, created_at:lead.createdAt, org_id:orgId }).then(({ error }) => { if (error) { console.error('lead insert failed:', error); toast('Save error: ' + error.message); } });
+    sb.from('leads').insert({ id:lead.id, name:lead.name, phone:lead.phone, email:lead.email, source:lead.source, project:lead.project, status:lead.status, notes:lead.notes, created_by:lead.createdBy, created_at:lead.createdAt, org_id:orgId }).then(({ error }) => { if (error) { console.error('lead insert failed:', error); toast(friendlyError(error)); } });
     log('Added lead', `${user} added ${lead.name} from ${lead.source}.`);
     save();
     event.target.reset();
@@ -3122,7 +3143,7 @@ Date: ${date(e.createdAt)}`;
       if (c) {
         c.name = $('clientNameInput').value; c.phone = $('clientPhone').value; c.email = $('clientEmail').value; c.address = $('clientAddress').value; c.project = $('clientProject').value; c.status = $('clientStatus').value;
         sb.from('clients').update({ name:c.name, phone:c.phone, email:c.email, address:c.address, project:c.project, status:c.status }).eq('id', c.id)
-          .then(({ error }) => { if (error) { toast('Save error: ' + error.message); console.error('Client update error:', error); } });
+          .then(({ error }) => { if (error) { toast(friendlyError(error)); console.error('Client update error:', error); } });
         log('Updated client', `${user} updated ${c.name}.`);
         save();
       }
@@ -3134,7 +3155,7 @@ Date: ${date(e.createdAt)}`;
     const c = { id:uid(), name:$('clientNameInput').value, phone:$('clientPhone').value, email:$('clientEmail').value, address:$('clientAddress').value, project:$('clientProject').value, status:$('clientStatus').value, balance:0, createdBy:user, createdAt:new Date().toISOString() };
     state.clients.unshift(c);
     sb.from('clients').insert({ id:c.id, name:c.name, phone:c.phone, email:c.email, address:c.address, project:c.project, status:c.status, balance:c.balance, created_by:c.createdBy, created_at:c.createdAt, org_id:orgId })
-      .then(({ error }) => { if (error) { toast('Save error: ' + error.message); console.error('Client insert error:', error); } });
+      .then(({ error }) => { if (error) { toast(friendlyError(error)); console.error('Client insert error:', error); } });
     log('Added client', `${user} added ${c.name}.`);
     save();
     event.target.reset();
@@ -3348,7 +3369,7 @@ Date: ${date(e.createdAt)}`;
     // phantom row in the UI that vanishes on reload.
     sb.from('estimates').insert({ id:e.id, client_id:e.clientId, title:e.title, line_items:e.line_items||[], payments:[], subtotal:e.subtotal, deposit:e.deposit, payment_schedule:e.paymentSchedule, payment_notes:e.paymentNotes, approved_by:'', approved_at:null, status:e.status, scope:e.scope, expiry:e.expiry||null, created_by:e.createdBy, created_at:e.createdAt, updated_by:e.updatedBy, updated_at:e.updatedAt, org_id:orgId }).select('estimate_number').single().then(function(res){
       if (_sbtn) _sbtn.disabled = false;
-      if (res.error) { toast('Save error: ' + res.error.message); return; }
+      if (res.error) { toast(friendlyError(res.error)); return; }
       if (res.data) e.estimateNumber = res.data.estimate_number;
       state.estimates.unshift(e);
       log('Created estimate', `${user} created ${e.title} for ${clientName(e.clientId)}.`);
@@ -3379,7 +3400,7 @@ Date: ${date(e.createdAt)}`;
     // Insert first; surface the row only once the DB confirms (with its atomic per-org job number).
     sb.from('jobs').insert({ id:j.id, client_id:j.clientId, title:j.title, line_items:j.line_items||[], payments:[], subtotal:j.subtotal, deposit:j.deposit, payment_schedule:j.paymentSchedule, payment_notes:j.paymentNotes, status:j.status, scope:j.scope, created_by:j.createdBy, created_at:j.createdAt, updated_by:j.updatedBy, updated_at:j.updatedAt, org_id:orgId }).select('job_number').single().then(function(res){
       if (_sbtn) _sbtn.disabled = false;
-      if (res.error) { toast('Save error: ' + res.error.message); return; }
+      if (res.error) { toast(friendlyError(res.error)); return; }
       if (res.data) j.jobNumber = res.data.job_number;
       state.jobs.unshift(j);
       log('Created job', `${user} created job ${j.title} for ${clientName(j.clientId)}.`);
@@ -3398,7 +3419,7 @@ Date: ${date(e.createdAt)}`;
     const a = { id:uid(), title:$('apptTitle').value, clientId:$('apptClient').value, start:$('apptStart').value, end:$('apptEnd').value, location:$('apptLocation').value, notes:$('apptNotes').value, reminder24:$('apptReminder24').checked, reminderSent:false, recurring, recurringEnd, recurringParentId:null, createdBy:user, createdAt:new Date().toISOString() };
     if (a.start && a.end && new Date(a.end) < new Date(a.start)) { toast(lang === 'fr' ? 'L’heure de fin est avant le début.' : 'End time is before the start time.'); return; }
     state.appointments.unshift(a);
-    sb.from('appointments').insert({ id:a.id, title:a.title, client_id:a.clientId, start_time:a.start?new Date(a.start).toISOString():null, end_time:a.end?new Date(a.end).toISOString():null, location:a.location, notes:a.notes, reminder24:a.reminder24, reminder_sent:false, recurring:a.recurring||null, recurring_end:a.recurringEnd||null, recurring_parent_id:null, created_by:a.createdBy, created_at:a.createdAt, org_id:orgId }).then(({ error }) => { if (error) { console.error('appointment insert failed:', error); toast('Save error: ' + error.message); } });
+    sb.from('appointments').insert({ id:a.id, title:a.title, client_id:a.clientId, start_time:a.start?new Date(a.start).toISOString():null, end_time:a.end?new Date(a.end).toISOString():null, location:a.location, notes:a.notes, reminder24:a.reminder24, reminder_sent:false, recurring:a.recurring||null, recurring_end:a.recurringEnd||null, recurring_parent_id:null, created_by:a.createdBy, created_at:a.createdAt, org_id:orgId }).then(({ error }) => { if (error) { console.error('appointment insert failed:', error); toast(friendlyError(error)); } });
     if (recurring) generateRecurringInstances(a, recurring, recurringEnd);
     log('Created appointment', `${user} created appointment ${a.title} for ${clientName(a.clientId)}.`);
     save();
@@ -3434,7 +3455,7 @@ Date: ${date(e.createdAt)}`;
       rows.push({ id:inst.id, title:inst.title, client_id:inst.clientId, start_time:inst.start, end_time:inst.end||null, location:inst.location, notes:inst.notes, reminder24:inst.reminder24, reminder_sent:false, recurring:inst.recurring||null, recurring_end:inst.recurringEnd||null, recurring_parent_id:inst.recurringParentId, created_by:inst.createdBy, created_at:inst.createdAt, org_id:orgId });
     }
     if (rows.length) {
-      sb.from('appointments').insert(rows).then(({ error }) => { if (error) toast('Recurring save error: ' + error.message); });
+      sb.from('appointments').insert(rows).then(({ error }) => { if (error) toast(friendlyError(error)); });
     }
   }
 
@@ -3471,7 +3492,7 @@ Date: ${date(e.createdAt)}`;
       const p = { id:uid(), clientId, type, notes, data:dataUrl, createdBy:user, createdAt:new Date().toISOString() };
       state.photos.unshift(p);
       sb.from('photos').insert({ id:p.id, client_id:p.clientId, type:p.type, notes:p.notes, storage_path:dataUrl, created_by:p.createdBy, created_at:p.createdAt, org_id:orgId })
-        .then(({ error }) => { if (error) toast('Photo save error: ' + error.message); });
+        .then(({ error }) => { if (error) toast(friendlyError(error)); });
       log('Uploaded photo', `${user} uploaded photo for ${clientName(p.clientId)}.`);
       event.target.reset();
       renderAll();
@@ -3483,7 +3504,7 @@ Date: ${date(e.createdAt)}`;
       compressImage(file).then(compressed => {
         fetch(compressed).then(r => r.blob()).then(blob => {
           sb.storage.from('photos').upload(path, blob, { contentType: 'image/jpeg', upsert: false }).then(({ error }) => {
-            if (error) { toast('Upload failed: ' + error.message); return; }
+            if (error) { toast(friendlyError(error)); return; }
             finish(path);
           });
         });
@@ -3511,7 +3532,7 @@ Date: ${date(e.createdAt)}`;
     };
     sb.from('settings').upsert({ org_id:orgId, company:state.settings.company, email:state.settings.email, phone:state.settings.phone, address:state.settings.address, tps:state.settings.tps, tvq:state.settings.tvq, logo:state.settings.logo, terms:state.settings.terms, gst_number:state.settings.gstNumber, qst_number:state.settings.qstNumber, rbq_number:state.settings.rbqNumber, neq_number:state.settings.neqNumber, payment_instructions:state.settings.paymentInstructions, followup_days:state.settings.followupDays }, { onConflict:'org_id' })
       .then(({ error }) => {
-        if (error) { console.error('settings upsert failed:', error); toast('Could not save settings: ' + error.message); return; }
+        if (error) { toast(friendlyError(error)); return; }
         toast('Settings saved');
       });
     log('Updated settings', `${user} updated company settings.`);
@@ -3526,10 +3547,10 @@ Date: ${date(e.createdAt)}`;
     // Write the client FIRST — only mark the lead "Won" once the client row actually
     // exists, so a failed insert can't leave a "Won" lead with no client behind it.
     const { error:cErr } = await sb.from('clients').insert({ id:c.id, name:c.name, phone:c.phone, email:c.email, address:c.address, project:c.project, status:c.status, balance:c.balance, created_by:c.createdBy, created_at:c.createdAt, org_id:orgId });
-    if (cErr) { toast('Save error: ' + cErr.message); return; }
+    if (cErr) { toast(friendlyError(cErr)); return; }
     state.clients.unshift(c);
     lead.status = 'Won';
-    sb.from('leads').update({ status:'Won' }).eq('id', id).then(({ error }) => { if (error) { console.error('lead convert failed:', error); toast('Save error: ' + error.message); } });
+    sb.from('leads').update({ status:'Won' }).eq('id', id).then(({ error }) => { if (error) { console.error('lead convert failed:', error); toast(friendlyError(error)); } });
     log('Converted lead', `${user} converted ${lead.name} into a client.`);
     save();
     renderAll();
@@ -3547,7 +3568,7 @@ Date: ${date(e.createdAt)}`;
     const lead = state.leads.find(l => l.id === id);
     if (!lead) return;
     lead.status = status;
-    sb.from('leads').update({ status }).eq('id', id).then(({ error }) => { if (error) { console.error('lead status failed:', error); toast('Save error: ' + error.message); } });
+    sb.from('leads').update({ status }).eq('id', id).then(({ error }) => { if (error) { console.error('lead status failed:', error); toast(friendlyError(error)); } });
     log('Updated lead', `${user} marked ${lead.name} as ${status}.`);
     save();
     renderAll();
@@ -3560,7 +3581,7 @@ Date: ${date(e.createdAt)}`;
     e.updatedBy = user;
     e.updatedAt = new Date().toISOString();
     sb.from('estimates').update({ status, updated_by:user, updated_at:e.updatedAt }).eq('id', id)
-      .then(function(res){ if(res.error) toast('Save error: ' + res.error.message); });
+      .then(function(res){ if(res.error) toast(friendlyError(res.error)); });
     log('Updated estimate', `${user} marked ${e.title} as ${status}.`);
     save();
     renderAll();
@@ -3614,7 +3635,7 @@ Date: ${date(e.createdAt)}`;
     const _pid = uid();
     sb.rpc('record_manual_payment', { p_kind:'estimate', p_id:e.id, p_payment_id:_pid, p_amount:amount, p_note:note, p_by:user })
       .then(function(res){
-        if (res.error) { toast('Save error: ' + res.error.message); return; }
+        if (res.error) { toast(friendlyError(res.error)); return; }
         if (res.data && res.data.ok === false) { toast(lang === 'fr' ? 'Soumission introuvable' : 'Estimate not found'); return; }
         e.payments = e.payments || [];
         if (!(res.data && res.data.duplicate)) e.payments.push({ id:_pid, amount:amount, note:note, date:new Date().toISOString(), by:user });
@@ -3639,7 +3660,7 @@ Date: ${date(e.createdAt)}`;
     const _note = (lang === 'fr' ? 'Paiement manuel' : 'Manual payment');
     sb.rpc('record_manual_payment', { p_kind:'job', p_id:j.id, p_payment_id:_pid, p_amount:amount, p_note:_note, p_by:user })
       .then(function(res){
-        if (res.error) { toast('Save error: ' + res.error.message); return; }
+        if (res.error) { toast(friendlyError(res.error)); return; }
         if (res.data && res.data.ok === false) { toast(lang === 'fr' ? 'Job introuvable' : 'Job not found'); return; }
         j.payments = j.payments || [];
         if (!(res.data && res.data.duplicate)) j.payments.push({ id:_pid, amount:amount, note:_note, date:new Date().toISOString(), by:user });
@@ -3660,7 +3681,7 @@ Date: ${date(e.createdAt)}`;
     e.updatedBy = user;
     e.updatedAt = new Date().toISOString();
     sb.from('estimates').update({ status:'Accepted', approved_by:name, approved_at:e.approvedAt, updated_by:user, updated_at:e.updatedAt }).eq('id', e.id)
-      .then(function(res){ if(res.error) toast('Save error: ' + res.error.message); });
+      .then(function(res){ if(res.error) toast(friendlyError(res.error)); });
     log('Client approved estimate', `${name} approved ${e.title}.`);
     save();
     renderAll();
@@ -3886,7 +3907,7 @@ Date: ${date(e.createdAt)}`;
     const reader = new FileReader();
     reader.onload = () => {
       state.settings.logo = reader.result;
-      sb.from('settings').upsert({ org_id:orgId, logo:state.settings.logo }, { onConflict:'org_id' }).then(({ error }) => { if (error) { console.error('logo save failed:', error); toast('Logo save error: ' + error.message); } });
+      sb.from('settings').upsert({ org_id:orgId, logo:state.settings.logo }, { onConflict:'org_id' }).then(({ error }) => { if (error) { toast(friendlyError(error)); } });
       renderAll();
       toast('Company logo uploaded');
     };
@@ -3895,7 +3916,7 @@ Date: ${date(e.createdAt)}`;
 
   function clearCompanyLogo() {
     state.settings.logo = '';
-    sb.from('settings').upsert({ org_id:orgId, logo:'' }, { onConflict:'org_id' }).then(({ error }) => { if (error) { console.error('logo remove failed:', error); toast('Logo error: ' + error.message); } });
+    sb.from('settings').upsert({ org_id:orgId, logo:'' }, { onConflict:'org_id' }).then(({ error }) => { if (error) { toast(friendlyError(error)); } });
     renderAll();
     toast('Company logo removed');
   }
@@ -3905,7 +3926,7 @@ Date: ${date(e.createdAt)}`;
     if (!c) return;
     const pr = { id:uid(), title:'Payment follow-up', clientId:id, start:new Date(Date.now()+86400000).toISOString(), end:'', location:c.address, notes:`Follow up for open balance of ${money(c.balance)}`, createdBy:user, createdAt:new Date().toISOString() };
     state.appointments.unshift(pr);
-    sb.from('appointments').insert({ id:pr.id, title:pr.title, client_id:pr.clientId, start_time:pr.start, end_time:null, location:pr.location, notes:pr.notes, reminder24:true, reminder_sent:false, created_by:pr.createdBy, created_at:pr.createdAt, org_id:orgId }).then(({ error }) => { if (error) { console.error('payment follow-up failed:', error); toast('Save error: ' + error.message); } });
+    sb.from('appointments').insert({ id:pr.id, title:pr.title, client_id:pr.clientId, start_time:pr.start, end_time:null, location:pr.location, notes:pr.notes, reminder24:true, reminder_sent:false, created_by:pr.createdBy, created_at:pr.createdAt, org_id:orgId }).then(({ error }) => { if (error) { console.error('payment follow-up failed:', error); toast(friendlyError(error)); } });
     log('Created payment follow-up', `${user} created payment follow-up for ${c.name}.`);
     save();
     renderAll();
@@ -3937,7 +3958,7 @@ Date: ${date(e.createdAt)}`;
     if (!confirm(msg)) return;
     state[collection] = state[collection].filter(x => x.id !== id);
     const _tbl = { clients:'clients', leads:'leads', estimates:'estimates', appointments:'appointments', photos:'photos', jobs:'jobs' }[collection];
-    if (_tbl) sb.from(_tbl).delete().eq('id', id).then(({ error }) => { if (error) { console.error('delete failed:', error); toast('Delete error: ' + error.message); } });
+    if (_tbl) sb.from(_tbl).delete().eq('id', id).then(({ error }) => { if (error) { toast(friendlyError(error)); } });
     log('Deleted item', `${user} deleted ${nm || 'an item'} from ${collection}.`);
     save();
     renderAll();
@@ -4044,7 +4065,7 @@ Date: ${date(e.createdAt)}`;
       sb.from('appointments').delete().eq('recurring_parent_id', parentId)
     ]).then(results => {
       const err = results.find(r => r.error);
-      if (err) toast('Delete series error: ' + err.error.message);
+      if (err) toast(friendlyError(err.error));
     });
     log('Deleted series', `${user} deleted recurring series (parent ${parentId}).`);
     save();
@@ -4066,7 +4087,7 @@ Date: ${date(e.createdAt)}`;
     renderAll();
     const { error } = await sb.functions.invoke('booking-response', { body: { appointment_id:id, action } });
     if (error) {
-      toast('Error: ' + error.message);
+      toast(friendlyError(error));
       a.bookingStatus = 'pending';
       renderAll();
     } else {
@@ -4102,12 +4123,12 @@ Date: ${date(e.createdAt)}`;
     let newId;
     if (state.availability && state.availability.id) {
       const { error } = await sb.from('availability').update(rec).eq('id', state.availability.id);
-      if (error) { toast('Error: ' + error.message); return; }
+      if (error) { toast(friendlyError(error)); return; }
       newId = state.availability.id;
     } else {
       newId = uid();
       const { error } = await sb.from('availability').insert({ id:newId, ...rec, created_at:new Date().toISOString() });
-      if (error) { toast('Error: ' + error.message); return; }
+      if (error) { toast(friendlyError(error)); return; }
     }
     state.availability = { id:newId, enabled, workingDays:days, startTime, endTime, slotMinutes };
     renderBookingSettings();
@@ -4735,7 +4756,7 @@ Date: ${date(e.createdAt)}`;
 
       content.innerHTML = html;
     } catch (err) {
-      content.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger)"><strong>' + t('portal.failLoad') + '</strong><br><span style="font-size:14px;color:var(--muted)">' + esc(err.message) + '</span></div>';
+      content.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger)"><strong>' + t('portal.failLoad') + '</strong></div>';
     }
     return true;
   }
@@ -4813,7 +4834,7 @@ Date: ${date(e.createdAt)}`;
           '</div>';
       }
     } catch (err) {
-      content.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger)"><strong>' + t('appr.failLoad') + '</strong><br><span style="font-size:14px;color:var(--muted)">' + esc(err.message) + '</span></div>';
+      content.innerHTML = '<div style="text-align:center;padding:40px;color:var(--danger)"><strong>' + t('appr.failLoad') + '</strong></div>';
     }
     return true;
   }
