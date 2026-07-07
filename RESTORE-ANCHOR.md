@@ -95,6 +95,31 @@ prior version.
 > (Developers → Webhooks → your endpoint → "Select events"). Add `invoice.payment_failed`
 > (and optionally `invoice.payment_succeeded`) or the dunning handler is dead code.
 
+## Phase 3 audit-fix log (2026-07-07) — fresh 3-agent security/bug audit + fixes
+Full re-audit (frontend / edge fns / DB, cross-verified against live). Applied + live:
+
+**Frontend (index.html, SW v63→v64, commit 543cb1a):**
+- **[HIGH] Jobs could never be deleted** — `deleteItem`'s table map omitted `jobs`, so a
+  "deleted" job stayed in the DB and resurrected on the next realtime refetch, permanently
+  inflating revenue/tax/every balance. Added `jobs` to the delete map + the realtime channel.
+- `convertLead` rewritten write-first (a failed client insert can't orphan a "Won" lead).
+- `emailEstimate` no longer locally downgrades an Accepted estimate to Sent (revenue flicker).
+- Booking-page logo escaped; CSV export formula-injection guard; photo-upload-failure no
+  longer creates an empty record + false "saved" toast.
+
+**Edge (`send-reminders` 11→12):** was deployed-only (no local file = the drift source). Added
+`esc()` on all email fields, **per-org settings** (was global-only → cross-tenant branding leak +
+wrong From), verified sending domain, counts-only response. Local file created. verify_jwt=true kept.
+
+**DB (migration `20260707_0034`, applied live + verified):** `record_manual_payment` now rejects
+non-positive amounts (the one payment RPC callable directly by authenticated users);
+`jobs` got `UNIQUE(org_id, job_number)` to match estimates. **Rollback:** run the `_DOWN.sql`.
+
+**Declined (agent-suggested but UNSAFE):** revoking `authenticated` EXECUTE on
+`current_org_id`/`current_user_name`/`current_user_role` — they're invoked *inside RLS policies*,
+so revoking would lock every authenticated user out of every table. Left as-is (they only ever
+return the caller's own org/name/role). The advisor warning is a false-positive for this pattern.
+
 ## Migration log
 - **30 — `jobs` table** (2026-06-19, applied live): additive only, 0 rows touched. New `public.jobs` + `assign_job_number()` + `trg_assign_job_number` + RLS `org_members_all`. **Rollback:** run [`20260619_0030_jobs_table_DOWN.sql`](supabase/migrations/20260619_0030_jobs_table_DOWN.sql) (drops table/function/trigger; estimates untouched).
 - **31 — `record_job_payment()`** (2026-06-19, applied live): additive new function, mirrors `record_stripe_payment` on `public.jobs`; execute locked to postgres + service_role. **Rollback:** run [`20260619_0031_record_job_payment_DOWN.sql`](supabase/migrations/20260619_0031_record_job_payment_DOWN.sql).
