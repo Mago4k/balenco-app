@@ -531,6 +531,24 @@ html.lp-show #login { display:none; }
   .dash-panels { grid-template-columns:1fr; }
   .dash-bento > *, .dash-panels > *, .dash-chips > * { min-width:0; }
 }
+@media(max-width:720px){
+  /* Stack the two-column "form | list" pages. Clients/Calendar/Photos set the column
+     ratio with an inline style, so only !important can override it on a phone. */
+  .grid2 { grid-template-columns:1fr !important; }
+  /* Let cards + form-grid items shrink to the viewport rather than force overflow. */
+  .card { min-width:0; }
+  .form, .form2 { min-width:0; }
+  .form2 > * { min-width:0; }
+  /* Line-item editor fits a phone: shrinkable inputs, tighter number columns, and the
+     table scrolls inside its own wrap as a last resort instead of pushing the page. */
+  .line-items-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  .line-items-edit td input { min-width:0; }
+  .line-items-edit td.li-qty input { width:42px; }
+  .line-items-edit td.li-price input { width:64px; }
+  .line-items-edit td.li-total { min-width:52px; }
+  /* Two stat chips per row so real dollar amounts aren't clipped. */
+  .dash-chips { grid-template-columns:1fr 1fr; }
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://unpkg.com/lucide@1.21.0/dist/umd/lucide.min.js"></script>
