@@ -548,6 +548,21 @@ html.lp-show #login { display:none; }
   .line-items-edit td.li-total { min-width:52px; }
   /* Two stat chips per row so real dollar amounts aren't clipped. */
   .dash-chips { grid-template-columns:1fr 1fr; }
+  /* Wide list tables (.table) become stacked cards on a phone instead of a
+     sideways-scrolling grid. Each cell shows its column name via data-label. */
+  .table { border:0; background:transparent; overflow:visible; }
+  .table table, .table tbody, .table tr, .table td { display:block; width:auto; }
+  .table thead { display:none; }
+  .table tr { background:var(--surface); border:1px solid var(--line); border-radius:14px; padding:10px 14px; margin-bottom:10px; }
+  .table td { display:flex; justify-content:space-between; align-items:center; gap:14px; padding:5px 0; border:0; text-align:right; }
+  .table td::before { content:attr(data-label); font-weight:600; color:var(--muted); text-align:left; flex-shrink:0; }
+  .table td:first-child { display:block; text-align:left; font-size:16px; font-weight:800; padding:0 0 8px; margin-bottom:6px; border-bottom:1px solid var(--line); }
+  .table td:first-child::before { content:none; }
+  .table td.right { display:block; text-align:left; padding-top:8px; }
+  .table td.right::before { content:none; }
+  .table td.right .actions { display:flex; flex-wrap:wrap; gap:6px; }
+  .table td[colspan] { display:block; text-align:center; font-weight:400; font-size:14px; border-bottom:0; padding:6px 0; }
+  .table td[colspan]::before { content:none; }
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2382,12 +2397,12 @@ html.lp-show #login { display:none; }
       return `
         <tr>
           <td><strong>${esc(e.title)}</strong><br><span class="muted">${esc(e.scope)}</span></td>
-          <td>${esc(clientName(e.clientId))}</td>
-          <td>${money(e.subtotal)}</td>
-          <td>${money(tax.tps + tax.tvq)}</td>
-          <td><strong>${money(tax.total)}</strong></td>
-          <td><span class="pill ${statusClass(e.status)}">${esc(tStatus(e.status))}</span>${followUpBadge}</td>
-          <td class="owner-only">${esc(e.createdBy)}<br><span class="muted">${date(e.createdAt)}</span></td>
+          <td data-label="${t('doc.client')}">${esc(clientName(e.clientId))}</td>
+          <td data-label="${t('doc.subtotal')}">${money(e.subtotal)}</td>
+          <td data-label="${t('es.thTaxes')}">${money(tax.tps + tax.tvq)}</td>
+          <td data-label="${t('doc.total')}"><strong>${money(tax.total)}</strong></td>
+          <td data-label="${t('es.thStatus')}"><span class="pill ${statusClass(e.status)}">${esc(tStatus(e.status))}</span>${followUpBadge}</td>
+          <td class="owner-only" data-label="${t('es.thEnteredBy')}">${esc(e.createdBy)}<br><span class="muted">${date(e.createdAt)}</span></td>
           <td class="right">
             <div class="actions">
               <button class="btn small" type="button" data-action="pickEstimate" data-id="${e.id}">${t('g.view')}</button>
@@ -2411,12 +2426,12 @@ html.lp-show #login { display:none; }
       return `
         <tr>
           <td><strong>${esc(j.title)}</strong><br><span class="muted">${esc(j.scope)}</span></td>
-          <td>${esc(clientName(j.clientId))}</td>
-          <td>${money(j.subtotal)}</td>
-          <td>${money(tax.tps + tax.tvq)}</td>
-          <td><strong>${money(tax.total)}</strong></td>
-          <td><span class="pill ${statusClass(j.status)}">${esc(tStatus(j.status))}</span></td>
-          <td class="owner-only">${esc(j.createdBy)}<br><span class="muted">${date(j.createdAt)}</span></td>
+          <td data-label="${t('doc.client')}">${esc(clientName(j.clientId))}</td>
+          <td data-label="${t('doc.subtotal')}">${money(j.subtotal)}</td>
+          <td data-label="${t('es.thTaxes')}">${money(tax.tps + tax.tvq)}</td>
+          <td data-label="${t('doc.total')}"><strong>${money(tax.total)}</strong></td>
+          <td data-label="${t('es.thStatus')}"><span class="pill ${statusClass(j.status)}">${esc(tStatus(j.status))}</span></td>
+          <td class="owner-only" data-label="${t('es.thEnteredBy')}">${esc(j.createdBy)}<br><span class="muted">${date(j.createdAt)}</span></td>
           <td class="right">
             <div class="actions">
               <button class="btn small" type="button" data-action="jobInvoice" data-id="${j.id}">${t('jb.invoice')}</button>
