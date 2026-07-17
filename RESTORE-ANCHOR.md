@@ -147,7 +147,19 @@ the old cron commands (they'd need a working key — the master key should be ro
 > whenever ready. The old `sbp_` access token already appears rotated (the CLI rejects it) — the
 > **DB password and ANTHROPIC_API_KEY from the old creds file are still valid and still need rotation.**
 
+## Review-request + portal payment-instructions (2026-07-17)
+| Function | Prior (rollback) | Now live | Change |
+|---|---|---|---|
+| portal-data | 8 | **9** | settings whitelist adds `payment_instructions` + `review_link` (verify_jwt=false kept) |
+
+Frontend (SW v69): Settings gets a "Google review link" field (`settings.review_link`,
+migration 0036); the client portal shows the owner's Interac/cheque instructions while a
+balance is owing, and a "Leave a Google review" card once everything billable is fully paid
+(only when a valid http(s) `review_link` is set — no org has one yet, so no visual change
+until the owner fills the field).
+
 ## Migration log
+- **36 — `settings.review_link`** (2026-07-17, applied live): additive column. **Rollback:** [`20260717_0036_settings_review_link_DOWN.sql`](supabase/migrations/20260717_0036_settings_review_link_DOWN.sql).
 - **30 — `jobs` table** (2026-06-19, applied live): additive only, 0 rows touched. New `public.jobs` + `assign_job_number()` + `trg_assign_job_number` + RLS `org_members_all`. **Rollback:** run [`20260619_0030_jobs_table_DOWN.sql`](supabase/migrations/20260619_0030_jobs_table_DOWN.sql) (drops table/function/trigger; estimates untouched).
 - **31 — `record_job_payment()`** (2026-06-19, applied live): additive new function, mirrors `record_stripe_payment` on `public.jobs`; execute locked to postgres + service_role. **Rollback:** run [`20260619_0031_record_job_payment_DOWN.sql`](supabase/migrations/20260619_0031_record_job_payment_DOWN.sql).
 - **35 — `check_cron_secret()` + authenticated `notify_new_booking`** (2026-07-17, applied live as version `20260717145153`): additive gate RPC (service-role-only, reads vault) + booking trigger now sends the vault secret to send-push. Local file renumbered 0035 (0033 = the 2026-06-25 security-audit migration after de-duplicating the double 0032; 0034 = money-integrity). **Rollback:** [`20260717_0035_cron_secret_gate_DOWN.sql`](supabase/migrations/20260717_0035_cron_secret_gate_DOWN.sql) — only together with redeploying the pre-gate fn versions.

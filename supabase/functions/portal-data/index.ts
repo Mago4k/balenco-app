@@ -25,7 +25,7 @@ Deno.serve(async (req) => {
   const json = (obj: unknown, status = 200) =>
     new Response(JSON.stringify(obj), { status, headers: { ...cors, 'Content-Type': 'application/json' } })
 
-  const SETTINGS = 'company,logo,address,phone,email,tps,tvq,terms,gst_number,qst_number,rbq_number,neq_number'
+  const SETTINGS = 'company,logo,address,phone,email,tps,tvq,terms,gst_number,qst_number,rbq_number,neq_number,payment_instructions,review_link'
   const settingsFor = async (orgId: string | null) => {
     if (orgId) {
       const { data } = await sb.from('settings').select(SETTINGS).eq('org_id', orgId).maybeSingle()
