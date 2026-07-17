@@ -26,6 +26,18 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   )
 
+  // Cron-secret gate: this endpoint is only ever called by pg_cron. The secret
+  // lives in vault; check_cron_secret (service-role-only RPC) compares in-DB so
+  // the secret itself never leaves Postgres. Fail closed on any RPC error.
+  const { data: cronOk, error: cronErr } = await sb.rpc('check_cron_secret', {
+    candidate: req.headers.get('x-cron-secret') ?? '',
+  })
+  if (cronErr || cronOk !== true) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401, headers: { ...cors, 'Content-Type': 'application/json' }
+    })
+  }
+
   // Settings: match by org_id, fall back to the 'global' row (org_id is null there)
   const { data: settingsRows } = await sb.from('settings').select('*')
   const globalCfg = (settingsRows || []).find((s: any) => s.id === 'global') || {}

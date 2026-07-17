@@ -19,6 +19,18 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   )
 
+  // Cron-secret gate: only the DB trigger (which reads the vault secret) may
+  // invoke this. Validated in-DB via the service-role-only check_cron_secret
+  // RPC; fail closed on any RPC error.
+  const { data: cronOk, error: cronErr } = await sb.rpc('check_cron_secret', {
+    candidate: req.headers.get('x-cron-secret') ?? '',
+  })
+  if (cronErr || cronOk !== true) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401, headers: { ...cors, 'Content-Type': 'application/json' }
+    })
+  }
+
   webpush.setVapidDetails(
     'mailto:reyesc383@gmail.com',
     Deno.env.get('VAPID_PUBLIC_KEY')!,

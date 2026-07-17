@@ -9,8 +9,20 @@ const RESEND_KEY = Deno.env.get('RESEND_API_KEY')!;
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SUPABASE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
-Deno.serve(async () => {
+Deno.serve(async (req) => {
   const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  // Cron-secret gate: hourly pg_cron is the only caller (was verify_jwt=true with
+  // the full-access sb_secret_ key embedded in cron.job — now a scoped vault
+  // secret validated in-DB via the service-role-only check_cron_secret RPC).
+  const { data: cronOk, error: cronErr } = await sb.rpc('check_cron_secret', {
+    candidate: req.headers.get('x-cron-secret') ?? '',
+  });
+  if (cronErr || cronOk !== true) {
+    return new Response(JSON.stringify({ error: 'unauthorized' }), {
+      status: 401, headers: { 'Content-Type': 'application/json' }
+    });
+  }
 
   // Find appointments starting 23-25 hours from now with reminder not yet sent
   const now = new Date();

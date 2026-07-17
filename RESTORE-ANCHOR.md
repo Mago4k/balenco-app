@@ -120,7 +120,35 @@ non-positive amounts (the one payment RPC callable directly by authenticated use
 so revoking would lock every authenticated user out of every table. Left as-is (they only ever
 return the caller's own org/name/role). The advisor warning is a false-positive for this pattern.
 
+## Cron-secret deploy log (2026-07-17) — scoped auth for cron/trigger endpoints
+The full-access `sb_secret_…` key was stored in **plaintext in `cron.job` commands** (and the
+`send-followups-daily` job's headers were invalid JSON — that job had **failed every run since
+creation**, so follow-up automation had never actually fired). `notify_new_booking` called
+`send-push` with **no auth at all**. New model: a 256-bit secret lives only in **vault**
+(`cron_secret`); cron jobs + the booking trigger read it from vault at call time (never stored
+in `cron.job`); the three functions validate it via the service-role-only `check_cron_secret()`
+RPC (secret never leaves Postgres) and 401 otherwise.
+
+| Function | Prior (rollback) | Now live | Change |
+|---|---|---|---|
+| send-followups | 10 | **11** | `x-cron-secret` gate (verify_jwt=false kept) |
+| send-reminders | 12 | **13** | `x-cron-secret` gate; **verify_jwt true→false** (old auth was the embedded master key) |
+| send-push | 6 | **7** | `x-cron-secret` gate (verify_jwt=false kept) |
+
+Also: `cron.alter_job(2)` + `cron.alter_job(3)` rewrote both job commands (valid JSON, vault
+header read, no embedded key), and migration 0035 replaced `notify_new_booking`. Verified live:
+all three fns → 401 with no/wrong secret; correct secret → follow-ups dry-run 200, reminders 200,
+push 404 on bogus id; the in-DB `net.http_post` path (what cron executes) → 200.
+**Rollback:** redeploy prior versions + run `20260717_0035_cron_secret_gate_DOWN.sql` + restore
+the old cron commands (they'd need a working key — the master key should be rotated by then).
+
+> ✅ **Carlos — the `sb_secret_` key is no longer used anywhere.** Nothing in the DB, cron, or
+> functions references it now, so you can rotate/disable it in the Dashboard (Settings → API keys)
+> whenever ready. The old `sbp_` access token already appears rotated (the CLI rejects it) — the
+> **DB password and ANTHROPIC_API_KEY from the old creds file are still valid and still need rotation.**
+
 ## Migration log
 - **30 — `jobs` table** (2026-06-19, applied live): additive only, 0 rows touched. New `public.jobs` + `assign_job_number()` + `trg_assign_job_number` + RLS `org_members_all`. **Rollback:** run [`20260619_0030_jobs_table_DOWN.sql`](supabase/migrations/20260619_0030_jobs_table_DOWN.sql) (drops table/function/trigger; estimates untouched).
 - **31 — `record_job_payment()`** (2026-06-19, applied live): additive new function, mirrors `record_stripe_payment` on `public.jobs`; execute locked to postgres + service_role. **Rollback:** run [`20260619_0031_record_job_payment_DOWN.sql`](supabase/migrations/20260619_0031_record_job_payment_DOWN.sql).
+- **35 — `check_cron_secret()` + authenticated `notify_new_booking`** (2026-07-17, applied live as version `20260717145153`): additive gate RPC (service-role-only, reads vault) + booking trigger now sends the vault secret to send-push. Local file renumbered 0035 (0033 = the 2026-06-25 security-audit migration after de-duplicating the double 0032; 0034 = money-integrity). **Rollback:** [`20260717_0035_cron_secret_gate_DOWN.sql`](supabase/migrations/20260717_0035_cron_secret_gate_DOWN.sql) — only together with redeploying the pre-gate fn versions.
 - **32 — `record_manual_payment()` + grant lockdown** (2026-06-20, applied live): additive SECURITY INVOKER fn for atomic manual cash/cheque payments (estimate + job), idempotent by client payment id; closes a read-modify-write lost-update. Also revoked anon/authenticated EXECUTE on `assign_job_number` + `create_trial_subscription` (advisor fix). **Rollback:** [`20260620_0032_record_manual_payment_DOWN.sql`](supabase/migrations/20260620_0032_record_manual_payment_DOWN.sql) (drops the fn; grant revokes are intentional, not reversed).
