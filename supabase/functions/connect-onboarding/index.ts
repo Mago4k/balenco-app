@@ -11,6 +11,10 @@ const cors = {
 // settings row, and returns a Stripe-hosted onboarding link. Client card payments
 // are later routed to this account so the money goes to the contractor, not the
 // platform. Money never moves here — this only provisions the account + KYC link.
+//
+// Key selection: uses STRIPE_TEST_SECRET_KEY (sandbox) when set, so we can test the
+// whole flow safely. Remove that secret at go-live and it falls back to the live
+// STRIPE_SECRET_KEY. (Subscriptions always use STRIPE_SECRET_KEY — untouched.)
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
   const json = (obj: unknown, status = 200) =>
@@ -33,7 +37,8 @@ Deno.serve(async (req) => {
   const { data: settings } = await sb.from('settings')
     .select('stripe_account_id, email, company').eq('org_id', orgId).maybeSingle()
 
-  const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, { apiVersion: '2023-10-16' })
+  const stripeKey = Deno.env.get('STRIPE_TEST_SECRET_KEY') || Deno.env.get('STRIPE_SECRET_KEY')!
+  const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' })
 
   // Create (or reuse) the contractor's Express connected account.
   let acctId = settings?.stripe_account_id || null

@@ -6,6 +6,12 @@ const cors = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Partial / balance payment checkout (estimate or job). Stripe Connect routing:
+//   • Platform owner (Balenco) collects on the platform account — always live key.
+//   • Every other contractor's payment is routed to THEIR connected account via a
+//     destination charge, so the money is theirs. Not-yet-onboarded contractors
+//     can't accept cards (409, fail closed). Connected-account charges use the
+//     sandbox key while STRIPE_TEST_SECRET_KEY is set; live once it's removed.
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
 
@@ -31,7 +37,9 @@ Deno.serve(async (req) => {
     })
   }
 
-  const { data: cfg } = await sb.from('settings').select('company,tps,tvq').eq('org_id', est.org_id).maybeSingle()
+  const { data: cfg } = await sb.from('settings')
+    .select('company,tps,tvq, stripe_account_id, stripe_charges_enabled, is_platform_owner')
+    .eq('org_id', est.org_id).maybeSingle()
   const subtotal  = Number(est.subtotal || 0)
   const tpsRate   = Number(cfg?.tps ?? 5)
   const tvqRate   = Number(cfg?.tvq ?? 9.975)
@@ -48,7 +56,20 @@ Deno.serve(async (req) => {
     })
   }
 
-  const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, { apiVersion: '2023-10-16' })
+  // Route the money (see header note).
+  let paymentIntentData: Record<string, unknown> | undefined
+  let stripeKey = Deno.env.get('STRIPE_SECRET_KEY')!
+  if (!cfg?.is_platform_owner) {
+    if (!cfg?.stripe_account_id || !cfg?.stripe_charges_enabled) {
+      return new Response(JSON.stringify({ error: 'This contractor has not finished setting up card payments yet.' }), {
+        status: 409, headers: { ...cors, 'Content-Type': 'application/json' }
+      })
+    }
+    paymentIntentData = { transfer_data: { destination: cfg.stripe_account_id } }
+    stripeKey = Deno.env.get('STRIPE_TEST_SECRET_KEY') || Deno.env.get('STRIPE_SECRET_KEY')!
+  }
+
+  const stripe = new Stripe(stripeKey, { apiVersion: '2023-10-16' })
   const origin  = req.headers.get('origin') || 'https://balenco.app'
 
   // Resolve the client's portal token so the post-payment redirect lands on the
@@ -73,6 +94,7 @@ Deno.serve(async (req) => {
       },
       quantity: 1,
     }],
+    ...(paymentIntentData ? { payment_intent_data: paymentIntentData } : {}),
     metadata: isJob ? {
       job_id: recordId,
       client_id: client_id || '',

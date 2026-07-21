@@ -25,14 +25,25 @@ Deno.serve(async (req) => {
   const json = (obj: unknown, status = 200) =>
     new Response(JSON.stringify(obj), { status, headers: { ...cors, 'Content-Type': 'application/json' } })
 
-  const SETTINGS = 'company,logo,address,phone,email,tps,tvq,terms,gst_number,qst_number,rbq_number,neq_number,payment_instructions,review_link'
+  const SETTINGS = 'company,logo,address,phone,email,tps,tvq,terms,gst_number,qst_number,rbq_number,neq_number,payment_instructions,review_link,stripe_charges_enabled,is_platform_owner'
   const settingsFor = async (orgId: string | null) => {
+    let data: any = null
     if (orgId) {
-      const { data } = await sb.from('settings').select(SETTINGS).eq('org_id', orgId).maybeSingle()
-      if (data) return data
+      const r = await sb.from('settings').select(SETTINGS).eq('org_id', orgId).maybeSingle()
+      data = r.data
     }
-    const { data } = await sb.from('settings').select(SETTINGS).eq('id', 'global').maybeSingle()
-    return data ?? {}
+    if (!data) {
+      const r = await sb.from('settings').select(SETTINGS).eq('id', 'global').maybeSingle()
+      data = r.data
+    }
+    data = data ?? {}
+    // Can this client pay by card? The platform owner collects directly; every
+    // other contractor must have finished Stripe Connect payout onboarding.
+    // Expose only the computed capability, not the raw Connect columns.
+    const acceptsCards = !!(data.is_platform_owner || data.stripe_charges_enabled)
+    delete data.is_platform_owner
+    delete data.stripe_charges_enabled
+    return { ...data, accepts_cards: acceptsCards }
   }
 
   // Strip internal payment metadata (e.g. stripe session ids) before returning.
