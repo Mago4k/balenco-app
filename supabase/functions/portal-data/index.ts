@@ -50,9 +50,9 @@ Deno.serve(async (req) => {
   const safePayments = (arr: any) => (arr ?? []).map((p: any) => ({ amount: p.amount, date: p.date, note: p.note }))
 
   const CLIENT_COLS = 'id,name,phone,email,address,project,status,balance,org_id'
-  const EST_LIST    = 'id,estimate_number,title,scope,subtotal,deposit,payment_schedule,status,payments,client_id'
+  const EST_LIST    = 'id,estimate_number,title,scope,subtotal,deposit,payment_schedule,status,payments,client_id,options,selected_option'
   const JOB_LIST    = 'id,job_number,title,scope,subtotal,deposit,payment_schedule,status,payments,client_id'
-  const EST_FULL    = 'id,estimate_number,client_id,org_id,title,scope,subtotal,line_items,deposit,payment_schedule,payment_notes,status,expiry,approved_by,approved_at,created_by,created_at,updated_at,payments'
+  const EST_FULL    = 'id,estimate_number,client_id,org_id,title,scope,subtotal,line_items,deposit,payment_schedule,payment_notes,status,expiry,approved_by,approved_at,created_by,created_at,updated_at,payments,options,selected_option'
 
   if (mode === 'client') {
     const key = body.token

@@ -13,7 +13,7 @@ const esc = (value: unknown): string =>
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
 
-  const { estimate_id, client_id, approved_by } = await req.json()
+  const { estimate_id, client_id, approved_by, selected_option } = await req.json()
   if (!estimate_id || !client_id) {
     return new Response(JSON.stringify({ error: 'Missing fields' }), {
       status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
@@ -43,12 +43,24 @@ Deno.serve(async (req) => {
   }
 
   const now = new Date().toISOString()
-  await sb.from('estimates').update({
+  const update: Record<string, unknown> = {
     status: 'Accepted',
     approved_by: approved_by || 'Client',
     approved_at: now,
     updated_at: now,
-  }).eq('id', estimate_id)
+  }
+  // Tiered estimate (good/better/best): apply the client's chosen option. Trust ONLY
+  // the estimate's own stored option price (looked up by id) — never a price from the
+  // request. Collapse to a single line so all downstream (invoice/portal/balance) works.
+  if (Array.isArray(est.options) && est.options.length) {
+    const chosen = est.options.find((o: any) => o && o.id === selected_option) || est.options[0]
+    const price = Number(chosen.price) || 0
+    update.selected_option = chosen.id
+    update.line_items = [{ desc: chosen.name + (chosen.description ? ' — ' + chosen.description : ''), qty: 1, price }]
+    update.subtotal = price
+    est.subtotal = price
+  }
+  await sb.from('estimates').update(update).eq('id', estimate_id)
 
   const [clientRes, cfgRes] = await Promise.all([
     sb.from('clients').select('*').eq('id', client_id).single(),
