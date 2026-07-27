@@ -24,10 +24,10 @@ Items marked **🔴** are hard gates; **🟢** are quick wins; **🟡** need a p
 - [ ] (Optional but smart) **Tech E&O / cyber-liability insurance.**
 
 ## 🟢 3. Quick dashboard toggles (≈2 minutes each)
-- [ ] **Stripe** → enable the **`invoice.payment_failed`** webhook event (turns on the
-      dunning email that's already built).
-- [ ] **Supabase → Authentication → SMTP** → point at **Resend**, so password-reset /
-      confirmation emails aren't throttled by the default sender.
+- [x] **Stripe** `invoice.payment_failed` webhook event — ✅ enabled 2026-07-27 (dunning email live).
+- [x] **Resend SMTP** in Supabase Auth — ✅ configured 2026-07-27. *(Also fixed while testing:
+      the Supabase Site URL was still the dev default `localhost:3000` → set to `https://balenco.app`;
+      and a password-reset recovery bug that silently signed users in — both fixed, reset now works E2E.)*
 - [ ] **Stripe** → set your **Google review link** in Settings so the "leave a review"
       card appears for paid clients. *(In-app: Settings → Company.)*
 - [ ] (Optional) Enable **BNPL** (Affirm / Klarna / Afterpay) in Stripe — no code needed.
