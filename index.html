@@ -1457,6 +1457,11 @@ html.lp-show #login { display:none; }
 
   const SUPA_URL = 'https://wvqqazdzejjksjcjdbcm.supabase.co';
   const SUPA_KEY = 'sb_publishable_qei2Dp6odRgkUhTSfgTBVw_g9Xp-_ou';
+  // A password-reset link carries `type=recovery` in the URL hash, but supabase-js
+  // consumes + clears the hash as soon as it reads the session (before init() runs),
+  // so capture the flag NOW, synchronously, or we'd drop the user into the app instead
+  // of the "set a new password" panel.
+  const _recoveryFromUrl = /type=recovery/.test(window.location.hash || '');
   const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
   let recoveryMode = false;
   sb.auth.onAuthStateChange(function(event) {
@@ -5319,7 +5324,7 @@ Date: ${date(e.createdAt)}`;
     // Password-recovery link: the PASSWORD_RECOVERY event can race the listener on a
     // fast load, so also detect it synchronously from the URL hash. Never drop a
     // recovering user into the app — always show the reset panel.
-    const isRecovery = recoveryMode || /type=recovery/.test(window.location.hash);
+    const isRecovery = recoveryMode || _recoveryFromUrl || /type=recovery/.test(window.location.hash);
     if (isRecovery) { recoveryMode = true; showResetPanel(); return; }
     if (session) { await startSession(session.user); return; }
     // Logged out at the root: show the marketing landing (unless following an invite).
