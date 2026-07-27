@@ -1,74 +1,84 @@
 # Balenco — Go-Live Checklist
 
-Everything left between here and opening the doors. Items marked **🔴** are hard
-gates; **🟢** are strongly recommended but not blocking.
+_Last refreshed 2026-07-27._
+
+**Bottom line:** the app is built, secured, and deployed. Everything that remains is
+your **account / legal / business** setup — no more development is required to open.
+Items marked **🔴** are hard gates; **🟢** are quick wins; **🟡** need a paid plan.
 
 ---
 
-## 0. Right now — cleanup from testing
-- [ ] **Cancel the test subscription** so the test card isn't charged on the trial-end date
-      (Settings → Subscription → Manage billing → Cancel, **or** Stripe → Customers → `cus_Ui8…` → cancel the subscription).
-- [ ] (Optional) Delete the throwaway test account when done (Settings → Danger Zone → Delete).
+## 🔴 1. Legal — before collecting Québec personal info
+- [ ] **Fill the `[BRACKET]` placeholders** in `privacy.html` and `terms.html`:
+      legal business name, the *responsable de la protection des renseignements*
+      (name + contact email), mailing address, effective date, and the pricing line.
+      → *Claude can fill everything except the business name the moment you provide it.*
+- [ ] Have a **lawyer or notary** glance at the Law 25 cross-border (US-hosting) disclosure
+      and the privacy-officer designation.
 
-## 1. 🔴 Security — only you can do these
-- [ ] **Rotate the keys that were shared in chat** (treat them as compromised):
-  - **Supabase DB password** — Supabase → Project Settings → Database → *Reset database password*; update your local db-tool creds.
-  - **Supabase access token** (`sbp_…`) — Supabase → Account → Access Tokens → revoke + create new.
-  - **Anthropic API key** — console.anthropic.com → rotate → update the `ANTHROPIC_API_KEY` edge-function secret.
-  - (Optional, extra caution) roll the **Stripe webhook signing secret** in Stripe, then re-set `STRIPE_WEBHOOK_SECRET`.
-  - [ ] Delete the local `~/.balenco-db-tool/creds.env`.
-- [ ] **Enable leaked-password protection** — Supabase → Authentication → turn on "prevent use of leaked passwords."
-- [ ] **Turn on PITR / backups** — Supabase → Database → Backups (you're holding customers' business + client data).
-- [ ] **Custom SMTP for auth emails** — Supabase → Authentication → SMTP → point at Resend, so password resets / confirmations don't get throttled by the default sender.
+## 🔴 2. Business entity (strongly recommended before real customers)
+- [ ] Register a business — **sole proprietorship** (fast/cheap) or **incorporate**
+      (liability shield). Given you handle client money + Law 25 personal data,
+      incorporating before real customers is the safer call. **Talk to a Québec
+      comptable** — the tax angles pay for the consult.
+- [ ] (Optional but smart) **Tech E&O / cyber-liability insurance.**
 
-## 2. 🔴 Legal — before collecting Québec personal info
-- [ ] **Fill the `[BRACKET]` placeholders** in `privacy.html` and `terms.html`: legal business name,
-      the *responsable de la protection des renseignements* (name + contact email), mailing address,
-      effective date, and the pricing line in Terms.
-- [ ] Have a **lawyer or notary** glance over both — especially the Law 25 cross-border (US-hosting)
-      disclosure and the privacy-officer designation.
+## 🟢 3. Quick dashboard toggles (≈2 minutes each)
+- [ ] **Stripe** → enable the **`invoice.payment_failed`** webhook event (turns on the
+      dunning email that's already built).
+- [ ] **Supabase → Authentication → SMTP** → point at **Resend**, so password-reset /
+      confirmation emails aren't throttled by the default sender.
+- [ ] **Stripe** → set your **Google review link** in Settings so the "leave a review"
+      card appears for paid clients. *(In-app: Settings → Company.)*
+- [ ] (Optional) Enable **BNPL** (Affirm / Klarna / Afterpay) in Stripe — no code needed.
+- [ ] Decide how to apply the **Founding $19** rate to your first ~20 customers
+      (via a Stripe promo code / manual — intentionally not in the public UI).
 
-## 3. 💳 Billing — to fully switch on
-- [x] Webhook subscription events added.
-- [x] Webhook secret + async-crypto fix — done and **tested live end-to-end**.
-- [ ] Decide how to apply the **Founding $19** rate to your first ~20 customers (not shown in the UI on
-      purpose — apply it manually in Stripe or via a promo code).
-- [ ] You are in **live mode** (real charges). Optional: verify a real charge → "Active" by ending a test
-      trial in Stripe, then refund.
+## 🟡 4. Needs a Pro-plan upgrade (park until you're ready to pay)
+- [ ] **PITR / backups** (you're holding customers' business + client data).
+- [ ] **Leaked-password protection** (Supabase → Authentication).
 
-## 4. 🟢 Strongly recommended (smart, not blocking)
-- [ ] **Error monitoring** (e.g. Sentry) + basic analytics — so you see breakage instead of flying blind.
-- [ ] **Closed beta** with a handful of real contractors before opening fully (great use of the $19 founding rate; gather testimonials).
-- [ ] (Later) CI + a staging environment for safer deploys once you have traction.
-- [ ] (Optional) Native Québec-French proofread of the full app + emails.
+## 🟢 5. Strongly recommended (not blocking)
+- [ ] **Error monitoring** (e.g. Sentry) so you see breakage instead of guessing.
+- [ ] A small **closed beta** with a few real contractors (great use of the $19 rate).
+- [ ] (Later) native Québec-French proofread of the full app + emails.
+- [ ] At go-live for OTHER contractors: remove the **`STRIPE_TEST_SECRET_KEY`** secret so
+      their Connect payouts use the live key. *(Your own payments are already live.)*
 
-## 5. Final smoke test — run once on a fresh account before opening
+---
+
+## ✅ Security — DONE (rotated + verified 2026-07)
+- **DB password** rotated to a strong random value + verified; `creds.env` trimmed to
+  just the DB connection (dead access token + Anthropic key removed from it).
+- **`sb_secret_` cron key ("balencocron") deleted** — crons run on a vault secret;
+  verified still firing after deletion.
+- **Anthropic key** + **Supabase access token** rotated.
+- Multi-tenant RLS (org-scoped, verified), tokenized portal/approval links, AI usage cap.
+
+## Final smoke test — run once on a fresh account before opening
 - [ ] Sign up → the Terms consent checkbox blocks until checked.
-- [ ] Add a client → create an estimate → mark **Accepted** → the client balance shows the amount owing.
-- [ ] **Record a payment** on that estimate → the balance drops.
-- [ ] Set company **Payment instructions** → they appear on the invoice.
-- [ ] **Online booking** link → a client can request an appointment → it shows in your calendar.
+- [ ] Add a client → create an estimate → mark **Accepted** → client balance shows owing.
+- [ ] **Record a payment** on it → the balance drops.
+- [ ] **Good/better/best**: make an estimate with options → open its approval link →
+      pick a tier → it approves at that tier's price.
+- [ ] Company **Payment instructions** appear on the invoice.
+- [ ] **Online booking** link → a client requests an appointment → it hits your calendar.
 - [ ] **Client portal** link → shows their estimates / balance.
 - [ ] **AI estimate** from a photo.
-- [ ] **Settings save** → persists after refresh.
-- [ ] **Export** → the readable report opens.
+- [ ] **Accounting CSV** export opens (Settings → Your data) and shows real accents in Excel.
 - [ ] **Subscribe** → Stripe checkout → back in app; **Manage billing** → cancel.
-- [ ] Toggle **FR/EN** and **light/dark** across the app — everything stays translated and themed.
-
----
+- [ ] Toggle **FR/EN** and **light/dark** across the app — everything stays translated + themed.
 
 ## ✅ Already built, deployed & verified (reference)
-- Public bilingual landing page
-- **Law 25:** Privacy Policy + Terms, consent at signup + booking, data export (readable report + JSON),
-  self-serve account deletion, confidentiality-incident register
-- Bilingual (Bill 96) FR/EN across the whole app + all emails
-- Clean light/dark theme
+- Public bilingual landing page **with pricing** (Solo $29 / Team $69, 14-day trial)
+- **Law 25:** privacy + terms, consent at signup + booking, data export, account deletion,
+  confidentiality-incident register
+- Bilingual (Bill 96) FR/EN across the whole app + all emails; clean light/dark theme
 - Tax-correct estimates (TPS/TVQ) + RBQ/NEQ on documents
-- Company settings locked to owner/admin; multi-tenant RLS verified org-scoped
-- Interac / cheque payment instructions on invoices
-- Client balances derived from accepted estimates + recorded payments
-- Fixed a silent data-loss bug (bare Supabase writes) — leads, appointments, settings, deletes, etc. now persist
-- **Subscription billing** (Solo $29 / Team $69 / Founding $19, 14-day trial) — built and tested live
-- Stripe webhook fixed (async crypto) — also repaired deposit-payment recording
-- Service worker is network-first (deploys apply on next reload)
-- First-run onboarding checklist
+- **Good/better/best tiered estimates** (client picks a package on approval)
+- **Stripe Connect client-payment routing** — client card payments go to each contractor's
+  own connected account; your org collects directly; non-onboarded contractors fail closed
+- **Subscription billing** (Solo/Team/Founding, 14-day trial) — tested live
+- **Recurring jobs/invoicing**; Interac/cheque payment instructions; review-request card
+- **Accounting CSV export**; client status filter-chips; derived client balances
+- First-run onboarding + welcome; network-first service worker (deploys apply next reload)
