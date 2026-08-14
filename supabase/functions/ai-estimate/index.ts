@@ -44,23 +44,43 @@ Deno.serve(async (req) => {
   const orgId = profile?.org_id
   if (!orgId) return json({ error: 'Your account is not set up yet.' }, 403)
 
-  // Mirror the app's billing gate server-side (client subOk): a lapsed plan can't
-  // spend the shared Anthropic key. Fail OPEN on a missing row, exactly like the UI,
-  // so a data hiccup never locks out a paying user.
-  const { data: sub } = await sbAdmin.from('subscriptions').select('status,trial_end').eq('org_id', orgId).maybeSingle()
-  const planOk = !sub
-    || sub.status === 'active' || sub.status === 'past_due'
-    || (sub.status === 'trialing' && sub.trial_end && new Date(sub.trial_end) > new Date())
-  if (!planOk) return json({ error: 'Your Balenco plan is inactive. Open Billing to choose a plan and keep using AI estimates.' }, 402)
+  // Tiered AI access, enforced here rather than in the UI — this is what actually
+  // protects the shared Anthropic key (a browser gate is trivially bypassed):
+  //   paid (active/past_due) -> full monthly allowance
+  //   free trial             -> a small taste, so the demo still sells the plan
+  //   lapsed / canceled      -> nothing
+  // A MISSING subscriptions row lands on the trial tier, not full access: a data
+  // hiccup still leaves a paying user a few drafts, but a row that never gets
+  // created can't hand out an unlimited free allowance.
+  const PAID_CAP = Number(Deno.env.get('AI_MONTHLY_CAP') || 50)
+  const TRIAL_CAP = Number(Deno.env.get('AI_TRIAL_CAP') || 3)
 
-  const CAP = Number(Deno.env.get('AI_MONTHLY_CAP') || 50)
+  const { data: sub } = await sbAdmin.from('subscriptions').select('status,trial_end').eq('org_id', orgId).maybeSingle()
+  const paid = !!sub && (sub.status === 'active' || sub.status === 'past_due')
+  const onTrial = !!sub && sub.status === 'trialing' && !!sub.trial_end && new Date(sub.trial_end) > new Date()
+
+  if (!paid && !onTrial && sub) {
+    return json({
+      error: 'Your Balenco plan is inactive. Choose a plan to keep drafting estimates with AI.',
+      upgrade: true,
+    }, 402)
+  }
+
+  const tier = paid ? 'paid' : 'trial'
+  const CAP = paid ? PAID_CAP : TRIAL_CAP
+
   const _now = new Date()
   const monthStart = new Date(Date.UTC(_now.getUTCFullYear(), _now.getUTCMonth(), 1)).toISOString()
   const { count: usedThisMonth } = await sbAdmin.from('ai_usage')
     .select('id', { count: 'exact', head: true })
     .eq('org_id', orgId).gte('created_at', monthStart)
   if ((usedThisMonth ?? 0) >= CAP) {
-    return json({ error: `Monthly AI limit reached (${CAP} drafts). It resets at the start of next month.` }, 429)
+    return json({
+      error: tier === 'trial'
+        ? `Your free trial includes ${CAP} AI drafts and you've used them. Choose a plan to unlock ${PAID_CAP} drafts a month.`
+        : `Monthly AI limit reached (${CAP} drafts). It resets at the start of next month.`,
+      upgrade: tier === 'trial',
+    }, 429)
   }
 
   const body = await req.json().catch(() => ({}))
@@ -170,5 +190,6 @@ Rules:
     })
   } catch (e) { console.error('ai_usage log failed', e) }
 
-  return json({ ok: true, ...parsed })
+  // Hand back the tier + what's left so the UI badge stays honest without re-querying.
+  return json({ ok: true, tier, remaining: Math.max(CAP - ((usedThisMonth ?? 0) + 1), 0), ...parsed })
 })
