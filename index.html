@@ -667,7 +667,8 @@ html.lp-show #login { display:none; }
     document.head.appendChild(s);
   })();
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<!-- html2pdf (~300KB) is loaded on demand by ensureHtml2pdf() — only when a contractor
+     clicks "Download PDF". Public visitors and normal app sessions never fetch it. -->
 </head>
 <body class="employee-mode">
 <section id="approve-page" style="display:none">
@@ -4393,6 +4394,22 @@ Date: ${date(e.createdAt)}`;
     win.document.close();
   }
 
+  // Lazy-load the ~300KB html2pdf bundle on first use, then reuse it. Keeps the
+  // library out of every page load — only fetched when a PDF is actually generated.
+  let _html2pdfPromise = null;
+  function ensureHtml2pdf() {
+    if (window.html2pdf) return Promise.resolve();
+    if (_html2pdfPromise) return _html2pdfPromise;
+    _html2pdfPromise = new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+      s.onload = () => resolve();
+      s.onerror = () => { _html2pdfPromise = null; reject(new Error('Could not load the PDF library — check your connection')); };
+      document.head.appendChild(s);
+    });
+    return _html2pdfPromise;
+  }
+
   async function downloadEstimatePage() {
     const e = currentEstimate();
     if (!e) return;
@@ -4409,6 +4426,7 @@ Date: ${date(e.createdAt)}`;
       container.prepend(styleEl);
       document.body.appendChild(container);
       const filename = estimateNumber(e) + '-' + (e.title || 'estimate').replace(/[^a-z0-9]/gi, '-') + '.pdf';
+      await ensureHtml2pdf();
       await html2pdf().set({
         margin: 0,
         filename,
