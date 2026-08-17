@@ -172,7 +172,24 @@ secret; dry-run counts-only; test org fully deleted.
 **Rollback:** unschedule cron 4, delete the fn, run `20260717_0037_recurring_jobs_DOWN.sql`,
 revert the frontend commit.
 
+## Realtime fixed for real (2026-08-17) — Sentry crash + dead live-sync
+Sentry (prod): `cannot add postgres_changes callbacks for realtime:app-changes after subscribe()`
+at startRealtime. Two distinct bugs:
+1. **Re-login crash (frontend, SW v84):** `sb.channel(name)` returns the EXISTING instance once
+   created, so a second `startSession` (sign out → sign in, duplicate auth event) re-attached
+   listeners to a subscribed channel → throw, and the billing/Connect return handlers after
+   `startRealtime()` were skipped. Fix: track `_rtChannel`, remove the old channel on re-start
+   AND on logout (`backToLogin`), unique topic per session (`app-changes-<ts>`).
+2. **Live sync was silently DEAD since launch:** the `supabase_realtime` publication contained
+   **zero tables** — subscriptions succeeded, no events were ever delivered; data only refreshed
+   on reload. Migration 0043 adds the 7 tables the app listens to (RLS-filtered delivery).
+Verified in the real app UI: login → logout → login clean (no throw, zero console errors);
+server-side insert → app auto-refetched (client count updated live, no reload). Note: the
+realtime service takes a little while to notice publication changes — a subscription created
+immediately after the alter received nothing; after reload + settle, events flowed.
+
 ## Migration log
+- **43 — realtime publication tables** (2026-08-17, applied live): adds clients/leads/estimates/appointments/photos/jobs/logs to `supabase_realtime`. **Rollback:** [`20260817_0043_realtime_publication_tables_DOWN.sql`](supabase/migrations/20260817_0043_realtime_publication_tables_DOWN.sql).
 - **37 — recurring jobs** (2026-07-17, applied live): additive columns + partial index on `jobs`. **Rollback:** [`20260717_0037_recurring_jobs_DOWN.sql`](supabase/migrations/20260717_0037_recurring_jobs_DOWN.sql).
 - **36 — `settings.review_link`** (2026-07-17, applied live): additive column. **Rollback:** [`20260717_0036_settings_review_link_DOWN.sql`](supabase/migrations/20260717_0036_settings_review_link_DOWN.sql).
 - **30 — `jobs` table** (2026-06-19, applied live): additive only, 0 rows touched. New `public.jobs` + `assign_job_number()` + `trg_assign_job_number` + RLS `org_members_all`. **Rollback:** run [`20260619_0030_jobs_table_DOWN.sql`](supabase/migrations/20260619_0030_jobs_table_DOWN.sql) (drops table/function/trigger; estimates untouched).
