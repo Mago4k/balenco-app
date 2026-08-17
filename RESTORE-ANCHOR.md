@@ -188,7 +188,21 @@ server-side insert → app auto-refetched (client count updated live, no reload)
 realtime service takes a little while to notice publication changes — a subscription created
 immediately after the alter received nothing; after reload + settle, events flowed.
 
+## Invite-join regression fixed (2026-08-17) — trigger only, no frontend change
+Carlos's teammate used the Settings→Team invite link (`?join=<token>`) and got an INDEPENDENT
+owner org ("My Company") instead of joining the team. Root cause: `handle_new_user` had been
+rewritten (default-terms change) WITHOUT the migration-0010 join branch — it ignored the
+`join_token` the signup form correctly sends, so every invited signup became a new owner org.
+Migration 0044 restores the branch (+ uuid→text cast on the token compare; invalid token now
+RAISES instead of silently creating a wrong account). Verified live via API signups: normal
+signup → own org/owner; token signup → employee in inviting org, no new org; bogus token →
+signup rejected, no user row. **Repair done:** Emanuel Pereira's profile moved into the Balenco
+org as employee (guard trigger briefly disabled for the direct update), stray "My Company" org
+deleted, his login untouched. Any other affected teammates: same repair, or re-signup with the
+now-working link.
+
 ## Migration log
+- **44 — restore invite-join in `handle_new_user`** (2026-08-17, applied live): see above. **Rollback:** re-apply the previous function body (in git history) — but that re-breaks invites.
 - **43 — realtime publication tables** (2026-08-17, applied live): adds clients/leads/estimates/appointments/photos/jobs/logs to `supabase_realtime`. **Rollback:** [`20260817_0043_realtime_publication_tables_DOWN.sql`](supabase/migrations/20260817_0043_realtime_publication_tables_DOWN.sql).
 - **37 — recurring jobs** (2026-07-17, applied live): additive columns + partial index on `jobs`. **Rollback:** [`20260717_0037_recurring_jobs_DOWN.sql`](supabase/migrations/20260717_0037_recurring_jobs_DOWN.sql).
 - **36 — `settings.review_link`** (2026-07-17, applied live): additive column. **Rollback:** [`20260717_0036_settings_review_link_DOWN.sql`](supabase/migrations/20260717_0036_settings_review_link_DOWN.sql).
