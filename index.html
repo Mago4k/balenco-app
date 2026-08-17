@@ -5785,7 +5785,12 @@ Date: ${date(e.createdAt)}`;
       document.getElementById('bkCompanyName').textContent = t('bkp.bookWith') + ' ' + data.settings.company;
       document.title = t('bkp.bookWith') + ' ' + data.settings.company;
       if (data.settings.logo) {
-        document.getElementById('bkLogo').innerHTML = '<img src="' + esc(data.settings.logo) + '" style="width:100%;height:100%;object-fit:contain">';
+        // Drop the placeholder tile once a real logo is in: most uploads already
+        // carry their own background, and stacking them reads as a double border.
+        const lg = document.getElementById('bkLogo');
+        lg.style.background = 'transparent';
+        lg.style.borderRadius = '0';
+        lg.innerHTML = '<img src="' + esc(data.settings.logo) + '" style="width:100%;height:100%;object-fit:contain;border-radius:18px">';
       }
     }
 
