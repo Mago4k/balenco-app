@@ -433,6 +433,8 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 #landing { display:none; min-height:100vh; background:var(--bg); color:var(--text); flex-direction:column; }
 html.lp-show #landing { display:flex; }
 html.lp-show #login { display:none; }
+/* Client-facing links (?book / ?approve / ?client): never paint the sign-in card. */
+html.public-page #login, html.public-page #landing { display:none; }
 .lp-nav { display:flex; align-items:center; justify-content:space-between; gap:12px; width:100%; max-width:1080px; margin:0 auto; padding:16px 24px; box-sizing:border-box; }
 .lp-brand { display:flex; align-items:center; gap:10px; font-weight:800; font-size:20px; letter-spacing:-0.02em; }
 .lp-brand img { width:30px; height:30px; border-radius:7px; }
@@ -817,6 +819,13 @@ html.lp-show #login { display:none; }
       var hasParams = window.location.search.length > 1 || window.location.hash.length > 1;
       var hasSession = Object.keys(localStorage).some(function (k) { return k.indexOf('sb-') === 0 && k.indexOf('-auth-token') > 0; });
       if (!hasParams && !hasSession) document.documentElement.classList.add('lp-show');
+      // Client-facing links (booking, estimate approval, portal) must never flash the
+      // sign-in card: #login shows by default, and the app script only hides it after
+      // its async boot. Hide it here, before first paint, so a client sees the page
+      // they were sent — not a login form asking for credentials they don't have.
+      if (/[?&](book|approve|client)=/.test(window.location.search)) {
+        document.documentElement.classList.add('public-page');
+      }
     } catch (e) {}
   })();
 </script>
@@ -5731,6 +5740,9 @@ Date: ${date(e.createdAt)}`;
     if (!bid) return false;
     _bkOrgId = bid;
     document.getElementById('bookingPage').style.display = 'block';
+    // #login is visible by default, and unlike the approve/portal pages this one
+    // never hid it — so the booking page rendered *underneath* a sign-in card.
+    document.getElementById('login').style.display = 'none';
     const now = new Date();
     const dow = now.getDay();
     const monday = new Date(now);
