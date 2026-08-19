@@ -1136,7 +1136,7 @@ html.public-page #login, html.public-page #landing { display:none; }
     <section id="jobs" class="tab">
       <div class="grid2">
         <div class="card">
-          <div class="title"><div><h3 data-i18n="jb.create">Add a job</h3><p data-i18n="jb.createSub">Record work directly — no quote needed. Taxes, deposit, and billing included.</p></div></div>
+          <div class="title"><div><h3 id="jobFormTitle" data-i18n="jb.create">Add a job</h3><p data-i18n="jb.createSub">Record work directly — no quote needed. Taxes, deposit, and billing included.</p></div></div>
           <form id="jobForm" class="form" onkeydown="if(event.key==='Enter'&&event.target.tagName!=='TEXTAREA'&&event.target.type!=='submit'){event.preventDefault();}">
             <select id="jobClient" required></select>
             <div class="line-items-wrap">
@@ -1164,7 +1164,8 @@ html.public-page #login, html.public-page #landing { display:none; }
               </select>
               <input id="jobRecurringEnd" type="date" data-i18n-ph="cal.endDate" placeholder="End date (optional)">
             </div>
-            <button class="btn" type="submit" data-i18n="jb.save">Save job</button>
+            <button class="btn" type="submit" id="jobSaveBtn" data-i18n="jb.save">Save job</button>
+            <button class="btn out" type="button" id="jobCancelEdit" onclick="cancelEditJob()" style="display:none" data-i18n="jb.cancelEdit">Cancel</button>
           </form>
         </div>
         <div class="card">
@@ -1599,6 +1600,7 @@ html.public-page #login, html.public-page #landing { display:none; }
   let joinToken = null;
   let state = null;
   let editingClientId = null;
+  let editingJobId = null;
   let clientStatusFilter = 'all';
 
   const $ = (id) => document.getElementById(id);
@@ -1614,7 +1616,7 @@ html.public-page #login, html.public-page #landing { display:none; }
       'reset.title':'Set a new password','reset.sub':'Choose a new password for your account.','reset.new':'New password (min 6 characters)','reset.btn':'Update password',
       'nav.dashboard':'Dashboard','nav.leads':'Leads','nav.clients':'Clients','nav.estimates':'Estimates','nav.calendar':'Calendar','nav.photos':'Photos','nav.balances':'Balances','nav.maps':'Map & Route','nav.settings':'Settings','navgrp.sales':'Sales','navgrp.schedule':'Schedule & money','navgrp.account':'Account','navgrp.tools':'Client tools',
       'mnav.home':'Home','mnav.leads':'Leads','mnav.clients':'Clients','mnav.quotes':'Quotes','mnav.calendar':'Calendar','mnav.photos':'Photos','mnav.money':'Money','mnav.map':'Map','mnav.setup':'Setup',
-      'nav.jobs':'Jobs','mnav.jobs':'Jobs','jb.create':'Add a job','jb.createSub':'Record work directly — no quote needed. Taxes, deposit, and billing included.','jb.title':'Job title','jb.save':'Save job','jb.recurring':'↻ Recurring billing — recreate & invoice this job on a schedule','jb.stopRec':'Stop recurrence','jb.auto':'Auto-generated','jb.listTitle':'Jobs','jb.listSub':'Work recorded directly, without a quote.','jb.thJob':'Job','jb.none':'No jobs yet.','jst.active':'Active','jst.inprogress':'In Progress','jst.completed':'Completed','jst.cancelled':'Cancelled','jb.invoice':'Invoice','jb.payLink':'Payment link','jb.descPh':'Describe the work — this becomes the job name',
+      'nav.jobs':'Jobs','mnav.jobs':'Jobs','jb.create':'Add a job','jb.createSub':'Record work directly — no quote needed. Taxes, deposit, and billing included.','jb.title':'Job title','jb.save':'Save job','jb.edit':'Edit','jb.editTitle':'Edit job','jb.update':'Update job','jb.cancelEdit':'Cancel','jb.updated':'Job updated','jb.recurring':'↻ Recurring billing — recreate & invoice this job on a schedule','jb.stopRec':'Stop recurrence','jb.auto':'Auto-generated','jb.listTitle':'Jobs','jb.listSub':'Work recorded directly, without a quote.','jb.thJob':'Job','jb.none':'No jobs yet.','jst.active':'Active','jst.inprogress':'In Progress','jst.completed':'Completed','jst.cancelled':'Cancelled','jb.invoice':'Invoice','jb.payLink':'Payment link','jb.descPh':'Describe the work — this becomes the job name',
       'top.switch':'Switch account','top.owner':'Owner / Admin account','top.employee':'Employee account','top.loggedIn':'Logged in as ',
       'hero.title':'Run the job from lead to payment.','hero.sub':'Create tax-ready estimates, send polished quote emails, book appointments, track balances, and keep a clean client archive.','hero.addLead':'+ Add lead','hero.newEstimate':'+ New estimate',
       'doc.estimate':'Estimate','doc.quoteNo':'Quote #','doc.date':'Date','doc.validUntil':'Valid until','doc.preparedBy':'Prepared by','doc.client':'Client','doc.project':'Project','doc.taxesBelow':'Taxes shown below.','doc.scope':'Scope of work','doc.noScope':'No scope entered.','doc.description':'Description','doc.qty':'Qty','doc.unitPrice':'Unit price','doc.total':'Total','doc.subtotal':'Subtotal','doc.deposit':'Deposit','doc.balanceAfter':'Balance after deposit','doc.paymentPlan':'Payment plan','doc.notSpecified':'Not specified','doc.paymentNotesH':'Payment schedule notes','doc.terms':'Terms & notes','doc.clientSig':'Client signature','doc.approved':'Approved','doc.apprPre':'This estimate was approved by ','doc.apprMid':' on ','doc.thankYou':'Thank you for considering ','doc.invoice':'Invoice','doc.invoiceNo':'Invoice #','doc.billTo':'Bill to','doc.descWork':'Description of work','doc.seeEstimate':'See attached estimate.','doc.paidToDate':'Paid to date','doc.amountDue':'Amount due','doc.payInstr':'Payment instructions','doc.payDefault':'Please remit payment at your earliest convenience. Thank you.','doc.payStatus':'Payment status','doc.paidFull':'Paid in full. Thank you for your business!','doc.thankYouShort':'Thank you — ','doc.basedOn':'Based on ','doc.approvedByLbl':'Approved by ','doc.month':'','doc.invDate':'Date',
@@ -1625,7 +1627,7 @@ html.public-page #login, html.public-page #landing { display:none; }
       'reset.title':'Définir un nouveau mot de passe','reset.sub':'Choisissez un nouveau mot de passe pour votre compte.','reset.new':'Nouveau mot de passe (min. 6 caractères)','reset.btn':'Mettre à jour',
       'nav.dashboard':'Tableau de bord','nav.leads':'Prospects','nav.clients':'Clients','nav.estimates':'Soumissions','nav.calendar':'Calendrier','nav.photos':'Photos','nav.balances':'Soldes','nav.maps':'Carte et trajet','nav.settings':'Paramètres','navgrp.sales':'Ventes','navgrp.schedule':'Agenda et argent','navgrp.account':'Compte','navgrp.tools':'Outils clients',
       'mnav.home':'Accueil','mnav.leads':'Prospects','mnav.clients':'Clients','mnav.quotes':'Soumissions','mnav.calendar':'Calendrier','mnav.photos':'Photos','mnav.money':'Argent','mnav.map':'Carte','mnav.setup':'Config',
-      'nav.jobs':'Jobs','mnav.jobs':'Jobs','jb.create':'Ajouter une job','jb.createSub':'Enregistrez le travail directement — sans soumission. Taxes, acompte et facturation inclus.','jb.title':'Titre de la job','jb.save':'Enregistrer la job','jb.recurring':'↻ Facturation récurrente — recréer et facturer cette job selon un horaire','jb.stopRec':'Arrêter la récurrence','jb.auto':'Générée automatiquement','jb.listTitle':'Jobs','jb.listSub':'Travaux enregistrés directement, sans soumission.','jb.thJob':'Job','jb.none':'Aucune job pour l’instant.','jst.active':'Active','jst.inprogress':'En cours','jst.completed':'Terminée','jst.cancelled':'Annulée','jb.invoice':'Facture','jb.payLink':'Lien de paiement','jb.descPh':'Décrivez le travail — ceci devient le nom de la job',
+      'nav.jobs':'Jobs','mnav.jobs':'Jobs','jb.create':'Ajouter une job','jb.createSub':'Enregistrez le travail directement — sans soumission. Taxes, acompte et facturation inclus.','jb.title':'Titre de la job','jb.save':'Enregistrer la job','jb.edit':'Modifier','jb.editTitle':'Modifier la job','jb.update':'Mettre à jour','jb.cancelEdit':'Annuler','jb.updated':'Job mise à jour','jb.recurring':'↻ Facturation récurrente — recréer et facturer cette job selon un horaire','jb.stopRec':'Arrêter la récurrence','jb.auto':'Générée automatiquement','jb.listTitle':'Jobs','jb.listSub':'Travaux enregistrés directement, sans soumission.','jb.thJob':'Job','jb.none':'Aucune job pour l’instant.','jst.active':'Active','jst.inprogress':'En cours','jst.completed':'Terminée','jst.cancelled':'Annulée','jb.invoice':'Facture','jb.payLink':'Lien de paiement','jb.descPh':'Décrivez le travail — ceci devient le nom de la job',
       'top.switch':'Changer de compte','top.owner':'Compte propriétaire / admin','top.employee':'Compte employé','top.loggedIn':'Connecté : ',
       'hero.title':'Gérez le chantier, du prospect au paiement.','hero.sub':'Créez des soumissions avec taxes, envoyez de beaux courriels, planifiez des rendez-vous, suivez les soldes et gardez un dossier client impeccable.','hero.addLead':'+ Ajouter un prospect','hero.newEstimate':'+ Nouvelle soumission',
       'doc.estimate':'Soumission','doc.quoteNo':'Soumission n°','doc.date':'Date','doc.validUntil':'Valide jusqu’au','doc.preparedBy':'Préparée par','doc.client':'Client','doc.project':'Projet','doc.taxesBelow':'Taxes indiquées ci-dessous.','doc.scope':'Description des travaux','doc.noScope':'Aucune description fournie.','doc.description':'Description','doc.qty':'Qté','doc.unitPrice':'Prix unitaire','doc.total':'Total','doc.subtotal':'Sous-total','doc.deposit':'Acompte','doc.balanceAfter':'Solde après acompte','doc.paymentPlan':'Modalités de paiement','doc.notSpecified':'Non spécifié','doc.paymentNotesH':'Notes sur le calendrier de paiement','doc.terms':'Conditions et notes','doc.clientSig':'Signature du client','doc.approved':'Approuvée','doc.apprPre':'Cette soumission a été approuvée par ','doc.apprMid':' le ','doc.thankYou':'Merci de considérer ','doc.invoice':'Facture','doc.invoiceNo':'Facture n°','doc.billTo':'Facturer à','doc.descWork':'Description des travaux','doc.seeEstimate':'Voir la soumission jointe.','doc.paidToDate':'Payé à ce jour','doc.amountDue':'Montant dû','doc.payInstr':'Instructions de paiement','doc.payDefault':'Veuillez effectuer le paiement dès que possible. Merci.','doc.payStatus':'Statut du paiement','doc.paidFull':'Payée en totalité. Merci de votre confiance!','doc.thankYouShort':'Merci — ','doc.basedOn':'Basée sur ','doc.approvedByLbl':'Approuvée par ','doc.month':'','doc.invDate':'Date',
@@ -2826,6 +2828,7 @@ html.public-page #login, html.public-page #landing { display:none; }
           <td class="owner-only" data-label="${t('es.thEnteredBy')}">${esc(j.createdBy)}<br><span class="muted">${date(j.createdAt)}</span></td>
           <td class="right">
             <div class="actions">
+              <button class="btn out small" type="button" data-action="editJob" data-id="${j.id}">${t('jb.edit')}</button>
               <button class="btn small" type="button" data-action="jobInvoice" data-id="${j.id}">${t('jb.invoice')}</button>
               <button class="btn out small" type="button" data-action="jobPayLink" data-id="${j.id}">${t('jb.payLink')}</button>
               <button class="btn out small" type="button" data-action="jobPayment" data-id="${j.id}">${t('pay.record')}</button>
@@ -3967,8 +3970,54 @@ Date: ${date(e.createdAt)}`;
     });
   }
 
+  // Jobs were create-only: the only way to change one was delete + recreate, which
+  // threw away its job number and its recorded payments. Editing reuses the create
+  // form (same pattern as editClient) and never writes `payments` - those belong to
+  // the record_manual_payment RPC and must not be clobbered by a form save.
+  function editJob(id) {
+    const j = state.jobs.find(x => x.id === id);
+    if (!j) return;
+    openTab("jobs");
+    editingJobId = id;
+    $("jobClient").value = j.clientId || "";
+    $("jobStatus").value = j.status || "Active";
+    $("jobDeposit").value = j.deposit || "";
+    $("jobPaymentSchedule").value = j.paymentSchedule || "";
+    $("jobPaymentNotes").value = j.paymentNotes || "";
+    $("jobScope").value = j.scope || "";
+    const body = $("jobLineItemsBody");
+    if (body) body.innerHTML = "";
+    (j.line_items || []).forEach(function (it) { addJobLineItem(it.desc, it.qty, it.price); });
+    if (!(j.line_items || []).length) addJobLineItem();
+    calcJobLineItems();
+    const recCb = $("jobRecurring");
+    if (recCb) {
+      recCb.checked = !!j.recurring;
+      if ($("jobRecurringOptions")) $("jobRecurringOptions").style.display = j.recurring ? "" : "none";
+      if (j.recurring && $("jobRecurringFreq")) $("jobRecurringFreq").value = j.recurring;
+      if ($("jobRecurringEnd")) $("jobRecurringEnd").value = j.recurringEnd || "";
+    }
+    if ($("jobFormTitle")) $("jobFormTitle").textContent = t("jb.editTitle");
+    if ($("jobSaveBtn")) $("jobSaveBtn").textContent = t("jb.update");
+    if ($("jobCancelEdit")) $("jobCancelEdit").style.display = "";
+    try { $("jobScope").scrollIntoView({ behavior:"smooth", block:"center" }); } catch (e) {}
+  }
+  window.editJob = editJob;
+
+  function cancelEditJob() {
+    editingJobId = null;
+    const f = $("jobForm"); if (f) f.reset();
+    resetJobLineItems();
+    if ($("jobRecurringOptions")) $("jobRecurringOptions").style.display = "none";
+    if ($("jobFormTitle")) $("jobFormTitle").textContent = t("jb.create");
+    if ($("jobSaveBtn")) $("jobSaveBtn").textContent = t("jb.save");
+    if ($("jobCancelEdit")) $("jobCancelEdit").style.display = "none";
+  }
+  window.cancelEditJob = cancelEditJob;
+
   function addJob(event) {
     event.preventDefault();
+    if (editingJobId) { updateJob(event); return; }
     calcJobLineItems();
     const _items = getJobLineItems();
     const _scopeLine = ($('jobScope').value || '').split('\n')[0].trim();
@@ -3998,6 +4047,47 @@ Date: ${date(e.createdAt)}`;
       renderAll();
       toast(lang === 'fr' ? 'Job enregistrée' : 'Job saved');
     });
+  }
+
+  function updateJob(event) {
+    const j = state.jobs.find(x => x.id === editingJobId);
+    if (!j) { cancelEditJob(); return; }
+    calcJobLineItems();
+    const _items = getJobLineItems();
+    const _scopeLine = ($("jobScope").value || "").split("\n")[0].trim();
+    const _cli = state.clients.find(c => c.id === $("jobClient").value);
+    const _title = _scopeLine.slice(0, 80) || (_items[0] && _items[0].desc) || (_cli && _cli.project) || j.title || "Job";
+    const _rec = $("jobRecurring") && $("jobRecurring").checked ? $("jobRecurringFreq").value : "";
+    const _recEnd = _rec ? ($("jobRecurringEnd").value || "") : "";
+    // Keep the existing schedule when the frequency is unchanged, so editing an
+    // unrelated field never silently pushes the next occurrence out.
+    let _nextRec = "";
+    if (_rec) {
+      if (j.recurring === _rec && j.nextRecurrence) _nextRec = j.nextRecurrence;
+      else { const _d = new Date(); if (_rec === "weekly") _d.setDate(_d.getDate() + 7); else if (_rec === "biweekly") _d.setDate(_d.getDate() + 14); else _d.setMonth(_d.getMonth() + 1); _nextRec = _d.toISOString().slice(0, 10); }
+    }
+    const _patch = { clientId:$("jobClient").value, title:_title, line_items:_items, subtotal:Number($("jobSubtotal").value || 0), deposit:Number($("jobDeposit").value || 0), paymentSchedule:$("jobPaymentSchedule").value, paymentNotes:$("jobPaymentNotes").value, status:$("jobStatus").value, scope:$("jobScope").value, recurring:_rec, recurringEnd:_recEnd, nextRecurrence:_nextRec };
+    const _probe = Object.assign({}, j, _patch);
+    const _newTotal = calc(_probe).total;
+    if (Number(_patch.deposit || 0) > _newTotal + 0.005 && !confirm(lang === "fr" ? "L\u2019acompte (" + money(_patch.deposit) + ") d\u00e9passe le total (" + money(_newTotal) + "). Continuer?" : "Deposit (" + money(_patch.deposit) + ") is more than the total (" + money(_newTotal) + "). Continue?")) return;
+    // Removing items can drop the total below what the client already paid, which
+    // turns the balance negative - make that a deliberate choice, not a surprise.
+    const _paid = (j.payments || []).reduce(function (s, p) { return s + Number(p.amount || 0); }, 0);
+    if (_paid > _newTotal + 0.005 && !confirm(lang === "fr" ? "D\u00e9j\u00e0 pay\u00e9 (" + money(_paid) + ") d\u00e9passe le nouveau total (" + money(_newTotal) + "). Continuer?" : "Already paid (" + money(_paid) + ") is more than the new total (" + money(_newTotal) + "). Continue?")) return;
+    const _sbtn = $("jobSaveBtn");
+    if (_sbtn) _sbtn.disabled = true;
+    Object.assign(j, _patch, { updatedBy:user, updatedAt:new Date().toISOString() });
+    // `payments` is intentionally absent - it is owned by record_manual_payment.
+    sb.from("jobs").update({ client_id:j.clientId, title:j.title, line_items:j.line_items || [], subtotal:j.subtotal, deposit:j.deposit, payment_schedule:j.paymentSchedule, payment_notes:j.paymentNotes, status:j.status, scope:j.scope, recurring:j.recurring || null, recurring_end:j.recurringEnd || null, next_recurrence:j.nextRecurrence || null, updated_by:user, updated_at:j.updatedAt }).eq("id", j.id)
+      .then(function (res) {
+        if (_sbtn) _sbtn.disabled = false;
+        if (res.error) { toast(friendlyError(res.error)); return; }
+        log("Updated job", user + " updated job " + j.title + ".");
+        save();
+        cancelEditJob();
+        renderAll();
+        toast(t("jb.updated"));
+      });
   }
 
   function addAppointment(event) {
@@ -4653,6 +4743,7 @@ Date: ${date(e.createdAt)}`;
     if (action === 'pickEstimate') pickEstimate(id);
     if (action === 'estimateAccepted') setEstimateStatus(id, 'Accepted');
     if (action === 'estimateLost') setEstimateStatus(id, 'Lost');
+    if (action === 'editJob') editJob(id);
     if (action === 'jobInvoice') printJobInvoice(id);
     if (action === 'jobPayLink') copyJobPaymentLink(id);
     if (action === 'jobPayment') addJobPayment(id);
