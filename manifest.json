@@ -1,11 +1,11 @@
 {
   "name": "Balenco",
   "short_name": "Balenco",
-  "description": "Contractor management app",
+  "description": "Estimates, jobs and payments for Québec contractors",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#062A5E",
-  "theme_color": "#062A5E",
+  "background_color": "#FAF9F7",
+  "theme_color": "#FAF9F7",
   "orientation": "portrait-primary",
   "icons": [
     {

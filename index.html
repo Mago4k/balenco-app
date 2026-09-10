@@ -4,10 +4,11 @@
 <meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com https://browser.sentry-cdn.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://wvqqazdzejjksjcjdbcm.supabase.co wss://wvqqazdzejjksjcjdbcm.supabase.co https://o4511572006731776.ingest.us.sentry.io; worker-src 'self'; object-src 'none'; base-uri 'self'">
 <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#062A5E">
+<meta name="theme-color" content="#FAF9F7">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Balenco">
+<link rel="icon" type="image/png" href="/favicon.png" sizes="any">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,18 +22,18 @@
 <meta property="og:title" content="Balenco — contractor management for Québec">
 <meta property="og:description" content="Tax-ready estimates, online booking, a client portal and online payments — one clean, bilingual app built for Québec contractors.">
 <meta property="og:url" content="https://balenco.app/">
-<meta property="og:image" content="https://balenco.app/logo.png">
+<meta property="og:image" content="https://balenco.app/og-image.png">
 <meta property="og:locale" content="fr_CA">
 <meta property="og:locale:alternate" content="en_CA">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Balenco — contractor management for Québec">
 <meta name="twitter:description" content="Tax-ready estimates, online booking, a client portal and online payments — one clean, bilingual app built for Québec contractors.">
-<meta name="twitter:image" content="https://balenco.app/logo.png">
+<meta name="twitter:image" content="https://balenco.app/og-image.png">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Balenco","applicationCategory":"BusinessApplication","operatingSystem":"Web","description":"Bilingual field-service management app for Québec contractors: tax-ready estimates (TPS/TVQ, RBQ), online booking, client portal, deposits and card payments.","offers":[{"@type":"Offer","price":"29","priceCurrency":"CAD","category":"Solo"},{"@type":"Offer","price":"69","priceCurrency":"CAD","category":"Team"}],"inLanguage":["fr-CA","en-CA"],"url":"https://balenco.app/"}</script>
 <script>(function(){try{var t=localStorage.getItem('balenco_theme_v2');if(t!=='light'&&t!=='dark'){t='light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
 <style>
 :root {
-  --navy:#062A5E; --red:#E30613;
+  --navy:#17181A; --red:#E30613;
   --bg:#122136; --surface:#1b2b43; --surface2:#24364f; --well:#0e1b2e;
   --line:#2b3c54; --line2:#213044; --line-soft:#213044; --border:#2b3c54; --soft:#1b2b43;
   --text:#e7eff9; --muted:#95a9c6;
@@ -52,7 +53,7 @@
   --r-card:16px; --r-md:12px; --r-sm:10px;
 }
 [data-theme="light"] {
-  --bg:#f4f6f9; --surface:#ffffff; --surface2:#eef2f7; --well:#f6f8fb;
+  --bg:#f4f6f9; --surface:#ffffff; --surface2:#EDEAE3; --well:#f6f8fb;
   --line:#e3e8ef; --line2:#eef2f6; --line-soft:#eef2f6; --border:#e3e8ef; --soft:#ffffff;
   --text:#16243c; --muted:#5d7088;
   --primary:#0d3a7a; --primary-press:#0a2f63;
@@ -60,11 +61,11 @@
   --brand-panel:#0d3a7a; --brand-on:#ffffff; --brand-sub:#c2d6f2;
   --approve:#15803d; --approve-press:#116a33; --red-btn:#dc2626; --red-press:#b91c1c;
   --green:#15803d; --amber:#b45309; --danger:#dc2626; --blue:#1d6fd0; --violet:#7c3aed;
-  --pill-blue-bg:#dbeafe; --pill-blue-tx:#1d4ed8;
+  --pill-blue-bg:#F0E2BC; --pill-blue-tx:#6B4E00;
   --pill-green-bg:#dcfce7; --pill-green-tx:#15803d;
   --pill-amber-bg:#fef3c7; --pill-amber-tx:#b45309;
   --pill-red-bg:#fee2e2; --pill-red-tx:#b91c1c;
-  --pill-white-bg:#eef2f7; --pill-white-tx:#5d7088;
+  --pill-white-bg:#EDEAE3; --pill-white-tx:#5d7088;
   --pill-violet-bg:#ede9fe; --pill-violet-tx:#6d28d9;
   --audit-bg:#fef3c7; --audit-bd:#fde68a; --audit-tx:#92400e;
   --shadow:rgba(15,23,42,0.10); --overlay:rgba(15,23,42,0.45); --focus:rgba(29,111,208,0.16);
@@ -196,7 +197,7 @@ td { border-top:1px solid var(--line-soft); padding:14px; font-size:14px; vertic
 body.owner-mode .owner-only { display:block!important; }
 body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell!important; }
 .audit { margin-top:9px; background:var(--audit-bg); border:1px solid var(--audit-bd); color:var(--audit-tx); border-radius:var(--r-md); padding:9px 11px; font-size:12px; line-height:1.35; }
-.preview { background:#fff; border:1px solid #e2e8f0; border-radius:22px; padding:20px; line-height:1.45; font-family:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif; overflow:auto; color:#0f172a; }
+.preview { background:#fff; border:1px solid #E9E6DF; border-radius:22px; padding:20px; line-height:1.45; font-family:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif; overflow:auto; color:#17181A; }
 .empty { text-align:center; padding:28px; border:1px dashed var(--line); border-radius:var(--r-md); background:var(--well); color:var(--muted); }
 .photo { height:140px; background:var(--well); border-radius:var(--r-md); display:grid; place-items:center; overflow:hidden; margin-bottom:10px; font-size:34px; }
 .photo img { width:100%; height:100%; object-fit:cover; }
@@ -302,33 +303,33 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 .stat label { display:block; color:var(--muted); font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:.4px; margin-top:2px; }
 .stat strong { display:block; color:var(--text); font-size:24px; font-weight:900; margin-top:4px; }
 /* ── Estimate doc (stays light — printable) ── */
-.estimate-doc { max-width:800px; margin:0 auto; background:#fff; color:#0f172a; }
-.estimate-head { display:flex; justify-content:space-between; gap:18px; align-items:flex-start; padding-bottom:18px; border-bottom:2px solid #e2e8f0; }
+.estimate-doc { max-width:800px; margin:0 auto; background:#fff; color:#17181A; }
+.estimate-head { display:flex; justify-content:space-between; gap:18px; align-items:flex-start; padding-bottom:18px; border-bottom:2px solid #E9E6DF; }
 .estimate-brand { display:grid; gap:8px; }
 .estimate-brand img { max-width:180px; max-height:82px; object-fit:contain; }
-.estimate-brand-title { font-size:24px; font-weight:900; color:#062A5E; letter-spacing:-.4px; }
-.estimate-brand-meta { color:#64748b; font-size:13px; line-height:1.5; }
-.estimate-badge { display:inline-flex; padding:7px 11px; border-radius:999px; background:#eff6ff; color:#1d4ed8; border:1px solid #dbeafe; font-size:12px; font-weight:900; }
+.estimate-brand-title { font-size:24px; font-weight:900; color:#17181A; letter-spacing:-.4px; }
+.estimate-brand-meta { color:#6E6F6B; font-size:13px; line-height:1.5; }
+.estimate-badge { display:inline-flex; padding:7px 11px; border-radius:999px; background:#FDF0CE; color:#6B4E00; border:1px solid #F0E2BC; font-size:12px; font-weight:900; }
 .estimate-blocks { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:18px 0; }
-.estimate-box { background:#f8fafc; border:1px solid #edf2f7; border-radius:18px; padding:14px; }
-.estimate-box h4,.estimate-scope h4,.estimate-terms h4 { margin:0 0 10px; color:#062A5E; font-size:13px; text-transform:uppercase; letter-spacing:.8px; }
-.estimate-box p,.estimate-scope p,.estimate-terms p { margin:0; color:#334155; font-size:14px; line-height:1.6; white-space:pre-wrap; }
-.estimate-scope { margin:0 0 18px; background:#fff; border:1px solid #e2e8f0; border-radius:18px; padding:16px; }
-.estimate-pricing { border:1px solid #e2e8f0; border-radius:18px; overflow:hidden; margin-bottom:18px; }
+.estimate-box { background:#F1EFEA; border:1px solid #EDEAE3; border-radius:18px; padding:14px; }
+.estimate-box h4,.estimate-scope h4,.estimate-terms h4 { margin:0 0 10px; color:#17181A; font-size:13px; text-transform:uppercase; letter-spacing:.8px; }
+.estimate-box p,.estimate-scope p,.estimate-terms p { margin:0; color:#3F403B; font-size:14px; line-height:1.6; white-space:pre-wrap; }
+.estimate-scope { margin:0 0 18px; background:#fff; border:1px solid #E9E6DF; border-radius:18px; padding:16px; }
+.estimate-pricing { border:1px solid #E9E6DF; border-radius:18px; overflow:hidden; margin-bottom:18px; }
 .estimate-pricing table { width:100%; border-collapse:collapse; }
-.estimate-pricing td { padding:12px 14px; border-top:1px solid #eef2f7; font-size:14px; color:#0f172a; }
+.estimate-pricing td { padding:12px 14px; border-top:1px solid #EDEAE3; font-size:14px; color:#17181A; }
 .estimate-pricing tr:first-child td { border-top:0; }
-.estimate-pricing .total-row td { background:#062A5E; color:#fff; font-weight:900; }
+.estimate-pricing .total-row td { background:#17181A; color:#fff; font-weight:900; }
 .estimate-payment { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:18px; }
-.pay-card { background:#f8fafc; border:1px solid #e2e8f0; border-radius:16px; padding:12px; }
-.pay-card span { display:block; color:#64748b; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; }
-.pay-card strong { display:block; color:#062A5E; font-size:17px; margin-top:4px; }
+.pay-card { background:#F1EFEA; border:1px solid #E9E6DF; border-radius:16px; padding:12px; }
+.pay-card span { display:block; color:#6E6F6B; font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; }
+.pay-card strong { display:block; color:#17181A; font-size:17px; margin-top:4px; }
 .signature-box { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:16px; }
-.signature-line { border:1px solid #e2e8f0; border-radius:16px; padding:14px; min-height:78px; background:#fff; }
-.signature-line small { display:block; color:#64748b; margin-top:22px; border-top:1px solid #cbd5e1; padding-top:8px; }
+.signature-line { border:1px solid #E9E6DF; border-radius:16px; padding:14px; min-height:78px; background:#fff; }
+.signature-line small { display:block; color:#6E6F6B; margin-top:22px; border-top:1px solid #cbd5e1; padding-top:8px; }
 .approval-box { margin-top:16px; background:#ecfdf5; border:1px solid #bbf7d0; color:#15803d; border-radius:14px; padding:14px; display:none; }
 .approval-box.show { display:block; }
-.estimate-footer { display:flex; justify-content:space-between; gap:14px; align-items:flex-end; padding-top:12px; border-top:1px solid #e2e8f0; color:#64748b; font-size:13px; }
+.estimate-footer { display:flex; justify-content:space-between; gap:14px; align-items:flex-end; padding-top:12px; border-top:1px solid #E9E6DF; color:#6E6F6B; font-size:13px; }
 /* ── Toast ── */
 #toast { position:fixed; right:18px; bottom:18px; background:var(--primary); color:#fff; padding:12px 14px; border-radius:var(--r-md); display:none; z-index:30; border:1px solid var(--line); box-shadow:0 8px 24px var(--shadow); }
 /* ── Responsive ── */
@@ -964,7 +965,7 @@ td { padding:14px; font-size:13px; }
 <!-- Public marketing landing — shown to logged-out visitors at the root -->
 <section id="landing">
   <nav class="lp-nav">
-    <div class="lp-brand"><img src="/logo.png" alt="Balenco logo">Balenco</div>
+    <div class="lp-brand"><img src="/icon-192.png" alt="Balenco logo">Balenco</div>
     <div class="lp-nav-actions">
       <div class="lp-langtoggle">
         <button type="button" data-lang="fr" onclick="setLang('fr')">FR</button>
@@ -2350,7 +2351,7 @@ td { padding:14px; font-size:13px; }
     if (q) parts.push('TVQ/QST: ' + esc(q));
     if (r) parts.push('RBQ: ' + esc(r));
     if (n) parts.push('NEQ: ' + esc(n));
-    return '<div style="font-size:11px;color:#64748b;margin-top:4px">' + parts.join(' &middot; ') + '</div>';
+    return '<div style="font-size:11px;color:#6E6F6B;margin-top:4px">' + parts.join(' &middot; ') + '</div>';
   }
 
   function log(action, detail) {
@@ -3277,7 +3278,7 @@ Date: ${date(e.createdAt)}`;
 
         <div class="estimate-pricing">
           <table>
-            ${(e.line_items && e.line_items.length > 0) ? '<tr class=\"li-head\"><th style=\"text-align:left;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0\">Description</th><th style=\"text-align:center;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0\">' + t('doc.qty') + '</th><th style=\"text-align:right;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0\">' + t('doc.unitPrice') + '</th><th style=\"text-align:right;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0\">Total</th></tr>' + e.line_items.map(function(item) { return '<tr><td style=\"padding:6px 8px\">' + esc(item.desc) + '</td><td style=\"text-align:center;padding:6px 8px\">' + item.qty + '</td><td style=\"text-align:right;padding:6px 8px\">' + money(item.price) + '</td><td style=\"text-align:right;padding:6px 8px;font-weight:600\">' + money(item.qty * item.price) + '</td></tr>'; }).join('') + '<tr><td colspan=\"3\" style=\"text-align:right;padding:8px;border-top:1px solid #e2e8f0;font-weight:600\">' + t('doc.subtotal') + '</td><td style=\"text-align:right;padding:8px;border-top:1px solid #e2e8f0;font-weight:600\">' + money(e.subtotal) + '</td></tr>' : '<tr><td>' + t('doc.subtotal') + '</td><td style=\"text-align:right\">' + money(e.subtotal) + '</td></tr>'}
+            ${(e.line_items && e.line_items.length > 0) ? '<tr class=\"li-head\"><th style=\"text-align:left;padding:6px 8px;font-size:12px;color:#6E6F6B;border-bottom:1px solid #E9E6DF\">Description</th><th style=\"text-align:center;padding:6px 8px;font-size:12px;color:#6E6F6B;border-bottom:1px solid #E9E6DF\">' + t('doc.qty') + '</th><th style=\"text-align:right;padding:6px 8px;font-size:12px;color:#6E6F6B;border-bottom:1px solid #E9E6DF\">' + t('doc.unitPrice') + '</th><th style=\"text-align:right;padding:6px 8px;font-size:12px;color:#6E6F6B;border-bottom:1px solid #E9E6DF\">Total</th></tr>' + e.line_items.map(function(item) { return '<tr><td style=\"padding:6px 8px\">' + esc(item.desc) + '</td><td style=\"text-align:center;padding:6px 8px\">' + item.qty + '</td><td style=\"text-align:right;padding:6px 8px\">' + money(item.price) + '</td><td style=\"text-align:right;padding:6px 8px;font-weight:600\">' + money(item.qty * item.price) + '</td></tr>'; }).join('') + '<tr><td colspan=\"3\" style=\"text-align:right;padding:8px;border-top:1px solid #E9E6DF;font-weight:600\">' + t('doc.subtotal') + '</td><td style=\"text-align:right;padding:8px;border-top:1px solid #E9E6DF;font-weight:600\">' + money(e.subtotal) + '</td></tr>' : '<tr><td>' + t('doc.subtotal') + '</td><td style=\"text-align:right\">' + money(e.subtotal) + '</td></tr>'}
             <tr><td>TPS (${esc(state.settings.tps)}%)</td><td style="text-align:right">${money(tax.tps)}</td></tr>
             <tr><td>TVQ (${esc(state.settings.tvq)}%)</td><td style="text-align:right">${money(tax.tvq)}</td></tr>
             <tr class="total-row"><td>${t('doc.total')}</td><td style="text-align:right">${money(tax.total)}</td></tr>
@@ -3679,7 +3680,7 @@ Date: ${date(e.createdAt)}`;
       (state.photos || []).map(function (p) { return [esc(nameById[p.clientId]||''), esc(p.type||''), esc(p.notes||''), esc(p.createdAt?date(p.createdAt):'')]; }));
     var logs = tbl([T.date, T.action, T.detail],
       (state.logs || []).map(function (g) { return [esc(g.at?date(g.at):''), esc(g.action||''), esc(g.detail||'')]; }));
-    var css = 'body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#0f2238;max-width:900px;margin:0 auto;padding:28px 22px;line-height:1.5}h1{font-size:24px;margin:0 0 2px}.sub{color:#64748b;margin:0 0 18px;font-size:13px}h2{font-size:17px;margin:26px 0 8px;border-bottom:2px solid #e2e8f0;padding-bottom:5px}table{width:100%;border-collapse:collapse;margin:6px 0;font-size:12.5px}th,td{text-align:left;border:1px solid #e2e8f0;padding:6px 9px;vertical-align:top}th{background:#f1f5f9}.none{color:#94a3b8;font-style:italic;margin:6px 0}.printbtn{position:fixed;top:14px;right:14px;background:#2563eb;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-weight:700;cursor:pointer}@media print{.printbtn{display:none}body{padding:0}}';
+    var css = 'body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#17181A;max-width:900px;margin:0 auto;padding:28px 22px;line-height:1.5}h1{font-size:24px;margin:0 0 2px}.sub{color:#6E6F6B;margin:0 0 18px;font-size:13px}h2{font-size:17px;margin:26px 0 8px;border-bottom:2px solid #E9E6DF;padding-bottom:5px}table{width:100%;border-collapse:collapse;margin:6px 0;font-size:12.5px}th,td{text-align:left;border:1px solid #E9E6DF;padding:6px 9px;vertical-align:top}th{background:#f1f5f9}.none{color:#94a3b8;font-style:italic;margin:6px 0}.printbtn{position:fixed;top:14px;right:14px;background:#2563eb;color:#fff;border:none;padding:9px 16px;border-radius:8px;font-weight:700;cursor:pointer}@media print{.printbtn{display:none}body{padding:0}}';
     var body = '<h1>' + esc(s.company || 'Balenco') + '</h1><p class="sub">' + T.sub + ' · ' + esc(date(new Date().toISOString())) + '</p>' +
       '<h2>' + T.company + '</h2>' + company +
       '<h2>' + T.clients + ' (' + (state.clients||[]).length + ')</h2>' + clients +
@@ -4931,17 +4932,17 @@ Date: ${date(e.createdAt)}`;
     items.forEach(function(item) {
       const lineTotal = Number(item.qty || 1) * Number(item.price || 0);
       itemRows += '<tr>' +
-        '<td style="padding:10px 14px;border-top:1px solid #eef2f7;font-size:14px;color:#334155">' + esc(item.description || '') + '</td>' +
-        '<td style="padding:10px 14px;border-top:1px solid #eef2f7;font-size:14px;text-align:center;color:#64748b">' + (item.qty || 1) + '</td>' +
-        '<td style="padding:10px 14px;border-top:1px solid #eef2f7;font-size:14px;text-align:right;color:#64748b">' + fmt(item.price || 0) + '</td>' +
-        '<td style="padding:10px 14px;border-top:1px solid #eef2f7;font-size:14px;text-align:right;font-weight:700;color:#0f172a">' + fmt(lineTotal) + '</td>' +
+        '<td style="padding:10px 14px;border-top:1px solid #EDEAE3;font-size:14px;color:#3F403B">' + esc(item.description || '') + '</td>' +
+        '<td style="padding:10px 14px;border-top:1px solid #EDEAE3;font-size:14px;text-align:center;color:#6E6F6B">' + (item.qty || 1) + '</td>' +
+        '<td style="padding:10px 14px;border-top:1px solid #EDEAE3;font-size:14px;text-align:right;color:#6E6F6B">' + fmt(item.price || 0) + '</td>' +
+        '<td style="padding:10px 14px;border-top:1px solid #EDEAE3;font-size:14px;text-align:right;font-weight:700;color:#17181A">' + fmt(lineTotal) + '</td>' +
       '</tr>';
     });
 
     return '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff">' +
 
       // Header
-      '<div style="background:#062A5E;padding:28px 32px;border-radius:12px 12px 0 0">' +
+      '<div style="background:#17181A;padding:28px 32px;border-radius:12px 12px 0 0">' +
         (s.logo ? '<img src="' + s.logo + '" style="max-height:50px;margin-bottom:12px;display:block" alt="' + esc(company) + '">' : '') +
         '<div style="color:#fff;font-size:22px;font-weight:900">' + esc(company) + '</div>' +
         (s.address ? '<div style="color:var(--accent);font-size:13px;margin-top:4px">' + esc(s.address) + '</div>' : '') +
@@ -4949,20 +4950,20 @@ Date: ${date(e.createdAt)}`;
       '</div>' +
 
       // Body
-      '<div style="padding:28px 32px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px">' +
-        '<p style="font-size:16px;color:#334155;margin:0 0 6px">Hi <strong>' + esc(clientObj.name || 'there') + '</strong>,</p>' +
-        '<p style="font-size:15px;color:#64748b;margin:0 0 24px">Please find your estimate below. Use the button at the bottom to review and approve it.</p>' +
+      '<div style="padding:28px 32px;border:1px solid #E9E6DF;border-top:none;border-radius:0 0 12px 12px">' +
+        '<p style="font-size:16px;color:#3F403B;margin:0 0 6px">Hi <strong>' + esc(clientObj.name || 'there') + '</strong>,</p>' +
+        '<p style="font-size:15px;color:#6E6F6B;margin:0 0 24px">Please find your estimate below. Use the button at the bottom to review and approve it.</p>' +
 
         // Title
         '<div style="margin-bottom:20px">' +
-          '<div style="font-size:20px;font-weight:900;color:#062A5E">' + esc(e.title) + '</div>' +
-          (e.scope ? '<div style="font-size:14px;color:#64748b;margin-top:6px;white-space:pre-wrap">' + esc(e.scope) + '</div>' : '') +
+          '<div style="font-size:20px;font-weight:900;color:#17181A">' + esc(e.title) + '</div>' +
+          (e.scope ? '<div style="font-size:14px;color:#6E6F6B;margin-top:6px;white-space:pre-wrap">' + esc(e.scope) + '</div>' : '') +
         '</div>' +
 
         // Line items
-        (items.length ? '<div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:20px">' +
+        (items.length ? '<div style="border:1px solid #E9E6DF;border-radius:10px;overflow:hidden;margin-bottom:20px">' +
           '<table style="width:100%;border-collapse:collapse">' +
-            '<thead><tr style="background:#f8fafc">' +
+            '<thead><tr style="background:#F1EFEA">' +
               '<th style="padding:10px 14px;text-align:left;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px">Description</th>' +
               '<th style="padding:10px 14px;text-align:center;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px">Qty</th>' +
               '<th style="padding:10px 14px;text-align:right;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px">Price</th>' +
@@ -4973,38 +4974,38 @@ Date: ${date(e.createdAt)}`;
         '</div>' : '') +
 
         // Totals
-        '<div style="border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;margin-bottom:24px">' +
+        '<div style="border:1px solid #E9E6DF;border-radius:10px;overflow:hidden;margin-bottom:24px">' +
           '<table style="width:100%;border-collapse:collapse">' +
-            '<tr><td style="padding:11px 16px;font-size:14px;color:#64748b">Subtotal</td><td style="padding:11px 16px;font-size:14px;text-align:right">' + fmt(sub) + '</td></tr>' +
-            '<tr><td style="padding:11px 16px;font-size:14px;color:#64748b;border-top:1px solid #f1f5f9">TPS (' + tpsRate + '%)</td><td style="padding:11px 16px;font-size:14px;text-align:right;border-top:1px solid #f1f5f9">' + fmt(tpsAmt) + '</td></tr>' +
-            '<tr><td style="padding:11px 16px;font-size:14px;color:#64748b;border-top:1px solid #f1f5f9">TVQ (' + tvqRate + '%)</td><td style="padding:11px 16px;font-size:14px;text-align:right;border-top:1px solid #f1f5f9">' + fmt(tvqAmt) + '</td></tr>' +
-            '<tr style="background:#062A5E"><td style="padding:13px 16px;font-size:15px;color:#fff;font-weight:900">Total</td><td style="padding:13px 16px;font-size:15px;color:#fff;font-weight:900;text-align:right">' + fmt(total) + '</td></tr>' +
+            '<tr><td style="padding:11px 16px;font-size:14px;color:#6E6F6B">Subtotal</td><td style="padding:11px 16px;font-size:14px;text-align:right">' + fmt(sub) + '</td></tr>' +
+            '<tr><td style="padding:11px 16px;font-size:14px;color:#6E6F6B;border-top:1px solid #f1f5f9">TPS (' + tpsRate + '%)</td><td style="padding:11px 16px;font-size:14px;text-align:right;border-top:1px solid #f1f5f9">' + fmt(tpsAmt) + '</td></tr>' +
+            '<tr><td style="padding:11px 16px;font-size:14px;color:#6E6F6B;border-top:1px solid #f1f5f9">TVQ (' + tvqRate + '%)</td><td style="padding:11px 16px;font-size:14px;text-align:right;border-top:1px solid #f1f5f9">' + fmt(tvqAmt) + '</td></tr>' +
+            '<tr style="background:#17181A"><td style="padding:13px 16px;font-size:15px;color:#fff;font-weight:900">Total</td><td style="padding:13px 16px;font-size:15px;color:#fff;font-weight:900;text-align:right">' + fmt(total) + '</td></tr>' +
           '</table>' +
         '</div>' +
 
         // Deposit
-        (dep > 0 ? '<div style="background:#eff6ff;border:1px solid #dbeafe;border-radius:10px;padding:14px 18px;margin-bottom:24px">' +
+        (dep > 0 ? '<div style="background:#FDF0CE;border:1px solid #F0E2BC;border-radius:10px;padding:14px 18px;margin-bottom:24px">' +
           '<div style="font-size:12px;color:#3b82f6;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Deposit to confirm</div>' +
-          '<div style="font-size:22px;font-weight:900;color:#1d4ed8;margin:4px 0">' + fmt(dep) + '</div>' +
-          (e.paymentSchedule ? '<div style="font-size:13px;color:#64748b">' + esc(e.paymentSchedule) + '</div>' : '') +
+          '<div style="font-size:22px;font-weight:900;color:#6B4E00;margin:4px 0">' + fmt(dep) + '</div>' +
+          (e.paymentSchedule ? '<div style="font-size:13px;color:#6E6F6B">' + esc(e.paymentSchedule) + '</div>' : '') +
         '</div>' : '') +
 
         // Terms
-        (s.terms ? '<div style="background:#f8fafc;border-radius:10px;padding:14px 18px;margin-bottom:24px">' +
+        (s.terms ? '<div style="background:#F1EFEA;border-radius:10px;padding:14px 18px;margin-bottom:24px">' +
           '<div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Terms &amp; Notes</div>' +
-          '<div style="font-size:13px;color:#64748b;white-space:pre-wrap">' + esc(s.terms) + '</div>' +
+          '<div style="font-size:13px;color:#6E6F6B;white-space:pre-wrap">' + esc(s.terms) + '</div>' +
         '</div>' : '') +
 
         // CTA button
         (portalLink ? '<div style="text-align:center;margin:28px 0">' +
-          '<a href="' + portalLink + '" style="background:#062A5E;color:#fff;text-decoration:none;padding:16px 36px;border-radius:10px;font-size:16px;font-weight:800;display:inline-block">' +
+          '<a href="' + portalLink + '" style="background:#17181A;color:#fff;text-decoration:none;padding:16px 36px;border-radius:10px;font-size:16px;font-weight:800;display:inline-block">' +
           (dep > 0 ? 'Review, Approve &amp; Pay Deposit →' : 'Review &amp; Approve Your Estimate →') +
           '</a>' +
           '<div style="margin-top:10px;font-size:12px;color:#94a3b8">Secure client portal &middot; No account required</div>' +
         '</div>' : '') +
 
         // Footer
-        '<div style="margin-top:20px;padding-top:16px;border-top:1px solid #e2e8f0;font-size:13px;color:#94a3b8;text-align:center">' +
+        '<div style="margin-top:20px;padding-top:16px;border-top:1px solid #E9E6DF;font-size:13px;color:#94a3b8;text-align:center">' +
           (s.email || '') + (s.email && s.phone ? ' &nbsp;&middot;&nbsp; ' : '') + (s.phone || '') +
         '</div>' +
 
@@ -5049,23 +5050,23 @@ Date: ${date(e.createdAt)}`;
 
   function printStyles() {
     return `
-      body{font-family:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;background:#fff;padding:24px;color:#0f172a}
-      .estimate-doc{max-width:800px;margin:0 auto;background:#fff;color:#0f172a}
-      .estimate-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;padding-bottom:18px;border-bottom:2px solid #e2e8f0}
+      body{font-family:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;background:#fff;padding:24px;color:#17181A}
+      .estimate-doc{max-width:800px;margin:0 auto;background:#fff;color:#17181A}
+      .estimate-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-start;padding-bottom:18px;border-bottom:2px solid #E9E6DF}
       .estimate-brand{display:grid;gap:8px} .estimate-brand img{max-width:180px;max-height:82px;object-fit:contain}
-      .estimate-brand-title{font-size:24px;font-weight:900;color:#062A5E;letter-spacing:-.4px} .estimate-brand-meta{color:#64748b;font-size:13px;line-height:1.5}
-      .estimate-badge{display:inline-flex;padding:7px 11px;border-radius:999px;background:#eff6ff;color:#1d4ed8;border:1px solid #dbeafe;font-size:12px;font-weight:900}
-      .estimate-blocks{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0} .estimate-box{background:#f8fafc;border:1px solid #edf2f7;border-radius:18px;padding:14px}
-      .estimate-box h4,.estimate-scope h4,.estimate-terms h4{margin:0 0 10px;color:#062A5E;font-size:13px;text-transform:uppercase;letter-spacing:.8px}
-      .estimate-box p,.estimate-scope p,.estimate-terms p{margin:0;color:#334155;font-size:14px;line-height:1.6;white-space:pre-wrap}
-      .estimate-scope{margin:0 0 18px;background:#fff;border:1px solid #e2e8f0;border-radius:18px;padding:16px}
-      .estimate-pricing{border:1px solid #e2e8f0;border-radius:18px;overflow:hidden;margin-bottom:18px} .estimate-pricing table{width:100%;border-collapse:collapse}
-      .estimate-pricing td{padding:12px 14px;border-top:1px solid #eef2f7;font-size:14px} .estimate-pricing tr:first-child td{border-top:0} .estimate-pricing .total-row td{background:#062A5E;color:#fff;font-weight:900}
-      .estimate-payment{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px} .pay-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:16px;padding:12px}
-      .pay-card span{display:block;color:#64748b;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px} .pay-card strong{display:block;color:#062A5E;font-size:17px;margin-top:4px}
-      .signature-box{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px} .signature-line{border:1px solid #e2e8f0;border-radius:16px;padding:14px;min-height:78px;background:#fff}
-      .signature-line small{display:block;color:#64748b;margin-top:22px;border-top:1px solid #cbd5e1;padding-top:8px} .approval-box{margin-top:16px;background:#ecfdf5;border:1px solid #bbf7d0;color:#065f46;border-radius:18px;padding:14px;display:none} .approval-box.show{display:block}
-      .estimate-footer{display:flex;justify-content:space-between;gap:14px;align-items:flex-end;padding-top:12px;border-top:1px solid #e2e8f0;color:#64748b;font-size:13px}
+      .estimate-brand-title{font-size:24px;font-weight:900;color:#17181A;letter-spacing:-.4px} .estimate-brand-meta{color:#6E6F6B;font-size:13px;line-height:1.5}
+      .estimate-badge{display:inline-flex;padding:7px 11px;border-radius:999px;background:#FDF0CE;color:#6B4E00;border:1px solid #F0E2BC;font-size:12px;font-weight:900}
+      .estimate-blocks{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0} .estimate-box{background:#F1EFEA;border:1px solid #EDEAE3;border-radius:18px;padding:14px}
+      .estimate-box h4,.estimate-scope h4,.estimate-terms h4{margin:0 0 10px;color:#17181A;font-size:13px;text-transform:uppercase;letter-spacing:.8px}
+      .estimate-box p,.estimate-scope p,.estimate-terms p{margin:0;color:#3F403B;font-size:14px;line-height:1.6;white-space:pre-wrap}
+      .estimate-scope{margin:0 0 18px;background:#fff;border:1px solid #E9E6DF;border-radius:18px;padding:16px}
+      .estimate-pricing{border:1px solid #E9E6DF;border-radius:18px;overflow:hidden;margin-bottom:18px} .estimate-pricing table{width:100%;border-collapse:collapse}
+      .estimate-pricing td{padding:12px 14px;border-top:1px solid #EDEAE3;font-size:14px} .estimate-pricing tr:first-child td{border-top:0} .estimate-pricing .total-row td{background:#17181A;color:#fff;font-weight:900}
+      .estimate-payment{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px} .pay-card{background:#F1EFEA;border:1px solid #E9E6DF;border-radius:16px;padding:12px}
+      .pay-card span{display:block;color:#6E6F6B;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.5px} .pay-card strong{display:block;color:#17181A;font-size:17px;margin-top:4px}
+      .signature-box{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px} .signature-line{border:1px solid #E9E6DF;border-radius:16px;padding:14px;min-height:78px;background:#fff}
+      .signature-line small{display:block;color:#6E6F6B;margin-top:22px;border-top:1px solid #cbd5e1;padding-top:8px} .approval-box{margin-top:16px;background:#ecfdf5;border:1px solid #bbf7d0;color:#065f46;border-radius:18px;padding:14px;display:none} .approval-box.show{display:block}
+      .estimate-footer{display:flex;justify-content:space-between;gap:14px;align-items:flex-end;padding-top:12px;border-top:1px solid #E9E6DF;color:#6E6F6B;font-size:13px}
       @media print{body{padding:0} .estimate-doc{max-width:none}}
     `;
   }
@@ -5512,7 +5513,7 @@ Date: ${date(e.createdAt)}`;
         <div class="estimate-scope"><h4>${t('doc.descWork')}</h4><p>${esc(e.scope || t('doc.seeEstimate'))}</p></div>
         <div class="estimate-pricing">
           <table>
-            ${(e.line_items && e.line_items.length) ? '<tr><th style="text-align:left;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0">Description</th><th style="text-align:center;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0">' + t('doc.qty') + '</th><th style="text-align:right;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0">' + t('doc.unitPrice') + '</th><th style="text-align:right;padding:6px 8px;font-size:12px;color:#64748b;border-bottom:1px solid #e2e8f0">Total</th></tr>' + e.line_items.map(function(i){ return '<tr><td style="padding:6px 8px">' + esc(i.desc) + '</td><td style="text-align:center;padding:6px 8px">' + i.qty + '</td><td style="text-align:right;padding:6px 8px">' + money(i.price) + '</td><td style="text-align:right;padding:6px 8px;font-weight:600">' + money(i.qty * i.price) + '</td></tr>'; }).join('') + '<tr><td colspan="3" style="text-align:right;padding:8px;border-top:1px solid #e2e8f0;font-weight:600">' + t('doc.subtotal') + '</td><td style="text-align:right;padding:8px;border-top:1px solid #e2e8f0;font-weight:600">' + money(e.subtotal) + '</td></tr>' : '<tr><td>' + t('doc.subtotal') + '</td><td style="text-align:right">' + money(e.subtotal) + '</td></tr>'}
+            ${(e.line_items && e.line_items.length) ? '<tr><th style="text-align:left;padding:6px 8px;font-size:12px;color:#6E6F6B;border-bottom:1px solid #E9E6DF">Description</th><th style="text-align:center;padding:6px 8px;font-size:12px;color:#6E6F6B;border-bottom:1px solid #E9E6DF">' + t('doc.qty') + '</th><th style="text-align:right;padding:6px 8px;font-size:12px;color:#6E6F6B;border-bottom:1px solid #E9E6DF">' + t('doc.unitPrice') + '</th><th style="text-align:right;padding:6px 8px;font-size:12px;color:#6E6F6B;border-bottom:1px solid #E9E6DF">Total</th></tr>' + e.line_items.map(function(i){ return '<tr><td style="padding:6px 8px">' + esc(i.desc) + '</td><td style="text-align:center;padding:6px 8px">' + i.qty + '</td><td style="text-align:right;padding:6px 8px">' + money(i.price) + '</td><td style="text-align:right;padding:6px 8px;font-weight:600">' + money(i.qty * i.price) + '</td></tr>'; }).join('') + '<tr><td colspan="3" style="text-align:right;padding:8px;border-top:1px solid #E9E6DF;font-weight:600">' + t('doc.subtotal') + '</td><td style="text-align:right;padding:8px;border-top:1px solid #E9E6DF;font-weight:600">' + money(e.subtotal) + '</td></tr>' : '<tr><td>' + t('doc.subtotal') + '</td><td style="text-align:right">' + money(e.subtotal) + '</td></tr>'}
             <tr><td>TPS (${esc(state.settings.tps)}%)</td><td style="text-align:right">${money(tax.tps)}</td></tr>
             <tr><td>TVQ (${esc(state.settings.tvq)}%)</td><td style="text-align:right">${money(tax.tvq)}</td></tr>
             <tr class="total-row"><td>${t('doc.total')}</td><td style="text-align:right">${money(tax.total)}</td></tr>
@@ -5728,7 +5729,7 @@ Date: ${date(e.createdAt)}`;
     const win = window.open('', '_blank');
     if (!win) { alert(tr('Popup blocked — please allow popups to view your invoice.')); return; }
     win.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Invoice — ' + esc(est.title || '') + '</title><style>' + printStyles() +
-      '.print-bar{position:fixed;top:14px;right:14px}.print-bar button{background:#062A5E;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.18)}@media print{.print-bar{display:none}}' +
+      '.print-bar{position:fixed;top:14px;right:14px}.print-bar button{background:#17181A;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.18)}@media print{.print-bar{display:none}}' +
       '</style></head><body><div class="print-bar"><button onclick="window.print()">Print / Save as PDF</button></div>' + invoiceHTML(e) + '</body></html>');
     win.document.close();
   }
@@ -5886,7 +5887,7 @@ Date: ${date(e.createdAt)}`;
     if (!win) { toast(t('dz.exportPopup')); return; }
     var company = esc(state.settings.company || 'Balenco');
     win.document.write('<!doctype html><html><head><meta charset="utf-8"><title>' + esc(t('fin.title')) + ' ' + year + '</title>' +
-      '<style>body{font-family:Arial,Helvetica,sans-serif;max-width:720px;margin:24px auto;padding:0 16px;color:#0f172a}h1{font-size:22px;margin:0 0 2px}.sub{color:#64748b;font-size:14px;margin:0 0 20px}table{width:100%;border-collapse:collapse;margin-bottom:18px}th,td{padding:10px 12px;font-size:14px;border-bottom:1px solid #e2e8f0;text-align:left}th{background:#062A5E;color:#fff;font-size:12px;text-transform:uppercase;letter-spacing:.4px}td.r,th.r{text-align:right}tr.tot td{font-weight:800;background:#f1f5f9;border-top:2px solid #062A5E}.disc{font-size:12px;color:#94a3b8;line-height:1.55;border-top:1px solid #e2e8f0;padding-top:12px}.pb{position:fixed;top:14px;right:14px}.pb button{background:#062A5E;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-weight:700;cursor:pointer;font-size:14px}@media print{.pb{display:none}}</style>' +
+      '<style>body{font-family:Arial,Helvetica,sans-serif;max-width:720px;margin:24px auto;padding:0 16px;color:#17181A}h1{font-size:22px;margin:0 0 2px}.sub{color:#6E6F6B;font-size:14px;margin:0 0 20px}table{width:100%;border-collapse:collapse;margin-bottom:18px}th,td{padding:10px 12px;font-size:14px;border-bottom:1px solid #E9E6DF;text-align:left}th{background:#17181A;color:#fff;font-size:12px;text-transform:uppercase;letter-spacing:.4px}td.r,th.r{text-align:right}tr.tot td{font-weight:800;background:#f1f5f9;border-top:2px solid #17181A}.disc{font-size:12px;color:#94a3b8;line-height:1.55;border-top:1px solid #E9E6DF;padding-top:12px}.pb{position:fixed;top:14px;right:14px}.pb button{background:#17181A;color:#fff;border:none;border-radius:8px;padding:10px 18px;font-weight:700;cursor:pointer;font-size:14px}@media print{.pb{display:none}}</style>' +
       '</head><body><div class="pb"><button onclick="window.print()">' + esc(t('es.btnPrint')) + '</button></div>' +
       '<h1>' + company + '</h1><p class="sub">' + esc(t('fin.title')) + ' — ' + year + ' · ' + esc(t('fin.basis')) + '</p>' +
       '<table><thead><tr><th>' + esc(t('fin.period')) + '</th><th class="r">' + esc(t('fin.revenue')) + '</th><th class="r">TPS</th><th class="r">TVQ</th><th class="r">' + esc(t('doc.total')) + '</th></tr></thead><tbody>' + body + '</tbody></table>' +
