@@ -29,7 +29,7 @@
 <meta name="twitter:description" content="Tax-ready estimates, online booking, a client portal and online payments — one clean, bilingual app built for Québec contractors.">
 <meta name="twitter:image" content="https://balenco.app/logo.png">
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Balenco","applicationCategory":"BusinessApplication","operatingSystem":"Web","description":"Bilingual field-service management app for Québec contractors: tax-ready estimates (TPS/TVQ, RBQ), online booking, client portal, deposits and card payments.","offers":[{"@type":"Offer","price":"29","priceCurrency":"CAD","category":"Solo"},{"@type":"Offer","price":"69","priceCurrency":"CAD","category":"Team"}],"inLanguage":["fr-CA","en-CA"],"url":"https://balenco.app/"}</script>
-<script>(function(){try{var t=localStorage.getItem('balenco_theme');if(t!=='light'&&t!=='dark'){t=(window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
+<script>(function(){try{var t=localStorage.getItem('balenco_theme_v2');if(t!=='light'&&t!=='dark'){t='light';}document.documentElement.setAttribute('data-theme',t);}catch(e){document.documentElement.setAttribute('data-theme','light');}})();</script>
 <style>
 :root {
   --navy:#062A5E; --red:#E30613;
@@ -1795,7 +1795,7 @@ td { padding:12px; font-size:12px; }
   function setTheme(t) {
     t = (t === 'dark') ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', t);
-    try { localStorage.setItem('balenco_theme', t); } catch (e) {}
+    try { localStorage.setItem('balenco_theme_v2', t); } catch (e) {}
     updateThemeToggles();
   }
   function toggleTheme() { setTheme(currentTheme() === 'dark' ? 'light' : 'dark'); }
