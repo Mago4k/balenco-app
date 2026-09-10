@@ -773,15 +773,31 @@ td { padding:12px; font-size:12px; }
 .add-line-btn { border-radius:4px; }
 .preview { border-radius:6px; }
 .theme-toggle { border-radius:4px; }
+.client-workspace,.estimate-workspace,.jobs-workspace,.dispatch-workspace { align-items:start; }
+.client-workspace > .card:first-child,.estimate-workspace > .card:first-child,.jobs-workspace > .card:first-child,.dispatch-workspace > .card:first-child { position:sticky; top:18px; }
+.client-workspace > .card:last-child,.estimate-workspace > .card:last-child,.jobs-workspace > .card:last-child,.dispatch-workspace > .card:last-child { min-height:560px; }
+.client-workspace #clientList { grid-template-columns:repeat(2,minmax(240px,1fr)); gap:10px; }
+.client-workspace #clientSearch { max-width:310px; }
+.estimate-workspace { grid-template-columns:minmax(430px,.86fr) minmax(500px,1.14fr); }
+.estimate-workspace .ai-draft { padding:13px; border-radius:5px; background:var(--well); border-left:3px solid var(--accent); }
+.estimate-workspace .ai-draft-head { font-size:12px; text-transform:uppercase; letter-spacing:.45px; }
+.estimate-workspace .preview { border-color:#d8dee6; box-shadow:0 5px 18px rgba(12,32,54,.08); }
+.jobs-workspace { grid-template-columns:minmax(390px,.72fr) minmax(560px,1.28fr); }
+.dispatch-workspace > .card:last-child { border-left:3px solid var(--accent); }
+.stat { min-height:126px; }
+.stat-icon { width:34px; height:34px; border-radius:4px; margin-bottom:12px; }
+.stat-icon svg { width:18px; height:18px; }
+.stat strong { font-family:Georgia,"Times New Roman",serif; font-size:27px; font-weight:500; }
+#jobDetailOverlay { align-items:stretch!important; justify-content:flex-end!important; backdrop-filter:blur(2px); }
+#jobDetailPanel { width:min(720px,100%)!important; max-width:none!important; max-height:100vh!important; border-radius:0!important; padding:25px 28px!important; box-shadow:-12px 0 35px var(--shadow)!important; border-left:1px solid var(--line); }
 @media(max-width:1050px) {
   .app { grid-template-columns:1fr; }
   .sidebar { display:none; }
   .content { padding:0 18px 92px; }
   .top { height:58px; margin-bottom:17px; }
   .page-head h2 { font-size:24px; }
-  .mobile { display:flex; justify-content:space-around; padding:7px 5px calc(7px + env(safe-area-inset-bottom)); background:#09192b; border-color:#263c55; }
-  .mobile button { flex:1 1 0; min-width:58px; max-width:92px; padding:3px 5px; color:#8599b0; font-size:9px; }
-  .mobile button:nth-child(n+6) { display:none; }
+  .mobile { display:flex; justify-content:flex-start; padding:7px 5px calc(7px + env(safe-area-inset-bottom)); background:#09192b; border-color:#263c55; }
+  .mobile button { display:flex; flex:0 0 68px; min-width:68px; max-width:68px; padding:3px 5px; color:#8599b0; font-size:9px; }
   .mobile button.active { color:#fff; }
   .mob-icon,.mobile button.active .mob-icon { width:24px; height:24px; border-radius:0; background:transparent!important; color:currentColor; opacity:1; transform:none; }
   .mob-icon svg { width:18px; height:18px; stroke-width:1.8; }
@@ -794,6 +810,9 @@ td { padding:12px; font-size:12px; }
   .dash-chips { grid-template-columns:1fr; }
   .grid2,.grid3,.grid4,.form2 { grid-template-columns:1fr!important; }
   .card { padding:15px; }
+  .client-workspace > .card:first-child,.estimate-workspace > .card:first-child,.jobs-workspace > .card:first-child,.dispatch-workspace > .card:first-child { position:static; }
+  .client-workspace #clientList { grid-template-columns:1fr; }
+  #jobDetailPanel { padding:20px 16px!important; }
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
@@ -1183,7 +1202,7 @@ td { padding:12px; font-size:12px; }
     </section>
 
     <section id="clients" class="tab">
-      <div class="grid2" style="grid-template-columns:.8fr 1.2fr">
+      <div class="grid2 client-workspace" style="grid-template-columns:.72fr 1.28fr">
         <div class="card">
           <div class="title"><div><h3 id="clientFormTitle" data-i18n="cl.add">Add client</h3><p data-i18n="cl.addSub">Client archive for active and past jobs.</p></div></div>
           <form id="clientForm" class="form">
@@ -1202,12 +1221,12 @@ td { padding:12px; font-size:12px; }
     </section>
 
     <section id="estimates" class="tab">
-      <div class="grid2">
+      <div class="grid2 estimate-workspace">
         <div class="card">
           <div class="title"><div><h3 data-i18n="es.create">Create professional estimate</h3><p data-i18n="es.createSub">Includes TPS/TVQ, deposit, payment schedule, signature, and approval.</p></div></div>
           <form id="estimateForm" class="form" onkeydown="if(event.key==='Enter'&&event.target.tagName!=='TEXTAREA'&&event.target.type!=='submit'){event.preventDefault();}">
             <div class="ai-draft" id="aiDraftPanel">
-              <div class="ai-draft-head"><span data-i18n="es.aiHead">✨ Draft from a photo</span><span class="ai-draft-head-right"><span id="aiQuota" class="ai-quota"></span><button type="button" class="ai-draft-toggle" onclick="toggleAiDraft()" title="Show / hide">−</button></span></div>
+              <div class="ai-draft-head"><span>Draft from job photos</span><span class="ai-draft-head-right"><span id="aiQuota" class="ai-quota"></span><button type="button" class="ai-draft-toggle" onclick="toggleAiDraft()" title="Show / hide">−</button></span></div>
               <div class="ai-draft-body" id="aiDraftBody">
                 <p class="ai-draft-hint" data-i18n="es.aiHint">Snap or upload a job photo and add a quick note. Claude drafts the line items — review and tweak before saving.</p>
                 <input type="file" id="aiPhotos" accept="image/*" capture="environment" multiple onchange="aiPhotosPicked()">
@@ -1267,7 +1286,7 @@ td { padding:12px; font-size:12px; }
     </section>
 
     <section id="jobs" class="tab">
-      <div class="grid2">
+      <div class="grid2 jobs-workspace">
         <div class="card">
           <div class="title"><div><h3 id="jobFormTitle" data-i18n="jb.create">Add a job</h3><p data-i18n="jb.createSub">Record work directly — no quote needed. Taxes, deposit, and billing included.</p></div></div>
           <form id="jobForm" class="form" onkeydown="if(event.key==='Enter'&&event.target.tagName!=='TEXTAREA'&&event.target.type!=='submit'){event.preventDefault();}">
@@ -1309,7 +1328,7 @@ td { padding:12px; font-size:12px; }
     </section>
 
     <section id="calendar" class="tab">
-      <div class="grid2" style="grid-template-columns:.8fr 1.2fr">
+      <div class="grid2 dispatch-workspace" style="grid-template-columns:.68fr 1.32fr">
         <div class="card">
           <div class="title"><div><h3 data-i18n="cal.set">Set appointment</h3><p data-i18n="cal.setSub">Book estimate visits, start dates, inspections, and follow-ups.</p></div></div>
           <form id="appointmentForm" class="form">
@@ -1354,9 +1373,9 @@ td { padding:12px; font-size:12px; }
 
     <section id="balances" class="tab">
       <div class="grid3">
-        <div class="card stat"><div class="icon">💵</div><label data-i18n="bal.open">Total open</label><strong id="moneyOpen">$0</strong></div>
-        <div class="card stat"><div class="icon">✅</div><label data-i18n="bal.acceptedVal">Accepted estimate value</label><strong id="moneyAccepted">$0</strong></div>
-        <div class="card stat"><div class="icon">📄</div><label data-i18n="bal.taxTotal">Tax total on estimates</label><strong id="moneyTax">$0</strong></div>
+        <div class="card stat"><div class="stat-icon" style="background:var(--pill-blue-bg);color:var(--pill-blue-tx)"><i data-lucide="wallet-cards"></i></div><label data-i18n="bal.open">Total open</label><strong id="moneyOpen">$0</strong></div>
+        <div class="card stat"><div class="stat-icon" style="background:var(--pill-green-bg);color:var(--pill-green-tx)"><i data-lucide="badge-check"></i></div><label data-i18n="bal.acceptedVal">Accepted estimate value</label><strong id="moneyAccepted">$0</strong></div>
+        <div class="card stat"><div class="stat-icon" style="background:var(--pill-amber-bg);color:var(--pill-amber-tx)"><i data-lucide="receipt-text"></i></div><label data-i18n="bal.taxTotal">Tax total on estimates</label><strong id="moneyTax">$0</strong></div>
       </div>
       <div class="card" style="margin-top:18px"><div class="title"><div><h3 data-i18n="bal.title">Open balances</h3><p data-i18n="bal.sub">Track who owes money and create payment reminders.</p></div><button class="btn out small" type="button" id="exportCSVBtn" data-i18n="bal.export">Export CSV</button></div><div id="balanceList" class="list"></div></div>
     </section>
