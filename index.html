@@ -692,6 +692,109 @@ html.public-page #login, html.public-page #landing { display:none; }
   .table td[colspan] { display:block; text-align:center; font-weight:400; font-size:14px; border-bottom:0; padding:6px 0; }
   .table td[colspan]::before { content:none; }
 }
+/* ── Balenco professional interface, September 2026 ── */
+:root {
+  --bg:#0d1b2e; --surface:#152840; --surface2:#1b304a; --well:#0a1728;
+  --line:#2a3d55; --line2:#20334b; --line-soft:#20334b; --border:#2a3d55; --soft:#152840;
+  --text:#f2f6fb; --muted:#9aacc1; --primary:#2374d8; --primary-press:#3184ed;
+  --accent:#4ea3ef; --accent-soft:rgba(78,163,239,.12); --brand-panel:#092a55;
+  --shadow:rgba(0,0,0,.26); --focus:rgba(78,163,239,.18);
+  --r-card:7px; --r-md:5px; --r-sm:4px;
+}
+[data-theme="light"] {
+  --bg:#f3f5f7; --surface:#ffffff; --surface2:#f4f6f8; --well:#fafbfc;
+  --line:#dce2e8; --line2:#e8edf1; --line-soft:#e8edf1; --border:#dce2e8; --soft:#fff;
+  --text:#17283b; --muted:#68798b; --primary:#0b4f96; --primary-press:#0c61ba;
+  --accent:#156fc5; --accent-soft:rgba(21,111,197,.09); --brand-panel:#092f62;
+  --shadow:rgba(21,35,50,.09); --focus:rgba(21,111,197,.14);
+}
+body { font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; letter-spacing:0; }
+.app { max-width:none; min-height:100vh; margin:0; padding:0; grid-template-columns:232px minmax(0,1fr); gap:0; }
+.sidebar { top:0; height:100vh; border:0; border-right:1px solid var(--line); border-radius:0; background:#09192b; }
+[data-theme="light"] .sidebar { background:#10263f; --text:#f4f7fb; --muted:#9eb0c4; --line:#294058; --accent:#65b2f2; --accent-soft:rgba(78,163,239,.16); }
+.brand { height:70px; padding:0 24px; border-bottom:1px solid var(--line); }
+.brand-word { font-family:Georgia,"Times New Roman",serif; font-size:23px; font-weight:700; color:#fff; letter-spacing:0; }
+.nav { padding:15px 12px 24px; }
+.nav-group { margin:21px 12px 7px; font-size:9px; letter-spacing:1px; color:#71859d; font-weight:800; }
+.nav button { min-height:39px; margin:1px 0; padding:9px 11px; border-radius:4px; font-size:13px; font-weight:600; color:#a7b7ca; }
+.nav button:hover { background:rgba(255,255,255,.055); color:#fff; }
+.nav button.active { background:#153a5c; color:#fff; box-shadow:inset 3px 0 0 #55aef1; }
+.nav .nav-icon { width:18px; height:18px; margin-right:11px; color:#8297ae; }
+.nav button.active .nav-icon { color:#70b9f2; }
+.content { min-width:0; padding:0 30px 40px; }
+.top { height:70px; margin:0 0 22px; padding:0; background:transparent; border-bottom:1px solid var(--line); }
+.page-head { min-height:48px; margin:0 0 18px; align-items:flex-start; }
+.page-head h2 { font-family:Georgia,"Times New Roman",serif; font-size:27px; font-weight:500; line-height:1.2; letter-spacing:0; }
+.page-actions { gap:7px; }
+.acct-chip { border-radius:4px!important; }
+.acct-avatar { background:#1b3d60; color:#dcecff; }
+.acct-menu { border-radius:5px; box-shadow:0 14px 34px var(--shadow); }
+.lang-toggle { padding:2px; background:var(--well); border:1px solid var(--line); border-radius:4px; }
+.lang-toggle button { border-radius:3px; }
+.card,.dash-tile,.dash-chip { border-radius:7px; box-shadow:none; }
+.card { padding:18px; }
+.grid2 { gap:14px; }
+.grid3,.grid4 { gap:12px; }
+.title { margin-bottom:15px; }
+.title h3,.d-panel-head .d-lbl { font-family:Georgia,"Times New Roman",serif; font-size:18px; font-weight:500; }
+.title p { font-size:12px; margin-top:4px; }
+.btn { min-height:38px; padding:9px 13px; border-radius:4px; font-size:12px; font-weight:750; box-shadow:none; }
+.btn.small { min-height:32px; padding:7px 10px; border-radius:4px; font-size:11px; }
+.btn.out { background:transparent; }
+input,select,textarea { border-radius:4px; padding:11px 12px; font-size:13px; }
+textarea { line-height:1.5; }
+.item,.notice,.audit,.empty,.photo,.ss-panel { border-radius:5px; }
+.item { padding:13px; }
+.pill,.chip { border-radius:4px; }
+.pill { padding:5px 8px; font-size:10px; letter-spacing:.15px; }
+.chip { padding:7px 10px; font-size:11px; }
+.table { border-radius:5px; }
+th { padding:11px 12px; font-size:10px; text-transform:uppercase; letter-spacing:.45px; }
+td { padding:12px; font-size:12px; }
+.audit { padding:7px 9px; font-size:10px; }
+.dash-bento { grid-template-columns:minmax(0,1.45fr) minmax(210px,.55fr); grid-template-rows:auto auto auto; gap:12px; }
+.dash-tile { padding:17px; }
+.dash-hero { grid-row:span 2; min-height:248px; background:var(--surface); border:1px solid var(--line); }
+.dash-hero:before { display:none; }
+.d-eyebrow,.d-lbl { font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.6px; color:var(--muted); }
+.d-hero-num { font-family:Georgia,"Times New Roman",serif; font-size:40px; font-weight:500; margin-top:14px; }
+.d-hero-chart { opacity:.65; }
+.dash-win,.dash-out,.dash-act,.dash-pipe,.dash-quick,.dash-tax { background:var(--surface); }
+.d-ring { width:88px; height:88px; }
+.d-out-num,.d-pipe-num,.d-tax-num { font-family:Georgia,"Times New Roman",serif; font-weight:500; }
+.dash-chips { gap:12px; margin:12px 0; }
+.dash-chip { min-height:70px; padding:14px 16px; }
+.dash-chip strong { font-family:Georgia,"Times New Roman",serif; font-size:20px; font-weight:500; }
+.d-chip-ic { width:32px; height:32px; border-radius:4px; }
+.dash-panels { gap:12px; margin-top:12px; }
+.d-row { padding:11px 0; font-size:11px; }
+.d-av { border-radius:50%; }
+.line-items-edit td input { border-radius:3px; }
+.add-line-btn { border-radius:4px; }
+.preview { border-radius:6px; }
+.theme-toggle { border-radius:4px; }
+@media(max-width:1050px) {
+  .app { grid-template-columns:1fr; }
+  .sidebar { display:none; }
+  .content { padding:0 18px 92px; }
+  .top { height:58px; margin-bottom:17px; }
+  .page-head h2 { font-size:24px; }
+  .mobile { display:flex; justify-content:space-around; padding:7px 5px calc(7px + env(safe-area-inset-bottom)); background:#09192b; border-color:#263c55; }
+  .mobile button { flex:1 1 0; min-width:58px; max-width:92px; padding:3px 5px; color:#8599b0; font-size:9px; }
+  .mobile button:nth-child(n+6) { display:none; }
+  .mobile button.active { color:#fff; }
+  .mob-icon,.mobile button.active .mob-icon { width:24px; height:24px; border-radius:0; background:transparent!important; color:currentColor; opacity:1; transform:none; }
+  .mob-icon svg { width:18px; height:18px; stroke-width:1.8; }
+}
+@media(max-width:720px) {
+  .content { padding-left:12px; padding-right:12px; }
+  .page-actions .btn.out { display:none; }
+  .dash-bento,.dash-panels { grid-template-columns:1fr; }
+  .dash-hero { min-height:210px; }
+  .dash-chips { grid-template-columns:1fr; }
+  .grid2,.grid3,.grid4,.form2 { grid-template-columns:1fr!important; }
+  .card { padding:15px; }
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
 <script src="https://unpkg.com/lucide@1.21.0/dist/umd/lucide.min.js"></script>
