@@ -39,7 +39,12 @@ function montrealToUtc(dateStr: string, timeStr: string): Date {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
 
-  const { org_id, date, time, name, email, phone, service_type, notes } = await req.json()
+  // Keep the parsed body around (the honeypot check below reads it), and never
+  // let a malformed payload become an uncaught 500 with no CORS header — the
+  // browser reports that as an opaque "Failed to fetch".
+  let body: any = {}
+  try { body = await req.json() } catch { body = {} }
+  const { org_id, date, time, name, email, phone, service_type, notes } = body
   const sName = clean(name, 120)
   const sEmail = clean(email, 160)
   const sPhone = clean(phone, 40)
@@ -55,6 +60,43 @@ Deno.serve(async (req) => {
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   )
+
+  // ── Abuse controls ──────────────────────────────────────────────────────
+  // This endpoint is unauthenticated and needs only an org_id, which rides in
+  // every public booking link. Each accepted request writes a clients row, writes
+  // an appointments row, and sends an email from our Resend domain — so without
+  // a throttle a script can run up a bill, fill a real contractor's calendar, and
+  // damage the sending reputation every other email depends on.
+
+  // Honeypot: `website` is a hidden field no human ever fills. Answer 200 with a
+  // plausible body so a bot can't distinguish rejection from success, but write
+  // nothing and send nothing.
+  if (String(body?.website ?? '').trim() !== '') {
+    return new Response(JSON.stringify({ success: true, appointment_id: crypto.randomUUID() }), {
+      headers: { ...cors, 'Content-Type': 'application/json' }
+    })
+  }
+
+  // Per-IP and per-org windows. Both FAIL OPEN on any RPC error: a database
+  // hiccup must never stop a real customer from booking.
+  // An empty IP must NOT become the shared key 'book:ip:' — that would put every
+  // caller without the header into one bucket and throttle them against each
+  // other. Skip the per-IP window instead; the per-org one still applies.
+  const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim()
+  try {
+    const [{ data: ipOk }, { data: orgOk }] = await Promise.all([
+      ip ? sb.rpc('check_rate_limit', { p_key: `book:ip:${ip}`, p_max: 5, p_window_secs: 3600 })
+         : Promise.resolve({ data: true }),
+      sb.rpc('check_rate_limit', { p_key: `book:org:${org_id}`,  p_max: 20, p_window_secs: 3600 }),
+    ])
+    if (ipOk === false || orgOk === false) {
+      return new Response(JSON.stringify({ error: 'Too many booking requests. Please try again later.' }), {
+        status: 429, headers: { ...cors, 'Content-Type': 'application/json', 'Retry-After': '3600' }
+      })
+    }
+  } catch (e) {
+    console.error('rate limit check failed (allowing request)', e)
+  }
 
   const { data: avail } = await sb.from('availability').select('*').eq('org_id', org_id).maybeSingle()
   if (!avail?.booking_enabled) {

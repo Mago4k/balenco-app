@@ -13,33 +13,62 @@ const esc = (value: unknown): string =>
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
 
-  const { estimate_id, client_id, approved_by, selected_option } = await req.json()
-  if (!estimate_id || !client_id) {
-    return new Response(JSON.stringify({ error: 'Missing fields' }), {
-      status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
-    })
-  }
+  const { estimate_id, approved_by, selected_option, approval_token, portal_token } = await req.json()
 
   const sb = createClient(
     Deno.env.get('SUPABASE_URL')!,
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
   )
 
-  // Security: verify the estimate actually belongs to this client
-  const { data: est } = await sb.from('estimates')
-    .select('*').eq('id', estimate_id).eq('client_id', client_id).single()
+  const fail = (msg: string, status: number) =>
+    new Response(JSON.stringify({ error: msg }), { status, headers: { ...cors, 'Content-Type': 'application/json' } })
 
-  if (!est) {
-    return new Response(JSON.stringify({ error: 'Estimate not found' }), {
-      status: 404, headers: { ...cors, 'Content-Type': 'application/json' }
-    })
+  // ── Authorization ────────────────────────────────────────────────
+  // This used to accept { estimate_id, client_id } and merely check the two
+  // matched each other, which made a pair of raw primary keys a bearer
+  // credential for signing a contract — and estimate ids travel much further
+  // than tokens do (portal payloads, browser history, DOM ids, screenshots).
+  // portal-data was deliberately hardened to refuse raw ids; this endpoint was
+  // undoing that at the WRITE path. Now the caller must hold a real secret:
+  //   approval page (?approve=…) -> approval_token, which identifies the estimate
+  //   client portal  (?client=…) -> portal_token + estimate_id, and the estimate
+  //                                 must belong to that token's client.
+  let est: any = null
+  if (approval_token) {
+    const { data } = await sb.from('estimates').select('*').eq('approval_token', approval_token).maybeSingle()
+    est = data
+  } else if (portal_token && estimate_id) {
+    const { data: c } = await sb.from('clients').select('id').eq('portal_token', portal_token).maybeSingle()
+    if (c) {
+      const { data } = await sb.from('estimates').select('*').eq('id', estimate_id).eq('client_id', c.id).maybeSingle()
+      est = data
+    }
+  } else {
+    return fail('Missing approval_token or portal_token.', 400)
   }
+  if (!est) return fail('Estimate not found.', 404)
+
+  const client_id = est.client_id
 
   // Idempotent — already accepted
   if (est.status === 'Accepted') {
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...cors, 'Content-Type': 'application/json' }
     })
+  }
+
+  // A draft was never sent, and a lost estimate was already closed out — neither
+  // is something a client should be able to turn into a signed contract. (The
+  // portal currently lists drafts, which is how one could be reached.)
+  if (est.status === 'Draft' || est.status === 'Lost') {
+    return fail('This estimate is not available for approval. Please contact your contractor.', 409)
+  }
+
+  // Respect the validity date the estimate itself advertises. send-followups
+  // already skips expired estimates; approving one silently was inconsistent.
+  // expiry is stored as a 'YYYY-MM-DD' string, so a string compare is correct.
+  if (est.expiry && est.expiry < new Date().toISOString().slice(0, 10)) {
+    return fail('This estimate has expired. Please contact your contractor for an updated quote.', 409)
   }
 
   const now = new Date().toISOString()
@@ -60,7 +89,7 @@ Deno.serve(async (req) => {
     update.subtotal = price
     est.subtotal = price
   }
-  await sb.from('estimates').update(update).eq('id', estimate_id)
+  await sb.from('estimates').update(update).eq('id', est.id)
 
   const [clientRes, cfgRes] = await Promise.all([
     sb.from('clients').select('*').eq('id', client_id).single(),
