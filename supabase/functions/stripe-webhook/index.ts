@@ -93,6 +93,19 @@ Deno.serve(async (req) => {
   }
 
   const session    = event.data.object as Stripe.Checkout.Session
+
+  // Only record money that actually settled. checkout.session.completed also
+  // fires for delayed-notification methods (BNPL — Affirm/Klarna/Afterpay — and
+  // some bank debits) with payment_status 'unpaid', which would otherwise insert
+  // a payment row and mark the estimate Accepted for a charge that never cleared.
+  // Those flows settle later via async_payment_succeeded, which we don't handle
+  // yet, so BNPL must stay off until that branch exists.
+  if (session.payment_status !== 'paid') {
+    return new Response(JSON.stringify({ received: true, skipped: session.payment_status }), {
+      headers: { 'Content-Type': 'application/json' }
+    })
+  }
+
   const meta       = session.metadata ?? {}
   const isJob      = meta.kind === 'job'
   const estimateId = isJob ? meta.job_id : meta.estimate_id

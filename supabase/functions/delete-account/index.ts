@@ -45,6 +45,35 @@ Deno.serve(async (req) => {
   const memberIds: string[] = (members ?? []).map((m: any) => m.id)
   const { data: photoRows } = await admin.from('photos').select('storage_path').eq('org_id', orgId)
   const photoPaths: string[] = (photoRows ?? []).map((p: any) => p.storage_path).filter(Boolean)
+  const { data: subRow } = await admin.from('subscriptions')
+    .select('stripe_subscription_id, stripe_customer_id').eq('org_id', orgId).maybeSingle()
+
+  // 0) Stop the billing relationship FIRST. Deleting the org used to leave the
+  //    Stripe subscription live, so the owner kept being charged every month with
+  //    no login left to cancel it — and the Stripe customer kept holding their
+  //    name and email, which defeats the erasure this endpoint exists to perform.
+  //    Best-effort: a Stripe outage must not block the data deletion below.
+  let billingCancelled = false
+  const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
+  if (stripeKey && (subRow?.stripe_subscription_id || subRow?.stripe_customer_id)) {
+    const stripeCall = async (path: string) => {
+      const res = await fetch('https://api.stripe.com/v1/' + path, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${stripeKey}` },
+      })
+      if (!res.ok) throw new Error(path + ' -> ' + res.status + ' ' + (await res.text()).slice(0, 200))
+    }
+    try {
+      if (subRow.stripe_subscription_id) await stripeCall('subscriptions/' + subRow.stripe_subscription_id)
+      // Deleting the customer also detaches saved payment methods and cancels any
+      // remaining subscriptions on it.
+      if (subRow.stripe_customer_id) await stripeCall('customers/' + subRow.stripe_customer_id)
+      billingCancelled = true
+    } catch (e) {
+      // Surfaced in the response so the caller (and we) know to cancel by hand.
+      console.error('stripe cleanup failed for org', orgId, e)
+    }
+  }
 
   // 1) Remove stored photo files (the photo rows themselves cascade with the org).
   if (photoPaths.length) {
@@ -73,5 +102,9 @@ Deno.serve(async (req) => {
     else membersDeleted++
   }
 
-  return json({ ok: true, deleted: { org: orgId, members: membersDeleted, photos: photoPaths.length } })
+  return json({
+    ok: true,
+    deleted: { org: orgId, members: membersDeleted, photos: photoPaths.length },
+    billing_cancelled: billingCancelled,
+  })
 })
