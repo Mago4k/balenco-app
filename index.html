@@ -332,7 +332,9 @@ body.owner-mode td.owner-only,body.owner-mode th.owner-only { display:table-cell
 .approval-box.show { display:block; }
 .estimate-footer { display:flex; justify-content:space-between; gap:14px; align-items:flex-end; padding-top:12px; border-top:1px solid #E9E6DF; color:#6E6F6B; font-size:13px; }
 /* ── Toast ── */
-#toast { position:fixed; right:18px; bottom:18px; background:var(--primary); color:#fff; padding:12px 14px; border-radius:var(--r-md); display:none; z-index:30; border:1px solid var(--line); box-shadow:0 8px 24px var(--shadow); }
+/* Above every overlay (z 200-400) and the mobile nav (z 100): a toast nobody can
+   see is worse than no toast — every success AND error in the app comes through here. */
+#toast { position:fixed; right:18px; bottom:18px; background:var(--primary); color:#fff; padding:12px 14px; border-radius:var(--r-md); display:none; z-index:10000; border:1px solid var(--line); box-shadow:0 8px 24px var(--shadow); }
 /* ── Responsive ── */
 @media(max-width:1050px) {
   .app { grid-template-columns:1fr; padding:12px; padding-bottom:calc(76px + env(safe-area-inset-bottom)); min-width:0; overflow-x:clip; }
@@ -931,6 +933,8 @@ td { padding:14px; font-size:13px; }
   .client-workspace > .card:first-child,.estimate-workspace > .card:first-child,.jobs-workspace > .card:first-child,.dispatch-workspace > .card:first-child { position:static; }
   .client-workspace #clientList { grid-template-columns:1fr; }
   #jobDetailPanel { padding:20px 16px!important; }
+  /* Clear the fixed bottom nav so toasts aren't hidden behind it on a phone. */
+  #toast { left:16px; right:16px; bottom:calc(70px + env(safe-area-inset-bottom)); }
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
@@ -1134,7 +1138,7 @@ td { padding:14px; font-size:13px; }
         <div id="signupSuccess" style="color:var(--green);font-size:13px;display:none;padding:8px 12px;background:var(--pill-green-bg);border-radius:12px;border:1px solid var(--line);"></div>
         <label id="signupConsentWrap" style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--muted);line-height:1.45;margin:2px 0;cursor:pointer">
           <input type="checkbox" id="signupConsent" style="margin-top:2px;flex-shrink:0;width:auto;height:16px">
-          <span style="flex:1;min-width:0"><span data-i18n="login.consentPre">I agree to the </span><a href="/terms.html" target="_blank" rel="noopener" data-i18n="login.consentTerms">Terms of Service</a><span data-i18n="login.consentMid"> and </span><a href="/privacy.html" target="_blank" rel="noopener" data-i18n="login.consentPriv">Privacy Policy</a><span data-i18n="login.consentPost">.</span></span>
+          <span style="flex:1;min-width:0"><span data-i18n="login.consentPre">I agree to the </span><a href="/terms.html" target="_blank" rel="noopener noreferrer" data-i18n="login.consentTerms">Terms of Service</a><span data-i18n="login.consentMid"> and </span><a href="/privacy.html" target="_blank" rel="noopener noreferrer" data-i18n="login.consentPriv">Privacy Policy</a><span data-i18n="login.consentPost">.</span></span>
         </label>
         <button class="btn" type="button" id="signupBtn" data-i18n="login.create">Create account</button>
       </div>
@@ -1841,7 +1845,7 @@ td { padding:14px; font-size:13px; }
               <textarea id="bkNotes" rows="3" data-i18n-ph="bkp.notesPh" placeholder="Tell us about your project…" style="width:100%;background:var(--well);border:1px solid var(--line);border-radius:10px;padding:11px 12px;color:var(--text);font-size:14px;resize:vertical"></textarea>
             </div>
             <button id="bkSubmitBtn" class="btn" type="submit" style="padding:15px;font-size:16px;font-weight:800;border-radius:12px;width:100%" data-i18n="bkp.submit">Request Appointment →</button>
-            <p style="font-size:12px;color:var(--muted);line-height:1.45;text-align:center;margin:12px 0 0"><span data-i18n="bkp.consentPre">By requesting an appointment, you agree that your contact details will be shared with this contractor to follow up about your project, and processed per our </span><a href="/privacy.html" target="_blank" rel="noopener" data-i18n="bkp.consentPrivacy">Privacy Policy</a><span data-i18n="bkp.consentPost">.</span></p>
+            <p style="font-size:12px;color:var(--muted);line-height:1.45;text-align:center;margin:12px 0 0"><span data-i18n="bkp.consentPre">By requesting an appointment, you agree that your contact details will be shared with this contractor to follow up about your project, and processed per our </span><a href="/privacy.html" target="_blank" rel="noopener noreferrer" data-i18n="bkp.consentPrivacy">Privacy Policy</a><span data-i18n="bkp.consentPost">.</span></p>
           </form>
         </div>
       </div>
@@ -1910,7 +1914,7 @@ td { padding:14px; font-size:13px; }
       'reset.title':'Définir un nouveau mot de passe','reset.sub':'Choisissez un nouveau mot de passe pour votre compte.','reset.new':'Nouveau mot de passe (min. 6 caractères)','reset.btn':'Mettre à jour',
       'nav.dashboard':'Aujourd’hui','nav.leads':'Prospects','nav.clients':'Clients','nav.estimates':'Soumissions','nav.calendar':'Calendrier','nav.photos':'Photos de chantier','nav.balances':'Argent','nav.maps':'Carte et trajet','nav.settings':'Paramètres','navgrp.sales':'Ventes','navgrp.schedule':'Agenda et argent','navgrp.account':'Compte','navgrp.tools':'Outils clients',
       'mnav.home':'Aujourd’hui','mnav.more':'Plus','navgrp.more':'Plus','rail.owner':'Propriétaire','rail.employee':'Employé','mnav.leads':'Prospects','mnav.clients':'Clients','mnav.quotes':'Soumissions','mnav.calendar':'Calendrier','mnav.photos':'Photos','mnav.money':'Argent','mnav.map':'Carte','mnav.setup':'Config',
-      'nav.jobs':'Jobs','mnav.jobs':'Jobs','jb.create':'Ajouter une job','jb.createSub':'Enregistrez le travail directement — sans soumission. Taxes, acompte et facturation inclus.','jb.title':'Titre de la job','jb.save':'Enregistrer la job','jb.edit':'Modifier','jb.editTitle':'Modifier la job','jb.update':'Mettre à jour','jb.cancelEdit':'Annuler','jb.statusSaved':'Statut mis à jour','jb.updated':'Job mise à jour','jb.recurring':'↻ Facturation récurrente — recréer et facturer cette job selon un horaire','jb.stopRec':'Arrêter la récurrence','jb.auto':'Générée automatiquement','jb.listTitle':'Jobs','jb.listSub':'Travaux enregistrés directement, sans soumission.','jb.thJob':'Job','jb.none':'Aucune job pour l’instant.','jst.active':'Active','jst.inprogress':'En cours','jst.completed':'Terminée','jst.cancelled':'Annulée','jb.details':'Détails','jd.paid':'Payé','jd.balance':'Solde','jd.items':'Articles','jd.noItems':'Aucun article — le total a été saisi directement.','jd.payPlan':'Modalités de paiement','jd.noPayNotes':'Aucune note de paiement.','jd.client':'Coordonnées du client','jd.noContact':'Aucune coordonnée au dossier.','jd.recurring':'Facturation récurrente','jd.next':'Prochaine','jd.ends':'Fin','jd.noEnd':'Aucune date de fin','jd.fromRecurring':'Générée automatiquement à partir d’une job récurrente.','jd.photos':'Photos au dossier','jd.noPhotos':'Aucune photo pour ce client.','jd.appts':'Rendez-vous','jd.noAppts':'Aucun rendez-vous pour ce client.','jd.activity':'Activité','jd.noActivity':'Aucune activité enregistrée pour cette job.','jd.createdLbl':'Créée par','jd.updatedLbl':'Dernière modification par','jd.close':'Fermer','jd.received':'Paiements enregistrés','jd.of':'sur','jd.payment':'Paiement','jd.freq':'Fréquence','jd.phone':'T00e9l00e9phone','jd.email':'Courriel','jd.address':'Adresse','jd.deposit':'Acompte reçu','jd.cancelled':'Cette job est annulée — aucun solde dû.','jb.invoice':'Facture','jb.payLink':'Lien de paiement','jb.descPh':'Décrivez le travail — ceci devient le nom de la job',
+      'nav.jobs':'Jobs','mnav.jobs':'Jobs','jb.create':'Ajouter une job','jb.createSub':'Enregistrez le travail directement — sans soumission. Taxes, acompte et facturation inclus.','jb.title':'Titre de la job','jb.save':'Enregistrer la job','jb.edit':'Modifier','jb.editTitle':'Modifier la job','jb.update':'Mettre à jour','jb.cancelEdit':'Annuler','jb.statusSaved':'Statut mis à jour','jb.updated':'Job mise à jour','jb.recurring':'↻ Facturation récurrente — recréer et facturer cette job selon un horaire','jb.stopRec':'Arrêter la récurrence','jb.auto':'Générée automatiquement','jb.listTitle':'Jobs','jb.listSub':'Travaux enregistrés directement, sans soumission.','jb.thJob':'Job','jb.none':'Aucune job pour l’instant.','jst.active':'Active','jst.inprogress':'En cours','jst.completed':'Terminée','jst.cancelled':'Annulée','jb.details':'Détails','jd.paid':'Payé','jd.balance':'Solde','jd.items':'Articles','jd.noItems':'Aucun article — le total a été saisi directement.','jd.payPlan':'Modalités de paiement','jd.noPayNotes':'Aucune note de paiement.','jd.client':'Coordonnées du client','jd.noContact':'Aucune coordonnée au dossier.','jd.recurring':'Facturation récurrente','jd.next':'Prochaine','jd.ends':'Fin','jd.noEnd':'Aucune date de fin','jd.fromRecurring':'Générée automatiquement à partir d’une job récurrente.','jd.photos':'Photos au dossier','jd.noPhotos':'Aucune photo pour ce client.','jd.appts':'Rendez-vous','jd.noAppts':'Aucun rendez-vous pour ce client.','jd.activity':'Activité','jd.noActivity':'Aucune activité enregistrée pour cette job.','jd.createdLbl':'Créée par','jd.updatedLbl':'Dernière modification par','jd.close':'Fermer','jd.received':'Paiements enregistrés','jd.of':'sur','jd.payment':'Paiement','jd.freq':'Fréquence','jd.phone':'Téléphone','jd.email':'Courriel','jd.address':'Adresse','jd.deposit':'Acompte reçu','jd.cancelled':'Cette job est annulée — aucun solde dû.','jb.invoice':'Facture','jb.payLink':'Lien de paiement','jb.descPh':'Décrivez le travail — ceci devient le nom de la job',
       'top.switch':'Changer de compte','top.owner':'Compte propriétaire / admin','top.employee':'Compte employé','top.loggedIn':'Connecté : ',
       'hero.title':'Gérez le chantier, du prospect au paiement.','hero.sub':'Créez des soumissions avec taxes, envoyez de beaux courriels, planifiez des rendez-vous, suivez les soldes et gardez un dossier client impeccable.','hero.addLead':'+ Ajouter un prospect','hero.newEstimate':'+ Nouvelle soumission',
       'doc.estimate':'Soumission','doc.quoteNo':'Soumission n°','doc.date':'Date','doc.validUntil':'Valide jusqu’au','doc.preparedBy':'Préparée par','doc.client':'Client','doc.project':'Projet','doc.taxesBelow':'Taxes indiquées ci-dessous.','doc.scope':'Description des travaux','doc.noScope':'Aucune description fournie.','doc.description':'Description','doc.qty':'Qté','doc.unitPrice':'Prix unitaire','doc.total':'Total','doc.subtotal':'Sous-total','doc.deposit':'Acompte','doc.balanceAfter':'Solde après acompte','doc.paymentPlan':'Modalités de paiement','doc.notSpecified':'Non spécifié','doc.paymentNotesH':'Notes sur le calendrier de paiement','doc.terms':'Conditions et notes','doc.clientSig':'Signature du client','doc.approved':'Approuvée','doc.apprPre':'Cette soumission a été approuvée par ','doc.apprMid':' le ','doc.thankYou':'Merci de considérer ','doc.invoice':'Facture','doc.invoiceNo':'Facture n°','doc.billTo':'Facturer à','doc.descWork':'Description des travaux','doc.seeEstimate':'Voir la soumission jointe.','doc.paidToDate':'Payé à ce jour','doc.amountDue':'Montant dû','doc.payInstr':'Instructions de paiement','doc.payDefault':'Veuillez effectuer le paiement dès que possible. Merci.','doc.payStatus':'Statut du paiement','doc.paidFull':'Payée en totalité. Merci de votre confiance!','doc.thankYouShort':'Merci — ','doc.basedOn':'Basée sur ','doc.approvedByLbl':'Approuvée par ','doc.month':'','doc.invDate':'Date',
@@ -2288,11 +2292,13 @@ td { padding:14px; font-size:13px; }
     return BalencoLib.money(value);
   }
 
+  // Follows the chosen language — this formats every timestamp, invoice and
+  // document date in the app, including on the French-default client portal.
   function date(value) {
-    if (!value) return 'No date';
+    if (!value) return lang === 'fr' ? 'Aucune date' : 'No date';
     const d = new Date(value);
     if (isNaN(d.getTime())) return String(value);
-    return d.toLocaleString('en-CA', { month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit' });
+    return d.toLocaleString(lang === 'fr' ? 'fr-CA' : 'en-CA', { month:'short', day:'numeric', year:'numeric', hour:'numeric', minute:'2-digit' });
   }
   // Date only (no time) — for values the user picked on a calendar (avoids a
   // misleading clock time, and the timezone off-by-one of date-only timestamps).
@@ -3689,6 +3695,7 @@ Date: ${date(e.createdAt)}`;
       settings: state.settings || {},
       clients: state.clients || [],
       estimates: state.estimates || [],
+      jobs: state.jobs || [],
       appointments: state.appointments || [],
       leads: state.leads || [],
       photos: (state.photos || []).map(function (p) { return { id: p.id, clientId: p.clientId, type: p.type, notes: p.notes, createdAt: p.createdAt }; }),
@@ -3719,8 +3726,8 @@ Date: ${date(e.createdAt)}`;
         }).join('') + '</tbody></table>';
     }
     var T = fr
-      ? { sub:'Exportation de données', company:'Entreprise', clients:'Clients', estimates:'Soumissions', appts:'Rendez-vous', leads:'Prospects', photos:'Photos', logs:'Journal d’activité', print:'Imprimer / Enregistrer en PDF', field:'Champ', value:'Valeur', name:'Nom', phone:'Téléphone', email:'Courriel', address:'Adresse', project:'Projet', status:'Statut', balance:'Solde', num:'N°', client:'Client', ttl:'Titre', subtotal:'Sous-total', created:'Créé le', approved:'Approuvé le', start:'Début', location:'Lieu', source:'Source', type:'Type', notes:'Notes', date:'Date', action:'Action', detail:'Détail' }
-      : { sub:'Data export', company:'Company', clients:'Clients', estimates:'Estimates', appts:'Appointments', leads:'Leads', photos:'Photos', logs:'Activity log', print:'Print / Save as PDF', field:'Field', value:'Value', name:'Name', phone:'Phone', email:'Email', address:'Address', project:'Project', status:'Status', balance:'Balance', num:'#', client:'Client', ttl:'Title', subtotal:'Subtotal', created:'Created', approved:'Approved', start:'Start', location:'Location', source:'Source', type:'Type', notes:'Notes', date:'Date', action:'Action', detail:'Detail' };
+      ? { sub:'Exportation de données', company:'Entreprise', clients:'Clients', estimates:'Soumissions', jobs:'Jobs', appts:'Rendez-vous', leads:'Prospects', photos:'Photos', logs:'Journal d’activité', print:'Imprimer / Enregistrer en PDF', field:'Champ', value:'Valeur', name:'Nom', phone:'Téléphone', email:'Courriel', address:'Adresse', project:'Projet', status:'Statut', balance:'Solde', num:'N°', client:'Client', ttl:'Titre', subtotal:'Sous-total', created:'Créé le', approved:'Approuvé le', start:'Début', location:'Lieu', source:'Source', type:'Type', notes:'Notes', date:'Date', action:'Action', detail:'Détail' }
+      : { sub:'Data export', company:'Company', clients:'Clients', estimates:'Estimates', jobs:'Jobs', appts:'Appointments', leads:'Leads', photos:'Photos', logs:'Activity log', print:'Print / Save as PDF', field:'Field', value:'Value', name:'Name', phone:'Phone', email:'Email', address:'Address', project:'Project', status:'Status', balance:'Balance', num:'#', client:'Client', ttl:'Title', subtotal:'Subtotal', created:'Created', approved:'Approved', start:'Start', location:'Location', source:'Source', type:'Type', notes:'Notes', date:'Date', action:'Action', detail:'Detail' };
     var company = tbl([T.field, T.value], [
       [T.name, esc(s.company || '')], [T.email, esc(s.email || '')], [T.phone, esc(s.phone || '')], [T.address, esc(s.address || '')],
       ['TPS / GST %', esc(String(s.tps || 0))], ['TVQ / QST %', esc(String(s.tvq || 0))],
@@ -3730,6 +3737,10 @@ Date: ${date(e.createdAt)}`;
       (state.clients || []).map(function (c) { return [esc(c.name||''), esc(c.phone||''), esc(c.email||''), esc(c.address||''), esc(c.project||''), esc(c.status||''), money(c.balance)]; }));
     var estimates = tbl([T.num, T.client, T.ttl, T.subtotal, T.status, T.created, T.approved],
       (state.estimates || []).map(function (e) { return [esc(String(e.estimateNumber||'')), esc(nameById[e.clientId]||''), esc(e.title||''), money(e.subtotal), esc(e.status||''), esc(e.createdAt?date(e.createdAt):''), esc(e.approvedAt?date(e.approvedAt):'')]; }));
+    // Jobs carry line items, deposits and every recorded payment — they belong in
+    // the portability export just as much as estimates do.
+    var jobs = tbl([T.num, T.client, T.ttl, T.subtotal, T.status, T.created],
+      (state.jobs || []).map(function (j) { return [esc(String(j.jobNumber||'')), esc(nameById[j.clientId]||''), esc(j.title||''), money(j.subtotal), esc(j.status||''), esc(j.createdAt?date(j.createdAt):'')]; }));
     var appts = tbl([T.ttl, T.client, T.start, T.location],
       (state.appointments || []).map(function (a) { return [esc(a.title||''), esc(nameById[a.clientId]||''), esc(a.start?date(a.start):''), esc(a.location||'')]; }));
     var leads = tbl([T.name, T.phone, T.source, T.project, T.status],
@@ -3743,6 +3754,7 @@ Date: ${date(e.createdAt)}`;
       '<h2>' + T.company + '</h2>' + company +
       '<h2>' + T.clients + ' (' + (state.clients||[]).length + ')</h2>' + clients +
       '<h2>' + T.estimates + ' (' + (state.estimates||[]).length + ')</h2>' + estimates +
+      '<h2>' + T.jobs + ' (' + (state.jobs||[]).length + ')</h2>' + jobs +
       '<h2>' + T.appts + ' (' + (state.appointments||[]).length + ')</h2>' + appts +
       '<h2>' + T.leads + ' (' + (state.leads||[]).length + ')</h2>' + leads +
       '<h2>' + T.photos + ' (' + (state.photos||[]).length + ')</h2>' + photos +
@@ -6172,7 +6184,7 @@ Date: ${date(e.createdAt)}`;
           '<div style="font-size:26px;margin-bottom:6px">⭐</div>' +
           '<h3 style="margin:0 0 6px">' + t('portal.reviewTitle') + '</h3>' +
           '<p class="muted" style="margin:0 0 14px;font-size:14px">' + t('portal.reviewBody') + '</p>' +
-          '<a href="' + esc(cfg.review_link) + '" target="_blank" rel="noopener" style="display:inline-block;background:var(--brand-panel);color:var(--brand-on);text-decoration:none;border-radius:10px;padding:12px 22px;font-weight:800;font-size:14px">' + t('portal.reviewBtn') + '</a></div>';
+          '<a href="' + esc(cfg.review_link) + '" target="_blank" rel="noopener noreferrer" style="display:inline-block;background:var(--brand-panel);color:var(--brand-on);text-decoration:none;border-radius:10px;padding:12px 22px;font-weight:800;font-size:14px">' + t('portal.reviewBtn') + '</a></div>';
       }
 
       if (upcoming.length) {
