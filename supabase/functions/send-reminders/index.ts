@@ -44,11 +44,11 @@ Deno.serve(async (req) => {
   }
 
   const appointments = apptRes.data ?? [];
-  // Per-org settings (fall back to the 'global' row) so each tenant's reminder uses
-  // its OWN company/phone, not one shared global identity.
+  // Each tenant's reminder uses its OWN company/phone. No cross-tenant fallback:
+  // the old `id='global'` default was the platform owner's real settings row, so a
+  // miss branded another contractor's client email with the wrong company.
   const settingsRows = settingsRes.data ?? [];
-  const globalCfg = settingsRows.find((s: any) => s.id === 'global') || {};
-  const cfgFor = (orgId: string) => settingsRows.find((s: any) => s.org_id && s.org_id === orgId) || globalCfg;
+  const cfgFor = (orgId: string) => settingsRows.find((s: any) => s.org_id && s.org_id === orgId) || {};
 
   if (!appointments.length) {
     return new Response(JSON.stringify({ sent: 0, message: 'No reminders due' }), { status: 200 });

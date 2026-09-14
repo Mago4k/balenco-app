@@ -56,9 +56,11 @@ Deno.serve(async (req) => {
     sb.from('settings').select('*'),
     orgIds.length ? sb.from('subscriptions').select('org_id,status,trial_end').in('org_id', orgIds) : Promise.resolve({ data: [] }),
   ])
-  const globalCfg = (settingsRows || []).find((s: any) => s.id === 'global') || {}
+  // The org's own settings only — no fallback to the old `id='global'` row, which
+  // was the platform owner's real settings and would brand another contractor's
+  // recurring invoice (and its payment instructions) as the wrong company.
   const cfgFor = (orgId: string) =>
-    (settingsRows || []).find((s: any) => s.org_id && s.org_id === orgId) || globalCfg
+    (settingsRows || []).find((s: any) => s.org_id && s.org_id === orgId) || {}
   const planOk = (orgId: string) => {
     const s = (subRows || []).find((r: any) => r.org_id === orgId)
     if (!s) return true

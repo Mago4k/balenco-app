@@ -26,14 +26,18 @@ Deno.serve(async (req) => {
     new Response(JSON.stringify(obj), { status, headers: { ...cors, 'Content-Type': 'application/json' } })
 
   const SETTINGS = 'company,logo,address,phone,email,tps,tvq,terms,gst_number,qst_number,rbq_number,neq_number,payment_instructions,review_link,stripe_charges_enabled,is_platform_owner'
+  // Strictly the org's OWN settings. There used to be a fallback to the row keyed
+  // id='global' — but that row was the platform owner's own settings, so a miss
+  // showed another contractor's company name, tax registration numbers and
+  // payment_instructions to this client: the wrong Interac address to pay.
+  // A miss now yields empty settings, which renders a bare portal instead of
+  // someone else's identity. Note we surface the error rather than swallow it:
+  // reading only `r.data` meant any transient failure fell through to that row.
   const settingsFor = async (orgId: string | null) => {
     let data: any = null
     if (orgId) {
       const r = await sb.from('settings').select(SETTINGS).eq('org_id', orgId).maybeSingle()
-      data = r.data
-    }
-    if (!data) {
-      const r = await sb.from('settings').select(SETTINGS).eq('id', 'global').maybeSingle()
+      if (r.error) console.error('settings lookup failed for org', orgId, r.error.message)
       data = r.data
     }
     data = data ?? {}

@@ -38,11 +38,12 @@ Deno.serve(async (req) => {
     })
   }
 
-  // Settings: match by org_id, fall back to the 'global' row (org_id is null there)
+  // Settings: the org's own row only. The old fallback to `id='global'` assumed
+  // that row had org_id null; it was actually the platform owner's own settings,
+  // so a miss sent this contractor's prospect an email branded as another company.
   const { data: settingsRows } = await sb.from('settings').select('*')
-  const globalCfg = (settingsRows || []).find((s: any) => s.id === 'global') || {}
   const cfgFor = (orgId: string) =>
-    (settingsRows || []).find((s: any) => s.org_id && s.org_id === orgId) || globalCfg
+    (settingsRows || []).find((s: any) => s.org_id && s.org_id === orgId) || {}
 
   let q = sb.from('estimates')
     .select('*')
