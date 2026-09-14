@@ -1995,13 +1995,13 @@ td { padding:14px; font-size:13px; }
     // Settings are provisioned per-company by the signup trigger — no client insert.
     state = {
       settings: sr ? { company:sr.company, email:sr.email, phone:sr.phone, address:sr.address, tps:sr.tps, tvq:sr.tvq, logo:sr.logo||'', terms:sr.terms, gstNumber:sr.gst_number||'', qstNumber:sr.qst_number||'', rbqNumber:sr.rbq_number||'', neqNumber:sr.neq_number||'', paymentInstructions:sr.payment_instructions||'', reviewLink:sr.review_link||'', followupDays:sr.followup_days||3, stripeAccountId:sr.stripe_account_id||'', chargesEnabled:!!sr.stripe_charges_enabled, isPlatformOwner:!!sr.is_platform_owner } : { company:'Your Company Name', email:'info@company.com', phone:'514-000-0000', address:'Montreal, Quebec', tps:5, tvq:9.975, logo:'', terms:'', gstNumber:'', qstNumber:'', rbqNumber:'', neqNumber:'', paymentInstructions:'', reviewLink:'', followupDays:3, stripeAccountId:'', chargesEnabled:false, isPlatformOwner:false },
-      clients: (clients||[]).map(function(r){ return { id:r.id, name:r.name, phone:r.phone||'', email:r.email||'', address:r.address||'', project:r.project||'', status:r.status||'Active', balance:r.balance||0, createdBy:r.created_by||'', createdAt:r.created_at, portalToken:r.portal_token||'' }; }),
-      leads: (leads||[]).map(function(r){ return { id:r.id, name:r.name, phone:r.phone||'', email:r.email||'', source:r.source||'', project:r.project||'', status:r.status||'New', notes:r.notes||'', createdBy:r.created_by||'', createdAt:r.created_at }; }),
-      estimates: (estimates||[]).map(function(r){ return { id:r.id, estimateNumber:r.estimate_number, clientId:r.client_id, title:r.title||'', subtotal:r.subtotal||0, line_items:r.line_items||[], deposit:r.deposit||0, paymentSchedule:r.payment_schedule||'', paymentNotes:r.payment_notes||'', approvedBy:r.approved_by||'', approvedAt:r.approved_at||'', status:r.status||'Draft', scope:r.scope||'', expiry:r.expiry||'', payments:r.payments||[], followupSent:r.followup_sent||false, createdBy:r.created_by||'', createdAt:r.created_at, updatedBy:r.updated_by||'', updatedAt:r.updated_at, approvalToken:r.approval_token||'', options:r.options||null, selectedOption:r.selected_option||'' }; }),
-      jobs: (jobs||[]).map(function(r){ return { id:r.id, jobNumber:r.job_number, clientId:r.client_id, title:r.title||'', subtotal:r.subtotal||0, line_items:r.line_items||[], deposit:r.deposit||0, paymentSchedule:r.payment_schedule||'', paymentNotes:r.payment_notes||'', status:r.status||'Active', scope:r.scope||'', payments:r.payments||[], recurring:r.recurring||'', recurringEnd:r.recurring_end||'', nextRecurrence:r.next_recurrence||'', recurringParentId:r.recurring_parent_id||null, createdBy:r.created_by||'', createdAt:r.created_at, updatedBy:r.updated_by||'', updatedAt:r.updated_at }; }),
-      appointments: (appointments||[]).map(function(r){ return { id:r.id, title:r.title||'', clientId:r.client_id, start:r.start_time||'', end:r.end_time||'', location:r.location||'', notes:r.notes||'', reminder24:r.reminder24!==false, reminderSent:r.reminder_sent||false, recurring:r.recurring||'', recurringEnd:r.recurring_end||'', recurringParentId:r.recurring_parent_id||null, bookingStatus:r.booking_status||'confirmed', bookerName:r.booker_name||'', bookerEmail:r.booker_email||'', bookerPhone:r.booker_phone||'', bookedOnline:r.booked_online||false, createdBy:r.created_by||'', createdAt:r.created_at }; }),
-      photos: (photos||[]).map(function(r){ return { id:r.id, clientId:r.client_id, type:r.type||'', notes:r.notes||'', data:r.storage_path||'', createdBy:r.created_by||'', createdAt:r.created_at }; }),
-      logs: (logs||[]).map(function(r){ return { id:r.id, action:r.action||'', detail:r.detail||'', user:r.user_name||'', at:r.created_at }; }),
+      clients: (clients||[]).map(function(r){ return { id:r.id, name:r.name, phone:r.phone||'', email:r.email||'', address:r.address||'', project:r.project||'', status:r.status||'Active', balance:r.balance||0, createdBy:r.created_by||'', createdById:r.created_by_id||null, createdAt:r.created_at, portalToken:r.portal_token||'' }; }),
+      leads: (leads||[]).map(function(r){ return { id:r.id, name:r.name, phone:r.phone||'', email:r.email||'', source:r.source||'', project:r.project||'', status:r.status||'New', notes:r.notes||'', createdBy:r.created_by||'', createdById:r.created_by_id||null, createdAt:r.created_at }; }),
+      estimates: (estimates||[]).map(function(r){ return { id:r.id, estimateNumber:r.estimate_number, clientId:r.client_id, title:r.title||'', subtotal:r.subtotal||0, line_items:r.line_items||[], deposit:r.deposit||0, paymentSchedule:r.payment_schedule||'', paymentNotes:r.payment_notes||'', approvedBy:r.approved_by||'', approvedAt:r.approved_at||'', status:r.status||'Draft', scope:r.scope||'', expiry:r.expiry||'', payments:r.payments||[], followupSent:r.followup_sent||false, createdBy:r.created_by||'', createdById:r.created_by_id||null, createdAt:r.created_at, updatedBy:r.updated_by||'', updatedAt:r.updated_at, approvalToken:r.approval_token||'', options:r.options||null, selectedOption:r.selected_option||'' }; }),
+      jobs: (jobs||[]).map(function(r){ return { id:r.id, jobNumber:r.job_number, clientId:r.client_id, title:r.title||'', subtotal:r.subtotal||0, line_items:r.line_items||[], deposit:r.deposit||0, paymentSchedule:r.payment_schedule||'', paymentNotes:r.payment_notes||'', status:r.status||'Active', scope:r.scope||'', payments:r.payments||[], recurring:r.recurring||'', recurringEnd:r.recurring_end||'', nextRecurrence:r.next_recurrence||'', recurringParentId:r.recurring_parent_id||null, createdBy:r.created_by||'', createdById:r.created_by_id||null, createdAt:r.created_at, updatedBy:r.updated_by||'', updatedAt:r.updated_at }; }),
+      appointments: (appointments||[]).map(function(r){ return { id:r.id, title:r.title||'', clientId:r.client_id, start:r.start_time||'', end:r.end_time||'', location:r.location||'', notes:r.notes||'', reminder24:r.reminder24!==false, reminderSent:r.reminder_sent||false, recurring:r.recurring||'', recurringEnd:r.recurring_end||'', recurringParentId:r.recurring_parent_id||null, bookingStatus:r.booking_status||'confirmed', bookerName:r.booker_name||'', bookerEmail:r.booker_email||'', bookerPhone:r.booker_phone||'', bookedOnline:r.booked_online||false, createdBy:r.created_by||'', createdById:r.created_by_id||null, createdAt:r.created_at }; }),
+      photos: (photos||[]).map(function(r){ return { id:r.id, clientId:r.client_id, type:r.type||'', notes:r.notes||'', data:r.storage_path||'', createdBy:r.created_by||'', createdById:r.created_by_id||null, createdAt:r.created_at }; }),
+      logs: (logs||[]).map(function(r){ return { id:r.id, action:r.action||'', detail:r.detail||'', user:r.user_name||'', userId:r.user_id||null, at:r.created_at }; }),
       availability: (function(){ const a = availRows && availRows[0]; return a ? { id:a.id, enabled:a.booking_enabled||false, workingDays:a.working_days||[1,2,3,4,5], startTime:a.start_time||'08:00', endTime:a.end_time||'17:00', slotMinutes:a.slot_minutes||60 } : null; })()
     };
     // Billing and AI metering load on their own (loadSubscription / loadAiUsage) but
@@ -2318,8 +2318,15 @@ td { padding:14px; font-size:13px; }
     return client(id)?.name || 'Unknown client';
   }
 
+  // Mirrors the RLS policies (migration 0049), which key ownership on the user's
+  // UUID rather than their display name. Matching on the name meant two people
+  // called Marc shared records, renaming a profile orphaned them, and a rename to
+  // 'System' / 'Online Booking' / '<source> Lead Ad' inherited the rows the crons
+  // and webhooks create. Rows with no createdById are service-role rows and are
+  // owner-only — which is what the name model did anyway, since no employee was
+  // ever called 'System'. Defence in depth: the database already filters these.
   function visible(arr) {
-    return role === 'owner' ? arr : arr.filter(x => x.createdBy === user);
+    return role === 'owner' ? arr : arr.filter(x => x.createdById && x.createdById === userId);
   }
 
   function statusClass(status) {
@@ -2996,7 +3003,7 @@ td { padding:14px; font-size:13px; }
       .map(a => '<div class="d-row"><span class="d-when">' + esc(apptWhen(a.start)) + '</span><span class="d-row-main">' + esc(a.title) + ' <span class="d-sub">· ' + esc(clientName(a.clientId)) + '</span></span></div>')
       .join('') || '<div class="empty">' + t('dash.noAppts') + '</div>';
 
-    const logs = role === 'owner' ? state.logs : state.logs.filter(l => l.user === user);
+    const logs = role === 'owner' ? state.logs : state.logs.filter(l => l.userId && l.userId === userId);
     $('activityList').innerHTML = logs.slice(0,4).map(l =>
       '<div class="d-row"><span class="d-row-main">' + esc(l.action) + ' <span class="d-sub">· ' + esc(l.detail) + '</span></span><span class="d-sub" style="white-space:nowrap">' + date(l.at) + '</span></div>'
     ).join('') || '<div class="empty">' + t('dash.noActivity') + '</div>';
@@ -4521,7 +4528,7 @@ Date: ${date(e.createdAt)}`;
       '</div>';
 
     // Audit trail: the log lines that name this job.
-    const logs = (role === 'owner' ? state.logs : state.logs.filter(function(l){ return l.user === user; }))
+    const logs = (role === 'owner' ? state.logs : state.logs.filter(function(l){ return l.userId && l.userId === userId; }))
       .filter(function(l) {
         const d = String(l.detail || '');
         return (j.title && d.indexOf(j.title) !== -1) || (j.jobNumber && d.indexOf(jobNumber(j)) !== -1);
