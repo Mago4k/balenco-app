@@ -145,7 +145,10 @@ Deno.serve(async (req) => {
     booker_email: sEmail,
     booker_phone: sPhone,
     booked_online: true,
-    reminder24: false,
+    // Online bookings get the 24h reminder like any other appointment. This was
+    // false, and send-reminders filters on `.eq('reminder24', true)` — so the one
+    // flow whose whole promise is "no phone tag" was the only one never reminded.
+    reminder24: true,
     reminder_sent: false,
     org_id,
     created_by: sName,
@@ -161,9 +164,11 @@ Deno.serve(async (req) => {
   // Email the org owner
   const { data: settings } = await sb.from('settings').select('email,company').eq('org_id', org_id).maybeSingle()
   if (settings?.email) {
+    // Without an explicit timeZone this renders in the Deno runtime's zone (UTC),
+    // so a 9:00 AM Montreal booking emailed as "13:00".
     const dateStr = start.toLocaleString('fr-CA', {
       weekday: 'long', month: 'long', day: 'numeric',
-      hour: 'numeric', minute: '2-digit'
+      hour: 'numeric', minute: '2-digit', timeZone: 'America/Montreal'
     })
     await fetch('https://api.resend.com/emails', {
       method: 'POST',

@@ -53,8 +53,12 @@ Deno.serve(async (req) => {
     const { data: settings } = await sbAdmin.from('settings')
       .select('company').eq('org_id', profile.org_id).maybeSingle()
     const company = settings?.company ?? 'Your contractor'
+    // This one goes to the CLIENT. Without timeZone it renders in the runtime's
+    // zone (UTC), so a confirmed 9:00 AM appointment told them "13:00" — the kind
+    // of bug that produces a missed appointment.
     const dateStr = new Date(appt.start_time).toLocaleString('fr-CA', {
-      weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit'
+      weekday: 'long', month: 'long', day: 'numeric', hour: 'numeric', minute: '2-digit',
+      timeZone: 'America/Montreal'
     })
     const isConfirm = action === 'confirm'
 

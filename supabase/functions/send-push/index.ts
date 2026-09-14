@@ -57,8 +57,18 @@ Deno.serve(async (req) => {
       })
     }
     orgId = apt.org_id || null
-    const [d, t] = String(apt.start_time || '').split('T')
-    const when = d ? `${d} at ${(t || '').slice(0, 5)}` : 'soon'
+    // Slicing the stored timestamp showed raw UTC ("13:00" for a 9:00 AM booking).
+    // Format in the local zone instead.
+    let when = 'soon'
+    if (apt.start_time) {
+      const d = new Date(apt.start_time)
+      if (!isNaN(d.getTime())) {
+        when = d.toLocaleString('en-CA', {
+          month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+          timeZone: 'America/Montreal'
+        })
+      }
+    }
     title = '📅 New booking request'
     text = `${apt.booker_name || 'A client'} requested "${apt.title}" on ${when}.`
   } else {
@@ -67,9 +77,17 @@ Deno.serve(async (req) => {
     })
   }
 
-  let q = sb.from('push_subscriptions').select('endpoint,p256dh,auth')
-  if (orgId) q = q.eq('org_id', orgId)
-  const { data: subs, error } = await q
+  // Fail closed. This used to be `if (orgId) q = q.eq(...)`, so an appointment with
+  // a null org_id pushed to EVERY subscribed device of EVERY org — leaking the
+  // booker's name and job title cross-tenant. That is the exact failure the
+  // comment above says was removed; scoping must never be conditional.
+  if (!orgId) {
+    return new Response(JSON.stringify({ error: 'appointment has no org' }), {
+      status: 400, headers: { ...cors, 'Content-Type': 'application/json' }
+    })
+  }
+  const { data: subs, error } = await sb.from('push_subscriptions')
+    .select('endpoint,p256dh,auth').eq('org_id', orgId)
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500, headers: { ...cors, 'Content-Type': 'application/json' }
