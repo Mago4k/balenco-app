@@ -1,3 +1,22 @@
+-- ============================================================================
+-- ARCHIVED 2026-09-14 — DO NOT RUN. HISTORICAL REFERENCE ONLY.
+-- ============================================================================
+-- This is the original single-tenant schema from 2026-05-13, before migration
+-- 0002 introduced tenant isolation. Its own header used to say "Run this entire
+-- file in: Supabase Dashboard -> SQL Editor". Do not.
+--
+-- Running it against a database would:
+--   * recreate the wide-open "Authenticated users can manage ..." policies that
+--     migration 0002 exists to destroy (cross-tenant read/write for everyone),
+--   * recreate "Anyone can view photos" (removed by 0008),
+--   * recreate the photos storage bucket as PUBLIC (made private by 0015),
+--   * omit org_id entirely, so nothing would be multi-tenant.
+--
+-- The real schema is: this file + supabase/migrations/*.sql applied in order.
+-- For the current live shape of tables this file never described, see
+-- supabase/migrations/20260914_0050_baseline_reconcile.sql.
+-- ============================================================================
+
 -- ============================================================
 -- Balenco — Supabase Schema
 -- Run this entire file in: Supabase Dashboard → SQL Editor
