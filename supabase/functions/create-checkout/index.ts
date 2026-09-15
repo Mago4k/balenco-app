@@ -14,6 +14,29 @@ const cors = {
 //     fail closed (409) rather than silently bank their client's money on the
 //     platform. Connected-account charges use the sandbox key while
 //     STRIPE_TEST_SECRET_KEY is set; remove it at go-live and they use STRIPE_SECRET_KEY.
+
+// Platform fee on destination charges, in cents.
+//
+// Without an application_fee_amount the FULL charge transfers to the contractor
+// and Stripe's cut (~2.9% + 30c) is debited from the Balenco platform balance —
+// i.e. we were paying roughly $145 out of pocket on a $5,000 deposit. This
+// passes that exact cost through to the contractor, so the platform nets zero on
+// card payments and the subscription stays the business.
+//
+// Tunable without a redeploy: PLATFORM_FEE_BPS (basis points, 290 = 2.9%) and
+// PLATFORM_FEE_FIXED_CENTS (30). Set PLATFORM_FEE_BPS=0 and
+// PLATFORM_FEE_FIXED_CENTS=0 to collect nothing.
+//
+// Clamped below the charge: Stripe rejects a fee >= the amount, and on a tiny
+// payment the fixed 30c alone could approach it.
+function platformFeeCents(amountCents: number): number {
+  const bps   = Number(Deno.env.get('PLATFORM_FEE_BPS') ?? 290)
+  const fixed = Number(Deno.env.get('PLATFORM_FEE_FIXED_CENTS') ?? 30)
+  if (!Number.isFinite(bps) || !Number.isFinite(fixed)) return 0
+  const fee = Math.round(amountCents * bps / 10000) + fixed
+  return Math.max(0, Math.min(fee, Math.max(0, amountCents - 1)))
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: cors })
 
@@ -56,7 +79,10 @@ Deno.serve(async (req) => {
         status: 409, headers: { ...cors, 'Content-Type': 'application/json' }
       })
     }
-    paymentIntentData = { transfer_data: { destination: cfg.stripe_account_id } }
+    paymentIntentData = {
+      transfer_data: { destination: cfg.stripe_account_id },
+      application_fee_amount: platformFeeCents(Math.round(depositAmount * 100)),
+    }
     stripeKey = Deno.env.get('STRIPE_TEST_SECRET_KEY') || Deno.env.get('STRIPE_SECRET_KEY')!
   }
 
