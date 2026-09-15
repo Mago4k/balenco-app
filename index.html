@@ -6280,18 +6280,16 @@ Date: ${date(e.createdAt)}`;
           if (est.status === 'Accepted') { totalOutstanding += remaining; totalPaidAll += pmts; }
           const sColors = { 'Accepted':'green', 'Lost':'redpill', 'Sent':'blue', 'Draft':'white' };
           // Payment history rows
+          // No synthetic deposit row: a real deposit is now an actual payment row
+          // (migration 0053), so injecting one here listed it twice and inflated
+          // 'payé à ce jour' past the total in front of the client.
           var histRows = '';
-          if (deposit > 0) {
-            histRows += '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line-soft);font-size:13px">' +
-              '<span style="color:var(--muted)">' + t('doc.deposit') + '</span>' +
-              '<span style="font-weight:700;color:var(--green)">+' + money(deposit) + '</span></div>';
-          }
           (est.payments || []).forEach(function(p) {
             histRows += '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line-soft);font-size:13px">' +
               '<span style="color:var(--muted)">' + esc(p.note || t('portal.payment')) + ' · ' + new Date(p.date).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', {month:'short', day:'numeric'}) + '</span>' +
               '<span style="font-weight:700;color:var(--green)">+' + money(p.amount) + '</span></div>';
           });
-          var histBlock = (deposit > 0 || pmts > 0)
+          var histBlock = (pmts > 0)
             ? '<div style="margin:14px 0 0;background:var(--well);border-radius:10px;padding:10px 14px">' +
                 '<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">' + t('portal.payHist') + '</div>' +
                 histRows +
@@ -6392,18 +6390,16 @@ Date: ${date(e.createdAt)}`;
           var jPmts = (job.payments || []).reduce(function(s, p) { return s + Number(p.amount || 0); }, 0);
           var jRemaining = Math.max(Math.round((jTotal - jPmts) * 100) / 100, 0);
           if (job.status !== 'Cancelled') { totalOutstanding += jRemaining; totalPaidAll += jPmts; }
+          // Same as the estimate branch: deposits are real payment rows now.
           var jHistRows = '';
-          if (jDeposit > 0) {
-            jHistRows += '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line-soft);font-size:13px"><span style="color:var(--muted)">' + t('doc.deposit') + '</span><span style="font-weight:700;color:var(--green)">+' + money(jDeposit) + '</span></div>';
-          }
           (job.payments || []).forEach(function(p) {
             jHistRows += '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line-soft);font-size:13px"><span style="color:var(--muted)">' + esc(p.note || t('portal.payment')) + ' · ' + new Date(p.date).toLocaleDateString(lang === 'fr' ? 'fr-CA' : 'en-CA', {month:'short', day:'numeric'}) + '</span><span style="font-weight:700;color:var(--green)">+' + money(p.amount) + '</span></div>';
           });
-          var jHistBlock = (jDeposit > 0 || jPmts > 0) ? '<div style="margin:14px 0 0;background:var(--well);border-radius:10px;padding:10px 14px"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">' + t('portal.payHist') + '</div>' + jHistRows + '</div>' : '';
+          var jHistBlock = (jPmts > 0) ? '<div style="margin:14px 0 0;background:var(--well);border-radius:10px;padding:10px 14px"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">' + t('portal.payHist') + '</div>' + jHistRows + '</div>' : '';
           var jPaySection = '';
           if (job.status !== 'Cancelled' && jRemaining > 0 && cfg.accepts_cards) {
             jPaySection = '<div style="margin-top:16px;background:rgba(99,91,255,0.08);border:1px solid rgba(99,91,255,0.25);border-radius:12px;padding:16px"><div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px">' + t('portal.makePay') + '</div><div style="display:flex;gap:8px;align-items:center"><div style="position:relative;flex:1"><span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:700;font-size:15px">$</span><input type="number" id="payJobAmt-' + job.id + '" min="1" max="' + jRemaining.toFixed(2) + '" step="0.01" value="' + jRemaining.toFixed(2) + '" style="width:100%;background:var(--well);border:1px solid var(--line);border-radius:10px;padding:11px 12px 11px 26px;color:var(--text);font-size:15px;font-weight:700"></div><button onclick="payJobBalance(\'' + job.id + '\',\'' + clientId + '\')" style="background:var(--primary);color:#fff;border:none;border-radius:10px;padding:11px 18px;font-weight:800;font-size:14px;cursor:pointer;white-space:nowrap;flex-shrink:0">' + t('portal.payCard') + '</button></div><div style="font-size:12px;color:var(--muted);margin-top:8px">' + t('portal.anyAmount') + '</div></div>';
-          } else if (jRemaining === 0 && (jDeposit > 0 || jPmts > 0)) {
+          } else if (jRemaining === 0 && (jPmts > 0)) {
             jPaySection = '<div style="margin-top:14px;text-align:center;padding:12px;background:rgba(16,185,129,0.08);border:1px solid rgba(16,185,129,0.2);border-radius:10px;color:var(--green);font-weight:700;font-size:14px">' + t('portal.paidFull') + '</div>';
           } else if (job.status !== 'Cancelled' && jRemaining > 0) {
             jPaySection = '<div style="margin-top:14px;padding:12px 14px;background:var(--well);border:1px solid var(--line);border-radius:10px;color:var(--muted);font-size:13px">' + t('portal.payManual') + '</div>';
