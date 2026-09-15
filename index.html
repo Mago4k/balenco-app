@@ -2447,6 +2447,10 @@ td { padding:14px; font-size:13px; }
     'Changed to employee':'Changé en employé',
     'Link not ready yet — try again':'Lien pas encore prêt — réessayez',
     'Invite link copied':'Lien d’invitation copié',
+    'Deleted':'Supprimé',
+    'That item could not be deleted — it may already be gone, or you may not have permission.':'Cet élément n’a pas pu être supprimé — il a peut-être déjà été retiré, ou vous n’avez pas la permission.',
+    'That change could not be saved.':'Ce changement n’a pas pu être enregistré.',
+    'Settings saved':'Paramètres enregistrés',
     'Accepted estimates cannot be edited — record the change as a job.':'Une soumission acceptée ne peut pas être modifiée — enregistrez le changement comme une job.',
     'Assigned to ':'Assignée à ',
     'Set to owner only':'Visible par le propriétaire seulement',
@@ -4111,13 +4115,24 @@ Date: ${date(e.createdAt)}`;
     if (!c) return;
     const newStatus = $('clientStatus').value;
     if (c.status === newStatus) return;
+    // Optimistic with rollback — see setLeadStatus. The success toast only fires
+    // once the write actually lands; it used to appear regardless.
+    const _prev = c.status;
     c.status = newStatus;
-    sb.from('clients').update({ status: newStatus }).eq('id', c.id)
-      .then(({ error }) => { if (error) { toast(friendlyError(error)); console.error('Client status update error:', error); } });
-    log('Updated client', `${user} set ${c.name} to ${newStatus}.`);
-    save();
     renderAll();
-    toast(t('cl.updated'));
+    sb.from('clients').update({ status: newStatus }).eq('id', c.id).select('id')
+      .then(({ data, error }) => {
+        if (error || !data || !data.length) {
+          c.status = _prev;
+          if ($('clientStatus')) $('clientStatus').value = _prev;
+          renderAll();
+          toast(error ? friendlyError(error) : tr('That change could not be saved.'));
+          return;
+        }
+        log('Updated client', `${user} set ${c.name} to ${newStatus}.`);
+        save();
+        toast(t('cl.updated'));
+      });
   }
   window.onClientStatusChange = onClientStatusChange;
 
@@ -5008,7 +5023,12 @@ Date: ${date(e.createdAt)}`;
 
   function saveSettings(event) {
     event.preventDefault();
-    state.settings = {
+    // Build the new settings, write them, and only adopt them once the database
+    // confirms. This used to assign state.settings immediately, so an employee —
+    // whom RLS correctly refuses settings writes — watched their edits appear on
+    // every estimate and invoice preview, with only a "no permission" toast
+    // hinting that nothing had actually been saved. Reload silently undid it.
+    const _next = {
       company:$('setCompany').value,
       email:$('setEmail').value,
       phone:$('setPhone').value,
@@ -5025,14 +5045,15 @@ Date: ${date(e.createdAt)}`;
       neqNumber:$('setNEQ') ? $('setNEQ').value : (state.settings.neqNumber || ''),
       followupDays:Number($('setFollowupDays').value || 3)
     };
-    sb.from('settings').upsert({ org_id:orgId, company:state.settings.company, email:state.settings.email, phone:state.settings.phone, address:state.settings.address, tps:state.settings.tps, tvq:state.settings.tvq, logo:state.settings.logo, terms:state.settings.terms, gst_number:state.settings.gstNumber, qst_number:state.settings.qstNumber, rbq_number:state.settings.rbqNumber, neq_number:state.settings.neqNumber, payment_instructions:state.settings.paymentInstructions, review_link:state.settings.reviewLink, followup_days:state.settings.followupDays }, { onConflict:'org_id' })
+    sb.from('settings').upsert({ org_id:orgId, company:_next.company, email:_next.email, phone:_next.phone, address:_next.address, tps:_next.tps, tvq:_next.tvq, logo:_next.logo, terms:_next.terms, gst_number:_next.gstNumber, qst_number:_next.qstNumber, rbq_number:_next.rbqNumber, neq_number:_next.neqNumber, payment_instructions:_next.paymentInstructions, review_link:_next.reviewLink, followup_days:_next.followupDays }, { onConflict:'org_id' })
       .then(({ error }) => {
         if (error) { toast(friendlyError(error)); return; }
-        toast('Settings saved');
+        state.settings = _next;
+        log('Updated settings', `${user} updated company settings.`);
+        save();
+        renderAll();
+        toast(tr('Settings saved'));
       });
-    log('Updated settings', `${user} updated company settings.`);
-    save();
-    renderAll();
   }
 
   async function convertLead(id) {
@@ -5061,24 +5082,47 @@ Date: ${date(e.createdAt)}`;
   function setLeadStatus(id, status) {
     const lead = state.leads.find(l => l.id === id);
     if (!lead) return;
+    // Optimistic, but it rolls back. The status used to stay changed on screen even
+    // when the write failed, so a rejected update was indistinguishable from a
+    // successful one until reload. `.select()` is required: an UPDATE that matches
+    // no RLS-visible row reports no error, it just affects zero rows.
+    const _prev = lead.status;
     lead.status = status;
-    sb.from('leads').update({ status }).eq('id', id).then(({ error }) => { if (error) { console.error('lead status failed:', error); toast(friendlyError(error)); } });
-    log('Updated lead', `${user} marked ${lead.name} as ${status}.`);
-    save();
     renderAll();
+    sb.from('leads').update({ status }).eq('id', id).select('id').then(({ data, error }) => {
+      if (error || !data || !data.length) {
+        lead.status = _prev;
+        renderAll();
+        toast(error ? friendlyError(error) : tr('That change could not be saved.'));
+        return;
+      }
+      log('Updated lead', `${user} marked ${lead.name} as ${status}.`);
+      save();
+    });
   }
 
   function setEstimateStatus(id, status) {
     const e = state.estimates.find(x => x.id === id);
     if (!e) return;
+    // Optimistic with rollback — see setLeadStatus. Marking an estimate Accepted
+    // moves money into the dashboard and the client's balance, so it must not
+    // appear to have stuck when the write was rejected.
+    const _prev = { status: e.status, updatedBy: e.updatedBy, updatedAt: e.updatedAt };
     e.status = status;
     e.updatedBy = user;
     e.updatedAt = new Date().toISOString();
-    sb.from('estimates').update({ status, updated_by:user, updated_at:e.updatedAt }).eq('id', id)
-      .then(function(res){ if(res.error) toast(friendlyError(res.error)); });
-    log('Updated estimate', `${user} marked ${e.title} as ${status}.`);
-    save();
     renderAll();
+    sb.from('estimates').update({ status, updated_by:user, updated_at:e.updatedAt }).eq('id', id).select('id')
+      .then(function(res){
+        if (res.error || !res.data || !res.data.length) {
+          Object.assign(e, _prev);
+          renderAll();
+          toast(res.error ? friendlyError(res.error) : tr('That change could not be saved.'));
+          return;
+        }
+        log('Updated estimate', `${user} marked ${e.title} as ${status}.`);
+        save();
+      });
   }
 
   function pickEstimate(id) {
@@ -5480,12 +5524,24 @@ Date: ${date(e.createdAt)}`;
       }
     }
     if (!confirm(msg)) return;
-    state[collection] = state[collection].filter(x => x.id !== id);
     const _tbl = { clients:'clients', leads:'leads', estimates:'estimates', appointments:'appointments', photos:'photos', jobs:'jobs' }[collection];
-    if (_tbl) sb.from(_tbl).delete().eq('id', id).then(({ error }) => { if (error) { toast(friendlyError(error)); } });
-    log('Deleted item', `${user} deleted ${nm || 'an item'} from ${collection}.`);
-    save();
-    renderAll();
+    if (!_tbl) return;
+    // Delete on the server FIRST, and only drop the row locally once it confirms.
+    // This used to remove it from `state` immediately, so a rejected delete looked
+    // exactly like a successful one until the next reload brought the row back.
+    //
+    // `.select()` matters: under RLS a DELETE that matches no visible row reports
+    // NO error, it just affects zero rows. Without reading back what was deleted,
+    // a permission failure is indistinguishable from success.
+    sb.from(_tbl).delete().eq('id', id).select('id').then(({ data, error }) => {
+      if (error) { toast(friendlyError(error)); return; }
+      if (!data || !data.length) { toast(tr('That item could not be deleted — it may already be gone, or you may not have permission.')); return; }
+      state[collection] = state[collection].filter(x => x.id !== id);
+      log('Deleted item', `${user} deleted ${nm || 'an item'} from ${collection}.`);
+      save();
+      renderAll();
+      toast(tr('Deleted'));
+    });
   }
 
   function downloadICS(id) {
