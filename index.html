@@ -6793,6 +6793,96 @@ Date: ${date(e.createdAt)}`;
   updateThemeToggles();
   init().catch(function(e){ console.error('Boot failed:', e); try { if (window.Sentry) window.Sentry.captureException(e); } catch (se) {} showBootError(); });
   if (typeof lucide !== 'undefined') lucide.createIcons();
+  // ── Overlay keyboard behaviour ────────────────────────────────────────────
+  // Seven modal surfaces, none of which trapped focus, moved focus in, restored
+  // it on close, or closed on Escape — so a keyboard user could Tab straight out
+  // of an open dialog into the page behind it and lose track of where they were.
+  //
+  // Done here rather than in each open/close function because the overlays use
+  // two different mechanisms (classList 'open' vs style.display). An observer on
+  // the elements themselves catches both without touching any of them.
+  //
+  // The closers are wrapped in arrows so they resolve when called, not when this
+  // array is built. billingWall needs no special case: closeBilling() already
+  // refuses while the plan is lapsed, so Escape correctly can't dismiss the wall.
+  const OVERLAYS = [
+    { id: 'welcome',              close: () => closeWelcome() },
+    { id: 'billingWall',          close: () => closeBilling() },
+    { id: 'deleteAccountOverlay', close: () => closeDeleteAccount() },
+    { id: 'moreSheet',            close: () => closeMoreSheet() },
+    { id: 'historyOverlay',       close: () => closeClientHistory() },
+    { id: 'statDetailOverlay',    close: () => closeStatDetail() },
+    { id: 'jobDetailOverlay',     close: () => closeJobDetail() },
+  ];
+  const FOCUSABLE = 'a[href],button:not([disabled]),input:not([disabled]):not([type=hidden]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])';
+
+  // These are position:fixed, so offsetParent is always null — read the computed
+  // style instead of the usual offsetParent trick.
+  function overlayShown(el) {
+    if (!el || !el.isConnected) return false;
+    const cs = getComputedStyle(el);
+    return cs.display !== 'none' && cs.visibility !== 'hidden';
+  }
+  function topmostOverlay() {
+    // Later in the list wins: a job-detail sheet opened over the More sheet
+    // should be what Escape closes first.
+    for (let i = OVERLAYS.length - 1; i >= 0; i--) {
+      const el = $(OVERLAYS[i].id);
+      if (overlayShown(el)) return { ...OVERLAYS[i], el };
+    }
+    return null;
+  }
+
+  let _focusBeforeOverlay = null;
+  function watchOverlays() {
+    OVERLAYS.forEach(function (o) {
+      const el = $(o.id);
+      if (!el) return;
+      let wasShown = overlayShown(el);
+      new MutationObserver(function () {
+        const now = overlayShown(el);
+        if (now === wasShown) return;
+        wasShown = now;
+        if (now) {
+          _focusBeforeOverlay = document.activeElement;
+          const first = el.querySelector(FOCUSABLE);
+          if (first) { try { first.focus(); } catch (e) {} }
+        } else if (_focusBeforeOverlay) {
+          // Put the caret back where it came from, if that element still exists.
+          try { if (_focusBeforeOverlay.isConnected) _focusBeforeOverlay.focus(); } catch (e) {}
+          _focusBeforeOverlay = null;
+        }
+      }).observe(el, { attributes: true, attributeFilter: ['class', 'style'] });
+    });
+  }
+  // Four of these overlays are declared AFTER this script in the document, so at
+  // this point $() would return null for them and they'd silently never be
+  // watched. Wait for the parse to finish.
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', watchOverlays);
+  else watchOverlays();
+
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape') {
+      const top = topmostOverlay();
+      if (top) { ev.preventDefault(); top.close(); }
+      return;
+    }
+    if (ev.key !== 'Tab') return;
+    const top = topmostOverlay();
+    if (!top) return;
+    const items = Array.prototype.filter.call(top.el.querySelectorAll(FOCUSABLE), function (n) {
+      return n.offsetWidth > 0 || n.offsetHeight > 0 || n === document.activeElement;
+    });
+    if (!items.length) return;
+    const first = items[0], last = items[items.length - 1];
+    // Wrap at both ends so Tab can never walk out into the page behind.
+    if (ev.shiftKey && (document.activeElement === first || !top.el.contains(document.activeElement))) {
+      ev.preventDefault(); last.focus();
+    } else if (!ev.shiftKey && document.activeElement === last) {
+      ev.preventDefault(); first.focus();
+    }
+  });
+
   document.addEventListener('keydown', function(ev) {
     if (ev.key !== 'Enter') return;
     const form = ev.target.closest('#estimateForm');
