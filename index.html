@@ -2946,10 +2946,39 @@ td { padding:14px; font-size:13px; }
     ['estimateClient','jobClient','apptClient','photoClient'].forEach(id => {
       const sel = $(id);
       if (!sel) return;
+      // Rebuilding the options resets selectedIndex to 0, and _ssSync() then
+      // writes that first client's name into the visible search box. renderAll()
+      // runs on every realtime event, so a teammate saving anything could silently
+      // repoint a half-written estimate at a different client. Keep the choice.
+      const prev = sel.value;
       sel.innerHTML = options;
+      if (prev && Array.prototype.some.call(sel.options, o => o.value === prev)) sel.value = prev;
       makeSearchable(id);
       if (sel._ssSync) sel._ssSync();
     });
+  }
+
+  // True when the user currently has a field inside `containerId` focused, i.e.
+  // they are typing in it right now. Render passes use this to leave that form
+  // alone rather than overwriting it from `state` mid-keystroke.
+  function isEditingWithin(containerId) {
+    const el = document.activeElement;
+    if (!el || el === document.body) return false;
+    const tag = el.tagName;
+    if (tag !== 'INPUT' && tag !== 'TEXTAREA' && tag !== 'SELECT') return false;
+    const c = document.getElementById(containerId);
+    return !!(c && c.contains(el));
+  }
+
+  // Set a client dropdown AND re-sync the searchable box in front of it. Setting
+  // .value alone leaves the visible text showing whatever _ssSync() last wrote —
+  // so "edit this job" would display the first client alphabetically while the
+  // hidden select held the right one, and "correcting" it changed the client.
+  function setClientSelect(id, value) {
+    const sel = $(id);
+    if (!sel) return;
+    sel.value = value || '';
+    if (sel._ssSync) sel._ssSync();
   }
 
   function renderDashboard() {
@@ -3902,6 +3931,12 @@ Date: ${date(e.createdAt)}`;
   function renderSettings() {
     renderTeam();
     renderBookingSettings();
+    // renderAll() runs on every realtime event, and these lines overwrite each
+    // field from `state`. If the user is part-way through editing this form when a
+    // teammate saves anything, their unsaved typing is replaced mid-keystroke.
+    // Leave the form alone while it has focus — it is repainted on the next render
+    // after they click away, so nothing goes stale.
+    if (isEditingWithin('settings')) { refreshPushUI(); return; }
     $('setCompany').value = state.settings.company || '';
     $('setEmail').value = state.settings.email || '';
     $('setPhone').value = state.settings.phone || '';
@@ -4377,7 +4412,7 @@ Date: ${date(e.createdAt)}`;
     if (estimateLocked(e)) { toast(tr('Accepted estimates cannot be edited — record the change as a job.')); return; }
     openTab('estimates');
     editingEstimateId = id;
-    $('estimateClient').value = e.clientId || '';
+    setClientSelect('estimateClient', e.clientId);
     $('estimateTitle').value = e.title || '';
     $('estimateStatus').value = e.status || 'Draft';
     $('estimateDeposit').value = e.deposit || '';
@@ -4760,7 +4795,7 @@ Date: ${date(e.createdAt)}`;
     if (!j) return;
     openTab("jobs");
     editingJobId = id;
-    $("jobClient").value = j.clientId || "";
+    setClientSelect("jobClient", j.clientId);
     $("jobStatus").value = j.status || "Active";
     $("jobDeposit").value = j.deposit || "";
     $("jobPaymentSchedule").value = j.paymentSchedule || "";
@@ -5017,8 +5052,7 @@ Date: ${date(e.createdAt)}`;
     toast('Lead converted! Creating estimate…');
     setTimeout(() => {
       openTab('estimates');
-      const sel = $('estimateClient');
-      if (sel) { sel.value = c.id; }
+      setClientSelect('estimateClient', c.id);
       const titleInput = $('estimateTitle');
       if (titleInput && lead.project) titleInput.value = lead.project;
     }, 400);
@@ -5595,6 +5629,8 @@ Date: ${date(e.createdAt)}`;
     const avail = state.availability;
     const bkEnabled = $('bkEnabled');
     if (!bkEnabled) return;
+    // Same reason as renderSettings: don't overwrite hours the user is mid-edit on.
+    if (isEditingWithin('settings')) return;
     bkEnabled.checked = avail ? avail.enabled : false;
     [0,1,2,3,4,5,6].forEach(d => {
       const cb = $('bkDay' + d);
