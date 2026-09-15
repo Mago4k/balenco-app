@@ -2436,6 +2436,9 @@ td { padding:14px; font-size:13px; }
     'Changed to employee':'Changé en employé',
     'Link not ready yet — try again':'Lien pas encore prêt — réessayez',
     'Invite link copied':'Lien d’invitation copié',
+    'Company logo uploaded':'Logo de l’entreprise téléversé',
+    'Company logo removed':'Logo de l’entreprise retiré',
+    'That image could not be read. Try a PNG or JPG.':'Cette image n’a pas pu être lue. Essayez un PNG ou un JPG.',
     'Deleted':'Supprimé',
     'That item could not be deleted — it may already be gone, or you may not have permission.':'Cet élément n’a pas pu être supprimé — il a peut-être déjà été retiré, ou vous n’avez pas la permission.',
     'That change could not be saved.':'Ce changement n’a pas pu être enregistré.',
@@ -5331,24 +5334,106 @@ Date: ${date(e.createdAt)}`;
     }
   }
 
-  function uploadCompanyLogo(event) {
+  // Shrink a logo before it goes in the database.
+  //
+  // The logo is stored as a base64 data URL on the settings row, which means it is
+  // re-downloaded on EVERY state refresh — i.e. every realtime event — and embedded
+  // into every estimate preview, invoice, PDF and outgoing email. A phone photo or
+  // an untouched brand PNG lands at several hundred KB and multiplies from there.
+  //
+  // Deliberately not compressImage(): that outputs JPEG at 1200px, which flattens
+  // transparency to black and is pointless detail for something rendered at 44px in
+  // an email header. This keeps PNG when the image actually uses transparency,
+  // otherwise takes whichever of PNG/JPEG is smaller.
+  const LOGO_MAX_PX = 400;
+
+  function compressLogo(file) {
+    return new Promise(function (resolve, reject) {
+      // SVG is already vector and tiny — re-rasterising it would only make it
+      // worse. Pass it through unless it is implausibly large.
+      if (file.type === 'image/svg+xml') {
+        const r = new FileReader();
+        r.onload = function () { resolve(String(r.result)); };
+        r.onerror = function () { reject(new Error('read failed')); };
+        r.readAsDataURL(file);
+        return;
+      }
+      const reader = new FileReader();
+      reader.onerror = function () { reject(new Error('read failed')); };
+      reader.onload = function (ev) {
+        const img = new Image();
+        img.onerror = function () { reject(new Error('decode failed')); };
+        img.onload = function () {
+          let w = img.width, h = img.height;
+          if (!w || !h) { reject(new Error('empty image')); return; }
+          if (w > LOGO_MAX_PX || h > LOGO_MAX_PX) {
+            if (w > h) { h = Math.round(h * LOGO_MAX_PX / w); w = LOGO_MAX_PX; }
+            else { w = Math.round(w * LOGO_MAX_PX / h); h = LOGO_MAX_PX; }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+
+          // Does it actually use transparency? If so PNG is the only honest
+          // option; JPEG would fill those pixels black.
+          let hasAlpha = false;
+          try {
+            const data = ctx.getImageData(0, 0, w, h).data;
+            for (let i = 3; i < data.length; i += 4) {
+              if (data[i] < 255) { hasAlpha = true; break; }
+            }
+          } catch (e) { hasAlpha = true; }   // tainted canvas: assume the worst, keep PNG
+
+          const png = canvas.toDataURL('image/png');
+          if (hasAlpha) { resolve(png); return; }
+          const jpg = canvas.toDataURL('image/jpeg', 0.85);
+          resolve(jpg.length < png.length ? jpg : png);
+        };
+        img.src = String(ev.target.result);
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function uploadCompanyLogo(event) {
     const file = event.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      state.settings.logo = reader.result;
-      sb.from('settings').upsert({ org_id:orgId, logo:state.settings.logo }, { onConflict:'org_id' }).then(({ error }) => { if (error) { toast(friendlyError(error)); } });
-      renderAll();
-      toast('Company logo uploaded');
-    };
-    reader.readAsDataURL(file);
+    const input = event.target;
+    let dataUrl;
+    try {
+      dataUrl = await compressLogo(file);
+    } catch (e) {
+      toast(tr('That image could not be read. Try a PNG or JPG.'));
+      input.value = '';
+      return;
+    }
+    // Never make it worse: if the original was already smaller than our output,
+    // keep the original.
+    if (dataUrl.length > file.size * 1.37) {   // ~base64 overhead on the raw bytes
+      const raw = await new Promise(function (res) {
+        const r = new FileReader();
+        r.onload = function () { res(String(r.result)); };
+        r.onerror = function () { res(dataUrl); };
+        r.readAsDataURL(file);
+      });
+      if (raw.length < dataUrl.length) dataUrl = raw;
+    }
+    // Write first, adopt locally only once it lands (an employee can't write
+    // settings, and the preview must not show a logo that was never saved).
+    const { error } = await sb.from('settings').upsert({ org_id: orgId, logo: dataUrl }, { onConflict: 'org_id' });
+    input.value = '';
+    if (error) { toast(friendlyError(error)); return; }
+    state.settings.logo = dataUrl;
+    renderAll();
+    toast(tr('Company logo uploaded') + ' · ' + Math.round(dataUrl.length / 1024) + ' KB');
   }
 
   function clearCompanyLogo() {
     state.settings.logo = '';
     sb.from('settings').upsert({ org_id:orgId, logo:'' }, { onConflict:'org_id' }).then(({ error }) => { if (error) { toast(friendlyError(error)); } });
     renderAll();
-    toast('Company logo removed');
+    toast(tr('Company logo removed'));
   }
 
   function paymentReminder(id) {
