@@ -1,5 +1,14 @@
-const CACHE = 'balenco-v100';
-const SHELL = ['/', '/index.html', '/lib.js', '/logo.png', '/icon-192.png', '/icon-512.png', '/apple-touch-icon.png', '/favicon.png', '/favicon.ico'];
+const CACHE = 'balenco-v101';
+// Precached so the app can boot with no network. supabase-js is the one that
+// MATTERS: index.html calls supabase.createClient() unguarded, so without it the
+// boot throws and the user gets the "check your connection" wall — on a shell
+// that had otherwise loaded fine. It used to come from a CDN, which the fetch
+// handler below deliberately never caches, so offline was always fatal.
+//
+// lucide (400KB for 28 icons) is NOT precached — it is cosmetic, every call site
+// is guarded, and it would quadruple the install cost. Being same-origin now, the
+// cache-first rule below picks it up after the first load anyway.
+const SHELL = ['/', '/index.html', '/lib.js', '/vendor/supabase-js-2.112.3.min.js', '/logo.png', '/icon-192.png', '/icon-512.png', '/apple-touch-icon.png', '/favicon.png', '/favicon.ico'];
 
 // Install — cache the app shell
 self.addEventListener('install', e => {

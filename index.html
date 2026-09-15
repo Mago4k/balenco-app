@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://unpkg.com https://cdnjs.cloudflare.com https://browser.sentry-cdn.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://wvqqazdzejjksjcjdbcm.supabase.co wss://wvqqazdzejjksjcjdbcm.supabase.co https://o4511572006731776.ingest.us.sentry.io; worker-src 'self'; object-src 'none'; base-uri 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://browser.sentry-cdn.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://wvqqazdzejjksjcjdbcm.supabase.co wss://wvqqazdzejjksjcjdbcm.supabase.co https://o4511572006731776.ingest.us.sentry.io; worker-src 'self'; object-src 'none'; base-uri 'self'">
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#FAF9F7">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -937,8 +937,8 @@ td { padding:14px; font-size:13px; }
   #toast { left:16px; right:16px; bottom:calc(70px + env(safe-area-inset-bottom)); }
 }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.3"></script>
-<script src="https://unpkg.com/lucide@1.21.0/dist/umd/lucide.min.js"></script>
+<script src="/vendor/supabase-js-2.112.3.min.js"></script>
+<script src="/vendor/lucide-1.21.0.min.js"></script>
 <script src="lib.js"></script>
 <!-- Error monitoring (Sentry). Paste your DSN below to turn it on; leave blank = off (nothing loads). -->
 <script>
@@ -2292,7 +2292,7 @@ td { padding:14px; font-size:13px; }
     btn.innerHTML = showing ? '<i data-lucide="eye" style="width:18px;height:18px"></i>' : '<i data-lucide="eye-off" style="width:18px;height:18px"></i>';
     btn.setAttribute('aria-label', showing ? 'Show password' : 'Hide password');
     btn.setAttribute('aria-pressed', String(!showing));
-    lucide.createIcons();
+    if (typeof lucide !== 'undefined') { try { lucide.createIcons(); } catch (e) {} }
   }
 
   function esc(value) {
