@@ -29,13 +29,24 @@
     }, 0);
   }
 
-  // Outstanding balance: grand total minus the deposit and every recorded
-  // payment, never below zero.
-  function owing(total, deposit, payments) {
-    var paid = num(deposit) + (payments || []).reduce(function (x, p) {
+  // Outstanding balance: grand total minus every RECORDED payment.
+  //
+  // The deposit is deliberately NOT subtracted. It is the amount requested on the
+  // quote, not evidence that money arrived — a real deposit is recorded as a
+  // payment like any other (migration 0053). Subtracting it here meant an unpaid
+  // deposit silently reduced the balance everywhere, and the payment cap then made
+  // that money unreachable by card.
+  //
+  // Rounded to the cent. Without it, paying the displayed amount in full left a
+  // float residue in (0, 0.005] — measured on HALF of all subtotals between $100
+  // and $30,000 — so the record never read as paid: "Remaining $0.00" with a live
+  // pay button, and the client stuck on the still-owed list forever. e.g. subtotal
+  // $12,750.55 -> total 14659.944862499999, client pays 14659.94, residue 0.00486.
+  function owing(total, payments) {
+    var paid = (payments || []).reduce(function (x, p) {
       return x + num(p && p.amount);
     }, 0);
-    return Math.max(num(total) - paid, 0);
+    return Math.max(Math.round((num(total) - paid) * 100) / 100, 0);
   }
 
   function money(value) {

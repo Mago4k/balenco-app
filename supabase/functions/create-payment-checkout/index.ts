@@ -66,9 +66,13 @@ Deno.serve(async (req) => {
   const tpsRate   = Number(cfg?.tps ?? 5)
   const tvqRate   = Number(cfg?.tvq ?? 9.975)
   const total     = subtotal + subtotal * tpsRate / 100 + subtotal * tvqRate / 100
-  const deposit   = Number(est.deposit || 0)
+  // `deposit` is the amount REQUESTED on the quote, not money received, so it is
+  // NOT subtracted here. It used to be, which capped what the client could pay at
+  // total-minus-deposit — putting an uncollected deposit permanently out of reach
+  // by card (400 "exceeds remaining balance"). Real deposits are recorded as
+  // payments (migration 0053) and so are already inside paidSoFar.
   const paidSoFar = (est.payments || []).reduce((s: number, p: any) => s + Number(p.amount || 0), 0)
-  const remaining = Math.max(total - deposit - paidSoFar, 0)
+  const remaining = Math.max(Math.round((total - paidSoFar) * 100) / 100, 0)
   const amtNum    = Number(amount)
 
   // Guard: can't pay more than what's left (allow 1-cent rounding tolerance)

@@ -142,9 +142,10 @@ Deno.serve(async (req) => {
       const tps       = sub * Number(cfg.tps ?? 5) / 100
       const tvq       = sub * Number(cfg.tvq ?? 9.975) / 100
       const total     = sub + tps + tvq
-      const dep       = Number(fresh?.deposit || 0)
+      // Deposits are recorded as payment rows (migration 0053), so they are already
+      // inside paidSoFar - subtracting `deposit` as well would double-count them.
       const paidSoFar = (fresh?.payments || []).reduce((s: number, p: any) => s + Number(p.amount || 0), 0)
-      const remaining = Math.max(total - dep - paidSoFar, 0)
+      const remaining = Math.max(Math.round((total - paidSoFar) * 100) / 100, 0)
       const fmt       = (n: number) => '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 
       await fetch('https://api.resend.com/emails', {
@@ -189,6 +190,32 @@ Deno.serve(async (req) => {
     .update({ status: 'Accepted', approved_by: 'Client (Stripe)', approved_at: new Date().toISOString(), updated_at: new Date().toISOString() })
     .eq('id', estimateId)
     .neq('status', 'Accepted')
+
+  // RECORD THE DEPOSIT AS A PAYMENT. This branch used to only flip the status, so
+  // a deposit the client genuinely paid left no ledger row at all — no date, no
+  // session id, nothing in the accounting export — and the balance was reduced by
+  // subtracting `deposit` instead, which meant an UNPAID deposit looked identical
+  // to a paid one. Now the money is evidenced like every other payment.
+  //
+  // Idempotent and row-locked via the same RPC the partial-payment branch uses, so
+  // a Stripe retry or double delivery can't double-credit. Uses the settled amount
+  // from Stripe (session.amount_total) rather than anything we put in metadata.
+  const depositPaid = session.amount_total ? session.amount_total / 100 : 0
+  if (depositPaid > 0) {
+    const { error: depErr } = await sb.rpc('record_stripe_payment', {
+      p_estimate_id: estimateId,
+      p_amount:      depositPaid,
+      p_session:     session.id,
+    })
+    // Return 500 so Stripe retries — losing the row would understate what the
+    // client has paid, which is the failure this whole change exists to remove.
+    if (depErr) {
+      console.error('deposit record failed for estimate', estimateId, depErr.message)
+      return new Response(JSON.stringify({ error: depErr.message }), {
+        status: 500, headers: { 'Content-Type': 'application/json' }
+      })
+    }
+  }
 
   const amtPaid = session.amount_total ? session.amount_total / 100 : 0
   const fmt = (n: number) => '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')

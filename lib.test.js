@@ -47,17 +47,35 @@ test('lineItemsTotal — sums the Dayacre items', () => {
   assert.equal(Lib.lineItemsTotal(undefined), 0);
 });
 
-test('owing — total minus deposit and payments, floored at zero', () => {
-  assert.equal(Lib.owing(1149.75, 500, [{ amount: 200 }]).toFixed(2), '449.75');
-  assert.equal(Lib.owing(1000, 0, []), 1000);
-  assert.equal(Lib.owing(1000, 600, [{ amount: 500 }]), 0);   // overpaid -> 0, never negative
-  assert.equal(Lib.owing(1000, 0, [{ amount: 250 }, { amount: 250 }]), 500);
-  assert.equal(Lib.owing(0, 0, []), 0);
+test('owing — total minus recorded payments, floored at zero', () => {
+  assert.equal(Lib.owing(1149.75, [{ amount: 500 }, { amount: 200 }]).toFixed(2), '449.75');
+  assert.equal(Lib.owing(1000, []), 1000);
+  assert.equal(Lib.owing(1000, [{ amount: 1100 }]), 0);   // overpaid -> 0, never negative
+  assert.equal(Lib.owing(1000, [{ amount: 250 }, { amount: 250 }]), 500);
+  assert.equal(Lib.owing(0, []), 0);
+  assert.equal(Lib.owing(1000, undefined), 1000);
 });
 
-test('owing — paid-in-full job nets to zero', () => {
-  const total = Lib.calc(20, 5, 9.975).total;       // $22.995 -> $23.00 charged
-  assert.equal(Lib.owing(total, 0, [{ amount: total }]), 0);
+test('owing — a deposit is NOT evidence of payment', () => {
+  // `deposit` is the amount REQUESTED on the quote. Only recorded payments reduce
+  // the balance; migration 0053 converted real deposits into payment rows. It used
+  // to be subtracted here, so an unpaid deposit silently discounted the balance
+  // everywhere — and the payment cap then put that money out of reach by card.
+  assert.equal(Lib.owing(1149.75, []), 1149.75);
+  assert.equal(Lib.owing(1149.75, [{ amount: 1149.75 }]), 0);
+});
+
+test('owing — paying the displayed total in full always reaches exactly zero', () => {
+  // Regression guard. owing() returned a raw float, so paying the amount actually
+  // shown left a residue in (0, 0.005] on ~50% of subtotals between $100 and
+  // $30,000: the record read "Remaining $0.00" with a live pay button forever and
+  // the client never left the still-owed list.
+  for (const subtotal of [20, 180, 1500, 2450.33, 8500, 12750.55, 99.99, 100.07]) {
+    const total = Lib.calc(subtotal, 5, 9.975).total;
+    const shown = Number(total.toFixed(2));            // what the client is asked to pay
+    assert.equal(Lib.owing(total, [{ amount: shown }]), 0,
+      'subtotal ' + subtotal + ' left a residue after paying ' + shown);
+  }
 });
 
 test('money — CAD formatting', () => {
