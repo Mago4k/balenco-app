@@ -4617,7 +4617,8 @@ Date: ${date(e.createdAt)}`;
     const deposit = Number(j.deposit || 0);
     // Oldest first, so the ledger reads deposit -> first payment -> ... -> latest.
     const pmts = (j.payments || []).slice().sort(function(a,b){ return new Date(a.date||0) - new Date(b.date||0); });
-    const paid = deposit + pmts.reduce(function(s,p){ return s + Number(p.amount||0); }, 0);
+    // Recorded payments only — a real deposit is one of these rows (migration 0053).
+    const paid = pmts.reduce(function(s,p){ return s + Number(p.amount||0); }, 0);
     const owing = jobOwing(j);
     const c = client(j.clientId);
 
@@ -6368,7 +6369,7 @@ Date: ${date(e.createdAt)}`;
             '</div>' +
             '<div class="portal-est-meta">' +
               '<div class="pay-card"><span>' + t('doc.total') + '</span><strong>' + money(total) + '</strong></div>' +
-              '<div class="pay-card"><span>' + t('doc.paidToDate') + '</span><strong style="color:var(--green)">' + money(deposit + pmts) + '</strong></div>' +
+              '<div class="pay-card"><span>' + t('doc.paidToDate') + '</span><strong style="color:var(--green)">' + money(pmts) + '</strong></div>' +
               '<div class="pay-card"><span>' + t('portal.balance') + '</span><strong style="color:' + (remaining > 0 ? 'var(--danger)' : 'var(--green)') + '">' + money(remaining) + '</strong></div>' +
             '</div>' +
             histBlock +
@@ -6404,7 +6405,7 @@ Date: ${date(e.createdAt)}`;
           } else if (job.status !== 'Cancelled' && jRemaining > 0) {
             jPaySection = '<div style="margin-top:14px;padding:12px 14px;background:var(--well);border:1px solid var(--line);border-radius:10px;color:var(--muted);font-size:13px">' + t('portal.payManual') + '</div>';
           }
-          html += '<div class="portal-est-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><h4>' + esc(job.title) + '</h4><p class="muted" style="margin:0;font-size:13px">' + esc(job.scope || '') + '</p></div><span class="pill ' + statusClass(job.status) + '">' + esc(tStatus(job.status)) + '</span></div><div class="portal-est-meta"><div class="pay-card"><span>' + t('doc.total') + '</span><strong>' + money(jTotal) + '</strong></div><div class="pay-card"><span>' + t('doc.paidToDate') + '</span><strong style="color:var(--green)">' + money(jDeposit + jPmts) + '</strong></div><div class="pay-card"><span>' + t('portal.balance') + '</span><strong style="color:' + (jRemaining > 0 ? 'var(--danger)' : 'var(--green)') + '">' + money(jRemaining) + '</strong></div></div>' + jHistBlock + jPaySection + '</div>';
+          html += '<div class="portal-est-card"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div><h4>' + esc(job.title) + '</h4><p class="muted" style="margin:0;font-size:13px">' + esc(job.scope || '') + '</p></div><span class="pill ' + statusClass(job.status) + '">' + esc(tStatus(job.status)) + '</span></div><div class="portal-est-meta"><div class="pay-card"><span>' + t('doc.total') + '</span><strong>' + money(jTotal) + '</strong></div><div class="pay-card"><span>' + t('doc.paidToDate') + '</span><strong style="color:var(--green)">' + money(jPmts) + '</strong></div><div class="pay-card"><span>' + t('portal.balance') + '</span><strong style="color:' + (jRemaining > 0 ? 'var(--danger)' : 'var(--green)') + '">' + money(jRemaining) + '</strong></div></div>' + jHistBlock + jPaySection + '</div>';
         });
         html += '</div>';
       }
