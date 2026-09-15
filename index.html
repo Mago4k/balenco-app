@@ -2418,7 +2418,7 @@ td { padding:14px; font-size:13px; }
   }
 
   function log(action, detail) {
-    state.logs.unshift({ id:uid(), action, detail, user, at:new Date().toISOString() });
+    state.logs.unshift({ id:uid(), action, detail, user, userId, at:new Date().toISOString() });
     sb.from('logs').insert({ action, detail, user_name:user, org_id:orgId }).then(({ error }) => { if (error) console.error('log insert failed:', error); });
   }
 
@@ -2436,6 +2436,8 @@ td { padding:14px; font-size:13px; }
     'Changed to employee':'Changé en employé',
     'Link not ready yet — try again':'Lien pas encore prêt — réessayez',
     'Invite link copied':'Lien d’invitation copié',
+    'Estimate approved':'Soumission acceptée',
+    'Series deleted':'Série supprimée',
     'Reset this client’s portal link? The link you sent them before will stop working immediately.':'Réinitialiser le lien du portail de ce client? Le lien que vous lui avez envoyé cessera immédiatement de fonctionner.',
     'New link created and copied ✓ The old one no longer works.':'Nouveau lien créé et copié ✓ L’ancien ne fonctionne plus.',
     'This client has no portal link yet — use Reset link to create one.':'Ce client n’a pas encore de lien de portail — utilisez « Réinitialiser le lien » pour en créer un.',
@@ -4035,7 +4037,7 @@ Date: ${date(e.createdAt)}`;
 
   function addLead(event) {
     event.preventDefault();
-    const lead = { id:uid(), name:$('leadName').value, phone:$('leadPhone').value, email:$('leadEmail').value, source:$('leadSource').value, project:$('leadProject').value, status:$('leadStatus').value, notes:$('leadNotes').value, createdBy:user, createdAt:new Date().toISOString() };
+    const lead = { id:uid(), name:$('leadName').value, phone:$('leadPhone').value, email:$('leadEmail').value, source:$('leadSource').value, project:$('leadProject').value, status:$('leadStatus').value, notes:$('leadNotes').value, createdBy:user, createdById:userId, createdAt:new Date().toISOString() };
     state.leads.unshift(lead);
     sb.from('leads').insert({ id:lead.id, name:lead.name, phone:lead.phone, email:lead.email, source:lead.source, project:lead.project, status:lead.status, notes:lead.notes, created_by:lead.createdBy, created_at:lead.createdAt, org_id:orgId }).then(({ error }) => { if (error) { console.error('lead insert failed:', error); toast(friendlyError(error)); } });
     log('Added lead', `${user} added ${lead.name} from ${lead.source}.`);
@@ -4059,7 +4061,7 @@ Date: ${date(e.createdAt)}`;
       toast(t('cl.updated'));
       return;
     }
-    const c = { id:uid(), name:$('clientNameInput').value, phone:$('clientPhone').value, email:$('clientEmail').value, address:$('clientAddress').value, project:$('clientProject').value, status:$('clientStatus').value, balance:0, createdBy:user, createdAt:new Date().toISOString() };
+    const c = { id:uid(), name:$('clientNameInput').value, phone:$('clientPhone').value, email:$('clientEmail').value, address:$('clientAddress').value, project:$('clientProject').value, status:$('clientStatus').value, balance:0, createdBy:user, createdById:userId, createdAt:new Date().toISOString() };
     state.clients.unshift(c);
     sb.from('clients').insert({ id:c.id, name:c.name, phone:c.phone, email:c.email, address:c.address, project:c.project, status:c.status, balance:c.balance, created_by:c.createdBy, created_at:c.createdAt, org_id:orgId })
       .then(({ error }) => { if (error) { toast(friendlyError(error)); console.error('Client insert error:', error); } });
@@ -4538,7 +4540,7 @@ Date: ${date(e.createdAt)}`;
     // pick collapses it to the chosen one on approval. Otherwise use the line items.
     var _lineItems = _useOpts ? [{ desc: _opts[0].name, qty: 1, price: _opts[0].price }] : getLineItems();
     var _subtotal = _useOpts ? Number(_opts[0].price || 0) : Number($('estimateSubtotal').value || 0);
-    const e = { id:uid(), clientId:$('estimateClient').value, title:$('estimateTitle').value, line_items:_lineItems, subtotal:_subtotal, deposit:Number($('estimateDeposit').value || 0), paymentSchedule:$('estimatePaymentSchedule').value, paymentNotes:$('estimatePaymentNotes').value, options:_opts, selectedOption:'', approvedBy:'', approvedAt:'', status:$('estimateStatus').value, scope:$('estimateScope').value, expiry:$('estimateExpiry').value || '', createdBy:user, createdAt:new Date().toISOString(), updatedBy:user, updatedAt:new Date().toISOString() };
+    const e = { id:uid(), clientId:$('estimateClient').value, title:$('estimateTitle').value, line_items:_lineItems, subtotal:_subtotal, deposit:Number($('estimateDeposit').value || 0), paymentSchedule:$('estimatePaymentSchedule').value, paymentNotes:$('estimatePaymentNotes').value, options:_opts, selectedOption:'', approvedBy:'', approvedAt:'', status:$('estimateStatus').value, scope:$('estimateScope').value, expiry:$('estimateExpiry').value || '', createdBy:user, createdById:userId, createdAt:new Date().toISOString(), updatedBy:user, updatedAt:new Date().toISOString() };
     if (Number(e.deposit || 0) > calc(e).total + 0.005 && !confirm(lang === 'fr' ? 'L’acompte (' + money(e.deposit) + ') dépasse le total (' + money(calc(e).total) + '). Continuer?' : 'Deposit (' + money(e.deposit) + ') is more than the total (' + money(calc(e).total) + '). Continue?')) return;
     const _form = event.target;
     const _sbtn = _form.querySelector('button[type="submit"]');
@@ -4841,7 +4843,7 @@ Date: ${date(e.createdAt)}`;
     const _recEnd = _rec ? ($('jobRecurringEnd').value || '') : '';
     let _nextRec = '';
     if (_rec) { const _d = new Date(); if (_rec === 'weekly') _d.setDate(_d.getDate() + 7); else if (_rec === 'biweekly') _d.setDate(_d.getDate() + 14); else _d.setMonth(_d.getMonth() + 1); _nextRec = _d.toISOString().slice(0, 10); }
-    const j = { id:uid(), clientId:$('jobClient').value, title:_title, line_items:_items, subtotal:Number($('jobSubtotal').value || 0), deposit:Number($('jobDeposit').value || 0), paymentSchedule:$('jobPaymentSchedule').value, paymentNotes:$('jobPaymentNotes').value, status:$('jobStatus').value, scope:$('jobScope').value, payments:[], recurring:_rec, recurringEnd:_recEnd, nextRecurrence:_nextRec, recurringParentId:null, createdBy:user, createdAt:new Date().toISOString(), updatedBy:user, updatedAt:new Date().toISOString() };
+    const j = { id:uid(), clientId:$('jobClient').value, title:_title, line_items:_items, subtotal:Number($('jobSubtotal').value || 0), deposit:Number($('jobDeposit').value || 0), paymentSchedule:$('jobPaymentSchedule').value, paymentNotes:$('jobPaymentNotes').value, status:$('jobStatus').value, scope:$('jobScope').value, payments:[], recurring:_rec, recurringEnd:_recEnd, nextRecurrence:_nextRec, recurringParentId:null, createdBy:user, createdById:userId, createdAt:new Date().toISOString(), updatedBy:user, updatedAt:new Date().toISOString() };
     if (Number(j.deposit || 0) > calc(j).total + 0.005 && !confirm(lang === 'fr' ? 'L’acompte (' + money(j.deposit) + ') dépasse le total (' + money(calc(j).total) + '). Continuer?' : 'Deposit (' + money(j.deposit) + ') is more than the total (' + money(calc(j).total) + '). Continue?')) return;
     const _form = event.target;
     const _sbtn = _form.querySelector('button[type="submit"]');
@@ -4888,13 +4890,22 @@ Date: ${date(e.createdAt)}`;
     if (_paid > _newTotal + 0.005 && !confirm(lang === "fr" ? "D\u00e9j\u00e0 pay\u00e9 (" + money(_paid) + ") d\u00e9passe le nouveau total (" + money(_newTotal) + "). Continuer?" : "Already paid (" + money(_paid) + ") is more than the new total (" + money(_newTotal) + "). Continue?")) return;
     const _sbtn = $("jobSaveBtn");
     if (_sbtn) _sbtn.disabled = true;
-    Object.assign(j, _patch, { updatedBy:user, updatedAt:new Date().toISOString() });
+    // Write FIRST, adopt locally only once the database confirms — this used to
+    // Object.assign onto `j` up front, so a rejected edit left the new price and
+    // status in the table and in dashboard revenue until reload, with the form
+    // still in edit mode. Payload reads from _patch rather than the mutated
+    // object. `.select("id")` catches an RLS no-op, which reports no error.
     // `payments` is intentionally absent - it is owned by record_manual_payment.
-    sb.from("jobs").update({ client_id:j.clientId, title:j.title, line_items:j.line_items || [], subtotal:j.subtotal, deposit:j.deposit, payment_schedule:j.paymentSchedule, payment_notes:j.paymentNotes, status:j.status, scope:j.scope, recurring:j.recurring || null, recurring_end:j.recurringEnd || null, next_recurrence:j.nextRecurrence || null, updated_by:user, updated_at:j.updatedAt }).eq("id", j.id)
+    const _stamp = new Date().toISOString();
+    sb.from("jobs").update({ client_id:_patch.clientId, title:_patch.title, line_items:_patch.line_items || [], subtotal:_patch.subtotal, deposit:_patch.deposit, payment_schedule:_patch.paymentSchedule, payment_notes:_patch.paymentNotes, status:_patch.status, scope:_patch.scope, recurring:_patch.recurring || null, recurring_end:_patch.recurringEnd || null, next_recurrence:_patch.nextRecurrence || null, updated_by:user, updated_at:_stamp }).eq("id", j.id).select("id")
       .then(function (res) {
         if (_sbtn) _sbtn.disabled = false;
         if (res.error) { toast(friendlyError(res.error)); return; }
-        log("Updated job", user + " updated job " + j.title + ".");
+        if (!res.data || !res.data.length) { toast(tr('That change could not be saved.')); return; }
+        // Re-find by id: a realtime refetch can replace `state` while this is in flight.
+        const cur = state.jobs.find(x => x.id === j.id) || j;
+        Object.assign(cur, _patch, { updatedBy:user, updatedAt:_stamp });
+        log("Updated job", user + " updated job " + cur.title + ".");
         cancelEditJob();
         renderAll();
         toast(t("jb.updated"));
@@ -4905,7 +4916,7 @@ Date: ${date(e.createdAt)}`;
     event.preventDefault();
     const recurring    = $('apptRecurring').checked ? $('apptRecurringFreq').value : '';
     const recurringEnd = recurring ? ($('apptRecurringEnd').value || '') : '';
-    const a = { id:uid(), title:$('apptTitle').value, clientId:$('apptClient').value, start:$('apptStart').value, end:$('apptEnd').value, location:$('apptLocation').value, notes:$('apptNotes').value, reminder24:$('apptReminder24').checked, reminderSent:false, recurring, recurringEnd, recurringParentId:null, createdBy:user, createdAt:new Date().toISOString() };
+    const a = { id:uid(), title:$('apptTitle').value, clientId:$('apptClient').value, start:$('apptStart').value, end:$('apptEnd').value, location:$('apptLocation').value, notes:$('apptNotes').value, reminder24:$('apptReminder24').checked, reminderSent:false, recurring, recurringEnd, recurringParentId:null, createdBy:user, createdById:userId, createdAt:new Date().toISOString() };
     if (a.start && a.end && new Date(a.end) < new Date(a.start)) { toast(lang === 'fr' ? 'L’heure de fin est avant le début.' : 'End time is before the start time.'); return; }
     state.appointments.unshift(a);
     sb.from('appointments').insert({ id:a.id, title:a.title, client_id:a.clientId, start_time:a.start?new Date(a.start).toISOString():null, end_time:a.end?new Date(a.end).toISOString():null, location:a.location, notes:a.notes, reminder24:a.reminder24, reminder_sent:false, recurring:a.recurring||null, recurring_end:a.recurringEnd||null, recurring_parent_id:null, created_by:a.createdBy, created_at:a.createdAt, org_id:orgId }).then(({ error }) => { if (error) { console.error('appointment insert failed:', error); toast(friendlyError(error)); } });
@@ -4971,7 +4982,7 @@ Date: ${date(e.createdAt)}`;
     const type = $('photoType').value;
     const notes = $('photoNotes').value;
     const finish = (dataUrl='') => {
-      const p = { id:uid(), clientId, type, notes, data:dataUrl, createdBy:user, createdAt:new Date().toISOString() };
+      const p = { id:uid(), clientId, type, notes, data:dataUrl, createdBy:user, createdById:userId, createdAt:new Date().toISOString() };
       state.photos.unshift(p);
       sb.from('photos').insert({ id:p.id, client_id:p.clientId, type:p.type, notes:p.notes, storage_path:dataUrl, created_by:p.createdBy, created_at:p.createdAt, org_id:orgId })
         .then(({ error }) => { if (error) toast(friendlyError(error)); });
@@ -5031,7 +5042,7 @@ Date: ${date(e.createdAt)}`;
   async function convertLead(id) {
     const lead = state.leads.find(l => l.id === id);
     if (!lead) return;
-    const c = { id:uid(), name:lead.name, phone:lead.phone, email:lead.email, address:'', project:lead.project, status:'Active', balance:0, createdBy:user, createdAt:new Date().toISOString() };
+    const c = { id:uid(), name:lead.name, phone:lead.phone, email:lead.email, address:'', project:lead.project, status:'Active', balance:0, createdBy:user, createdById:userId, createdAt:new Date().toISOString() };
     // Write the client FIRST — only mark the lead "Won" once the client row actually
     // exists, so a failed insert can't leave a "Won" lead with no client behind it.
     const { error:cErr } = await sb.from('clients').insert({ id:c.id, name:c.name, phone:c.phone, email:c.email, address:c.address, project:c.project, status:c.status, balance:c.balance, created_by:c.createdBy, created_at:c.createdAt, org_id:orgId });
@@ -5195,16 +5206,33 @@ Date: ${date(e.createdAt)}`;
     if (!e) { toast('Select an estimate first'); return; }
     const name = clientName(e.clientId) || user;
     if (!confirm(lang === 'fr' ? 'Marquer « ' + e.title + ' » comme acceptée?' : 'Mark "' + e.title + '" as Accepted?')) return;
+    // Optimistic with rollback, same shape as setEstimateStatus. This is the
+    // single biggest money-moving action in the app: accepting an estimate moves
+    // the amount into dashboard revenue and the client's balance. It must not
+    // appear to have stuck when the write was rejected — and `error` alone can't
+    // tell, because an UPDATE matching no RLS-visible row returns no error.
+    const _prev = { status: e.status, approvedBy: e.approvedBy, approvedAt: e.approvedAt, updatedBy: e.updatedBy, updatedAt: e.updatedAt };
     e.status = 'Accepted';
     e.approvedBy = name;
     e.approvedAt = new Date().toISOString();
     e.updatedBy = user;
     e.updatedAt = new Date().toISOString();
-    sb.from('estimates').update({ status:'Accepted', approved_by:name, approved_at:e.approvedAt, updated_by:user, updated_at:e.updatedAt }).eq('id', e.id)
-      .then(function(res){ if(res.error) toast(friendlyError(res.error)); });
-    log('Client approved estimate', `${name} approved ${e.title}.`);
     renderAll();
-    toast('Estimate approved');
+    sb.from('estimates').update({ status:'Accepted', approved_by:name, approved_at:e.approvedAt, updated_by:user, updated_at:e.updatedAt }).eq('id', e.id).select('id')
+      .then(function(res){
+        // Re-find by id: a realtime refetch replaces `state` wholesale, so the
+        // captured reference can be detached by the time this resolves.
+        const cur = state.estimates.find(x => x.id === e.id) || e;
+        if (res.error || !res.data || !res.data.length) {
+          Object.assign(cur, _prev);
+          renderAll();
+          toast(res.error ? friendlyError(res.error) : tr('That change could not be saved.'));
+          return;
+        }
+        log('Client approved estimate', `${name} approved ${e.title}.`);
+        renderAll();
+        toast(tr('Estimate approved'));
+      });
   }
 
   function copyEstimate() {
@@ -5442,7 +5470,7 @@ Date: ${date(e.createdAt)}`;
   function paymentReminder(id) {
     const c = client(id);
     if (!c) return;
-    const pr = { id:uid(), title:'Payment follow-up', clientId:id, start:new Date(Date.now()+86400000).toISOString(), end:'', location:c.address, notes:`Follow up for open balance of ${money(c.balance)}`, createdBy:user, createdAt:new Date().toISOString() };
+    const pr = { id:uid(), title:'Payment follow-up', clientId:id, start:new Date(Date.now()+86400000).toISOString(), end:'', location:c.address, notes:`Follow up for open balance of ${money(c.balance)}`, createdBy:user, createdById:userId, createdAt:new Date().toISOString() };
     state.appointments.unshift(pr);
     sb.from('appointments').insert({ id:pr.id, title:pr.title, client_id:pr.clientId, start_time:pr.start, end_time:null, location:pr.location, notes:pr.notes, reminder24:true, reminder_sent:false, created_by:pr.createdBy, created_at:pr.createdAt, org_id:orgId }).then(({ error }) => { if (error) { console.error('payment follow-up failed:', error); toast(friendlyError(error)); } });
     log('Created payment follow-up', `${user} created payment follow-up for ${c.name}.`);
@@ -5558,19 +5586,24 @@ Date: ${date(e.createdAt)}`;
   function deleteSeries(parentId) {
     if (!parentId) return;
     if (!confirm(tr('Delete this appointment AND all others in the series?'))) return;
-    // Remove from local state: parent itself + all children
-    state.appointments = state.appointments.filter(a => a.id !== parentId && a.recurringParentId !== parentId);
-    // Remove from DB: parent row + all child rows
+    // Delete server-side FIRST, then drop locally — same as deleteItem. This used
+    // to filter local state up front, so a rejected delete wiped the whole series
+    // off the calendar and said "Series deleted" while every appointment survived
+    // in the database until reload. `.select('id')` is required: under RLS a
+    // DELETE matching no visible row returns no error, just zero rows.
     Promise.all([
-      sb.from('appointments').delete().eq('id', parentId),
-      sb.from('appointments').delete().eq('recurring_parent_id', parentId)
+      sb.from('appointments').delete().eq('id', parentId).select('id'),
+      sb.from('appointments').delete().eq('recurring_parent_id', parentId).select('id')
     ]).then(results => {
       const err = results.find(r => r.error);
-      if (err) toast(friendlyError(err.error));
+      if (err) { toast(friendlyError(err.error)); return; }
+      const removed = results.reduce((n, r) => n + ((r.data && r.data.length) || 0), 0);
+      if (!removed) { toast(tr('That item could not be deleted — it may already be gone, or you may not have permission.')); return; }
+      state.appointments = state.appointments.filter(a => a.id !== parentId && a.recurringParentId !== parentId);
+      log('Deleted series', `${user} deleted recurring series (parent ${parentId}).`);
+      renderAll();
+      toast(tr('Series deleted'));
     });
-    log('Deleted series', `${user} deleted recurring series (parent ${parentId}).`);
-    renderAll();
-    toast('Series deleted');
   }
 
   async function respondBooking(id, action) {
