@@ -1966,13 +1966,6 @@ td { padding:14px; font-size:13px; }
     return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2);
   }
 
-  function seed() {
-    state = {
-      settings:{ company:'Your Company Name', email:'info@company.com', phone:'514-000-0000', address:'Montreal, Quebec', tps:5, tvq:9.975, logo:'', terms:'Estimate valid for 15 days. Deposit required before scheduling. Hidden conditions, permits, and extra work are not included unless stated.' },
-      clients:[], leads:[], estimates:[], jobs:[], appointments:[], photos:[], logs:[]
-    };
-  }
-
   async function fetchState() {
     const _res = await Promise.all([
       sb.from('clients').select('*').order('created_at', { ascending: false }),
@@ -2280,10 +2273,6 @@ td { padding:14px; font-size:13px; }
     showWelcome();
   }
   window.welcomeMove = welcomeMove; window.closeWelcome = closeWelcome;
-
-  function load() { seed(); }
-
-  function save() {}
 
   function togglePass(id, btn) {
     const input = $(id);
@@ -3693,7 +3682,6 @@ Date: ${date(e.createdAt)}`;
     a.reminderSent = true;
     sb.from('appointments').update({ reminder_sent:true }).eq('id', id).then(({ error }) => { if (error) console.error('reminder update failed:', error); });
     log('Marked reminder sent', `${user} marked a reminder sent for ${clientName(a.clientId)}.`);
-    save();
     renderAll();
   }
 
@@ -4045,7 +4033,6 @@ Date: ${date(e.createdAt)}`;
     state.leads.unshift(lead);
     sb.from('leads').insert({ id:lead.id, name:lead.name, phone:lead.phone, email:lead.email, source:lead.source, project:lead.project, status:lead.status, notes:lead.notes, created_by:lead.createdBy, created_at:lead.createdAt, org_id:orgId }).then(({ error }) => { if (error) { console.error('lead insert failed:', error); toast(friendlyError(error)); } });
     log('Added lead', `${user} added ${lead.name} from ${lead.source}.`);
-    save();
     event.target.reset();
     renderAll();
     toast('Lead saved');
@@ -4060,7 +4047,6 @@ Date: ${date(e.createdAt)}`;
         sb.from('clients').update({ name:c.name, phone:c.phone, email:c.email, address:c.address, project:c.project, status:c.status }).eq('id', c.id)
           .then(({ error }) => { if (error) { toast(friendlyError(error)); console.error('Client update error:', error); } });
         log('Updated client', `${user} updated ${c.name}.`);
-        save();
       }
       cancelEditClient();
       renderAll();
@@ -4072,7 +4058,6 @@ Date: ${date(e.createdAt)}`;
     sb.from('clients').insert({ id:c.id, name:c.name, phone:c.phone, email:c.email, address:c.address, project:c.project, status:c.status, balance:c.balance, created_by:c.createdBy, created_at:c.createdAt, org_id:orgId })
       .then(({ error }) => { if (error) { toast(friendlyError(error)); console.error('Client insert error:', error); } });
     log('Added client', `${user} added ${c.name}.`);
-    save();
     event.target.reset();
     renderAll();
     toast(t('cl.saved'));
@@ -4130,7 +4115,6 @@ Date: ${date(e.createdAt)}`;
           return;
         }
         log('Updated client', `${user} set ${c.name} to ${newStatus}.`);
-        save();
         toast(t('cl.updated'));
       });
   }
@@ -4562,7 +4546,6 @@ Date: ${date(e.createdAt)}`;
       if (res.data) e.estimateNumber = res.data.estimate_number;
       state.estimates.unshift(e);
       log('Created estimate', `${user} created ${e.title} for ${clientName(e.clientId)}.`);
-      save();
       _form.reset();
       resetLineItems();
       resetEstimateOptions();
@@ -4600,16 +4583,9 @@ Date: ${date(e.createdAt)}`;
   }
   window.closeJobDetail = closeJobDetail;
 
-  function jdItemFields(it) {
-    // Hand-entered rows use desc/qty/price; AI-drafted ones arrive as
-    // description/quantity/unit_price. Read both so neither renders blank.
-    return {
-      desc: it.desc || it.description || '',
-      qty: Number(it.qty != null ? it.qty : (it.quantity != null ? it.quantity : 1)) || 0,
-      price: Number(it.price != null ? it.price : (it.unit_price != null ? it.unit_price : 0)) || 0,
-      unit: it.unit || ''
-    };
-  }
+  // Normalisation lives in lib.js (unit-tested) — hand-entered rows use
+  // desc/qty/price, AI-drafted ones description/quantity/unit_price.
+  function jdItemFields(it) { return BalencoLib.itemFields(it); }
 
   function renderJobDetail() {
     if (!_jobDetailId) return;
@@ -4871,7 +4847,6 @@ Date: ${date(e.createdAt)}`;
       if (res.data) j.jobNumber = res.data.job_number;
       state.jobs.unshift(j);
       log('Created job', `${user} created job ${j.title} for ${clientName(j.clientId)}.`);
-      save();
       _form.reset();
       resetJobLineItems();
       if ($('jobRecurringOptions')) $('jobRecurringOptions').style.display = 'none';
@@ -4914,7 +4889,6 @@ Date: ${date(e.createdAt)}`;
         if (_sbtn) _sbtn.disabled = false;
         if (res.error) { toast(friendlyError(res.error)); return; }
         log("Updated job", user + " updated job " + j.title + ".");
-        save();
         cancelEditJob();
         renderAll();
         toast(t("jb.updated"));
@@ -4931,7 +4905,6 @@ Date: ${date(e.createdAt)}`;
     sb.from('appointments').insert({ id:a.id, title:a.title, client_id:a.clientId, start_time:a.start?new Date(a.start).toISOString():null, end_time:a.end?new Date(a.end).toISOString():null, location:a.location, notes:a.notes, reminder24:a.reminder24, reminder_sent:false, recurring:a.recurring||null, recurring_end:a.recurringEnd||null, recurring_parent_id:null, created_by:a.createdBy, created_at:a.createdAt, org_id:orgId }).then(({ error }) => { if (error) { console.error('appointment insert failed:', error); toast(friendlyError(error)); } });
     if (recurring) generateRecurringInstances(a, recurring, recurringEnd);
     log('Created appointment', `${user} created appointment ${a.title} for ${clientName(a.clientId)}.`);
-    save();
     event.target.reset();
     document.getElementById('recurringOptions').style.display = 'none';
     renderAll();
@@ -4939,26 +4912,20 @@ Date: ${date(e.createdAt)}`;
   }
 
   function generateRecurringInstances(parent, freq, endDate) {
-    const maxInstances = { weekly:52, biweekly:26, monthly:12 }[freq] || 12;
-    const stepMs = { weekly:7, biweekly:14, monthly:0 }[freq];
-    const limit = endDate ? new Date(endDate) : null;
     const rows = [];
-    let base = new Date(parent.start);
+    const base = new Date(parent.start);
     const baseEnd = parent.end ? new Date(parent.end) : null;
     const durationMs = baseEnd ? (baseEnd - base) : 0;
+    // Date stepping lives in lib.js so it can be unit-tested. It steps by calendar
+    // units rather than fixed milliseconds, which keeps the wall-clock time across
+    // a DST change (a 9:00 weekly job used to become 8:00 in November) and clamps
+    // month-end (Jan 31 used to overflow to Mar 3, skipping February and moving the
+    // whole series onto the 3rd).
+    const dates = BalencoLib.recurrenceDates(parent.start, freq, endDate);
 
-    for (let i = 0; i < maxInstances; i++) {
-      // advance by one step
-      if (freq === 'monthly') {
-        base = new Date(base);
-        base.setMonth(base.getMonth() + 1);
-      } else {
-        base = new Date(base.getTime() + stepMs * 86400000);
-      }
-      if (limit && base > limit) break;
-
-      const newStart = base.toISOString();
-      const newEnd   = durationMs ? new Date(base.getTime() + durationMs).toISOString() : '';
+    for (const occurrence of dates) {
+      const newStart = occurrence.toISOString();
+      const newEnd   = durationMs ? new Date(occurrence.getTime() + durationMs).toISOString() : '';
       const inst = { id:uid(), title:parent.title, clientId:parent.clientId, start:newStart, end:newEnd, location:parent.location, notes:parent.notes, reminder24:parent.reminder24, reminderSent:false, recurring:parent.recurring, recurringEnd:parent.recurringEnd, recurringParentId:parent.id, createdBy:parent.createdBy, createdAt:new Date().toISOString() };
       state.appointments.push(inst);
       rows.push({ id:inst.id, title:inst.title, client_id:inst.clientId, start_time:inst.start, end_time:inst.end||null, location:inst.location, notes:inst.notes, reminder24:inst.reminder24, reminder_sent:false, recurring:inst.recurring||null, recurring_end:inst.recurringEnd||null, recurring_parent_id:inst.recurringParentId, created_by:inst.createdBy, created_at:inst.createdAt, org_id:orgId });
@@ -5050,7 +5017,6 @@ Date: ${date(e.createdAt)}`;
         if (error) { toast(friendlyError(error)); return; }
         state.settings = _next;
         log('Updated settings', `${user} updated company settings.`);
-        save();
         renderAll();
         toast(tr('Settings saved'));
       });
@@ -5068,7 +5034,6 @@ Date: ${date(e.createdAt)}`;
     lead.status = 'Won';
     sb.from('leads').update({ status:'Won' }).eq('id', id).then(({ error }) => { if (error) { console.error('lead convert failed:', error); toast(friendlyError(error)); } });
     log('Converted lead', `${user} converted ${lead.name} into a client.`);
-    save();
     renderAll();
     toast('Lead converted! Creating estimate…');
     setTimeout(() => {
@@ -5097,7 +5062,6 @@ Date: ${date(e.createdAt)}`;
         return;
       }
       log('Updated lead', `${user} marked ${lead.name} as ${status}.`);
-      save();
     });
   }
 
@@ -5121,7 +5085,6 @@ Date: ${date(e.createdAt)}`;
           return;
         }
         log('Updated estimate', `${user} marked ${e.title} as ${status}.`);
-        save();
       });
   }
 
@@ -5234,7 +5197,6 @@ Date: ${date(e.createdAt)}`;
     sb.from('estimates').update({ status:'Accepted', approved_by:name, approved_at:e.approvedAt, updated_by:user, updated_at:e.updatedAt }).eq('id', e.id)
       .then(function(res){ if(res.error) toast(friendlyError(res.error)); });
     log('Client approved estimate', `${name} approved ${e.title}.`);
-    save();
     renderAll();
     toast('Estimate approved');
   }
@@ -5250,105 +5212,6 @@ Date: ${date(e.createdAt)}`;
     } else {
       prompt('Copy this estimate text:', text);
     }
-  }
-
-  function buildEstimateEmail(e, clientObj) {
-    const s = state.settings;
-    const company = s.company || 'Balenco';
-    const sub = Number(e.subtotal || 0);
-    const tpsRate = Number(s.tps || 5);
-    const tvqRate = Number(s.tvq || 9.975);
-    const tpsAmt = sub * tpsRate / 100;
-    const tvqAmt = sub * tvqRate / 100;
-    const total = sub + tpsAmt + tvqAmt;
-    const dep = Number(e.deposit || 0);
-    const fmt = function(n) { return '$' + Number(n).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ','); };
-    const _pc = client(e.clientId);
-    const portalLink = (_pc && _pc.portalToken) ? 'https://balenco.app/?client=' + _pc.portalToken : (e.clientId ? 'https://balenco.app/?client=' + e.clientId : null);
-
-    const items = e.line_items || [];
-    let itemRows = '';
-    items.forEach(function(item) {
-      const lineTotal = Number(item.qty || 1) * Number(item.price || 0);
-      itemRows += '<tr>' +
-        '<td style="padding:10px 14px;border-top:1px solid #EDEAE3;font-size:14px;color:#3F403B">' + esc(item.description || '') + '</td>' +
-        '<td style="padding:10px 14px;border-top:1px solid #EDEAE3;font-size:14px;text-align:center;color:#6E6F6B">' + (item.qty || 1) + '</td>' +
-        '<td style="padding:10px 14px;border-top:1px solid #EDEAE3;font-size:14px;text-align:right;color:#6E6F6B">' + fmt(item.price || 0) + '</td>' +
-        '<td style="padding:10px 14px;border-top:1px solid #EDEAE3;font-size:14px;text-align:right;font-weight:700;color:#17181A">' + fmt(lineTotal) + '</td>' +
-      '</tr>';
-    });
-
-    return '<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff">' +
-
-      // Header
-      '<div style="background:#17181A;padding:28px 32px;border-radius:12px 12px 0 0">' +
-        (s.logo ? '<img src="' + s.logo + '" style="max-height:50px;margin-bottom:12px;display:block" alt="' + esc(company) + '">' : '') +
-        '<div style="color:#fff;font-size:22px;font-weight:900">' + esc(company) + '</div>' +
-        (s.address ? '<div style="color:var(--accent);font-size:13px;margin-top:4px">' + esc(s.address) + '</div>' : '') +
-        (s.phone ? '<div style="color:var(--accent);font-size:13px">' + esc(s.phone) + '</div>' : '') +
-      '</div>' +
-
-      // Body
-      '<div style="padding:28px 32px;border:1px solid #E9E6DF;border-top:none;border-radius:0 0 12px 12px">' +
-        '<p style="font-size:16px;color:#3F403B;margin:0 0 6px">Hi <strong>' + esc(clientObj.name || 'there') + '</strong>,</p>' +
-        '<p style="font-size:15px;color:#6E6F6B;margin:0 0 24px">Please find your estimate below. Use the button at the bottom to review and approve it.</p>' +
-
-        // Title
-        '<div style="margin-bottom:20px">' +
-          '<div style="font-size:20px;font-weight:900;color:#17181A">' + esc(e.title) + '</div>' +
-          (e.scope ? '<div style="font-size:14px;color:#6E6F6B;margin-top:6px;white-space:pre-wrap">' + esc(e.scope) + '</div>' : '') +
-        '</div>' +
-
-        // Line items
-        (items.length ? '<div style="border:1px solid #E9E6DF;border-radius:10px;overflow:hidden;margin-bottom:20px">' +
-          '<table style="width:100%;border-collapse:collapse">' +
-            '<thead><tr style="background:#F1EFEA">' +
-              '<th style="padding:10px 14px;text-align:left;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px">Description</th>' +
-              '<th style="padding:10px 14px;text-align:center;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px">Qty</th>' +
-              '<th style="padding:10px 14px;text-align:right;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px">Price</th>' +
-              '<th style="padding:10px 14px;text-align:right;font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.6px">Total</th>' +
-            '</tr></thead>' +
-            '<tbody>' + itemRows + '</tbody>' +
-          '</table>' +
-        '</div>' : '') +
-
-        // Totals
-        '<div style="border:1px solid #E9E6DF;border-radius:10px;overflow:hidden;margin-bottom:24px">' +
-          '<table style="width:100%;border-collapse:collapse">' +
-            '<tr><td style="padding:11px 16px;font-size:14px;color:#6E6F6B">Subtotal</td><td style="padding:11px 16px;font-size:14px;text-align:right">' + fmt(sub) + '</td></tr>' +
-            '<tr><td style="padding:11px 16px;font-size:14px;color:#6E6F6B;border-top:1px solid #f1f5f9">TPS (' + tpsRate + '%)</td><td style="padding:11px 16px;font-size:14px;text-align:right;border-top:1px solid #f1f5f9">' + fmt(tpsAmt) + '</td></tr>' +
-            '<tr><td style="padding:11px 16px;font-size:14px;color:#6E6F6B;border-top:1px solid #f1f5f9">TVQ (' + tvqRate + '%)</td><td style="padding:11px 16px;font-size:14px;text-align:right;border-top:1px solid #f1f5f9">' + fmt(tvqAmt) + '</td></tr>' +
-            '<tr style="background:#17181A"><td style="padding:13px 16px;font-size:15px;color:#fff;font-weight:900">Total</td><td style="padding:13px 16px;font-size:15px;color:#fff;font-weight:900;text-align:right">' + fmt(total) + '</td></tr>' +
-          '</table>' +
-        '</div>' +
-
-        // Deposit
-        (dep > 0 ? '<div style="background:#FDF0CE;border:1px solid #F0E2BC;border-radius:10px;padding:14px 18px;margin-bottom:24px">' +
-          '<div style="font-size:12px;color:#3b82f6;font-weight:700;text-transform:uppercase;letter-spacing:.5px">Deposit to confirm</div>' +
-          '<div style="font-size:22px;font-weight:900;color:#6B4E00;margin:4px 0">' + fmt(dep) + '</div>' +
-          (e.paymentSchedule ? '<div style="font-size:13px;color:#6E6F6B">' + esc(e.paymentSchedule) + '</div>' : '') +
-        '</div>' : '') +
-
-        // Terms
-        (s.terms ? '<div style="background:#F1EFEA;border-radius:10px;padding:14px 18px;margin-bottom:24px">' +
-          '<div style="font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Terms &amp; Notes</div>' +
-          '<div style="font-size:13px;color:#6E6F6B;white-space:pre-wrap">' + esc(s.terms) + '</div>' +
-        '</div>' : '') +
-
-        // CTA button
-        (portalLink ? '<div style="text-align:center;margin:28px 0">' +
-          '<a href="' + portalLink + '" style="background:#17181A;color:#fff;text-decoration:none;padding:16px 36px;border-radius:10px;font-size:16px;font-weight:800;display:inline-block">' +
-          (dep > 0 ? 'Review, Approve &amp; Pay Deposit →' : 'Review &amp; Approve Your Estimate →') +
-          '</a>' +
-          '<div style="margin-top:10px;font-size:12px;color:#94a3b8">Secure client portal &middot; No account required</div>' +
-        '</div>' : '') +
-
-        // Footer
-        '<div style="margin-top:20px;padding-top:16px;border-top:1px solid #E9E6DF;font-size:13px;color:#94a3b8;text-align:center">' +
-          (s.email || '') + (s.email && s.phone ? ' &nbsp;&middot;&nbsp; ' : '') + (s.phone || '') +
-        '</div>' +
-
-      '</div></div>';
   }
 
   async function emailEstimate() {
@@ -5371,7 +5234,6 @@ Date: ${date(e.createdAt)}`;
       if (data.error) throw new Error(data.error);
       if (e.status !== 'Accepted') e.status = 'Sent';   // DB update is guarded with .neq('status','Accepted') — keep local state in sync so an already-Accepted quote isn't transiently dropped from revenue
       sb.from('estimates').update({ status: 'Sent', updated_at: new Date().toISOString() }).eq('id', e.id).neq('status', 'Accepted').then(({ error }) => { if (error) console.error('mark sent failed:', error); });
-      save();
       renderAll();
       toast(t('es.sentTo') + ' ' + c.email);
       log('Sent estimate', user + ' emailed estimate to ' + c.email);
@@ -5496,7 +5358,6 @@ Date: ${date(e.createdAt)}`;
     state.appointments.unshift(pr);
     sb.from('appointments').insert({ id:pr.id, title:pr.title, client_id:pr.clientId, start_time:pr.start, end_time:null, location:pr.location, notes:pr.notes, reminder24:true, reminder_sent:false, created_by:pr.createdBy, created_at:pr.createdAt, org_id:orgId }).then(({ error }) => { if (error) { console.error('payment follow-up failed:', error); toast(friendlyError(error)); } });
     log('Created payment follow-up', `${user} created payment follow-up for ${c.name}.`);
-    save();
     renderAll();
     openTab('calendar');
   }
@@ -5538,7 +5399,6 @@ Date: ${date(e.createdAt)}`;
       if (!data || !data.length) { toast(tr('That item could not be deleted — it may already be gone, or you may not have permission.')); return; }
       state[collection] = state[collection].filter(x => x.id !== id);
       log('Deleted item', `${user} deleted ${nm || 'an item'} from ${collection}.`);
-      save();
       renderAll();
       toast(tr('Deleted'));
     });
@@ -5565,39 +5425,6 @@ Date: ${date(e.createdAt)}`;
     const fmt = v => new Date(v).toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
     const end = a.end || new Date(new Date(a.start).getTime() + 3600000).toISOString();
     window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(a.title)}&dates=${fmt(a.start)}/${fmt(end)}&details=${encodeURIComponent(a.notes || '')}&location=${encodeURIComponent(a.location || '')}`, '_blank');
-  }
-
-  function exportData() {
-    const blob = new Blob([JSON.stringify(state, null, 2)], { type:'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'balenco-backup.json';
-    a.click();
-    URL.revokeObjectURL(url);
-  }
-
-  function importData(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async () => {
-      try {
-        const data = JSON.parse(reader.result);
-        if (data.clients?.length) await sb.from('clients').upsert(data.clients.map(c => ({ id:c.id, name:c.name, phone:c.phone, email:c.email, address:c.address, project:c.project, status:c.status, balance:c.balance, created_by:c.createdBy, created_at:c.createdAt, org_id:orgId })));
-        if (data.leads?.length) await sb.from('leads').upsert(data.leads.map(l => ({ id:l.id, name:l.name, phone:l.phone, email:l.email, source:l.source, project:l.project, status:l.status, notes:l.notes, created_by:l.createdBy, created_at:l.createdAt, org_id:orgId })));
-        if (data.estimates?.length) await sb.from('estimates').upsert(data.estimates.map(e => ({ id:e.id, client_id:e.clientId, title:e.title, subtotal:e.subtotal, deposit:e.deposit, payment_schedule:e.paymentSchedule, payment_notes:e.paymentNotes, approved_by:e.approvedBy||'', approved_at:e.approvedAt||null, status:e.status, scope:e.scope, created_by:e.createdBy, created_at:e.createdAt, updated_by:e.updatedBy, updated_at:e.updatedAt, org_id:orgId })));
-        await fetchState();
-        renderAll();
-        toast(lang === 'fr' ? 'Sauvegarde importée et synchronisée' : 'Backup imported and synced');
-      } catch (err) { alert(tr('Invalid backup file')); }
-    };
-    reader.readAsText(file);
-  }
-
-  function resetData() {
-    if (!confirm(tr('Refresh all data from the server?'))) return;
-    fetchState().then(() => { renderAll(); toast('Data refreshed'); });
   }
 
   function handleAction(event) {
@@ -5653,7 +5480,6 @@ Date: ${date(e.createdAt)}`;
       if (err) toast(friendlyError(err.error));
     });
     log('Deleted series', `${user} deleted recurring series (parent ${parentId}).`);
-    save();
     renderAll();
     toast('Series deleted');
   }
@@ -5809,36 +5635,6 @@ Date: ${date(e.createdAt)}`;
   }
 
   // ── Revenue chart ──────────────────────────────────────────────
-  function renderRevenueChart() {
-    const el = $('revenueChart');
-    if (!el) return;
-    const now = new Date();
-    const months = [];
-    for (let i = 5; i >= 0; i--) {
-      const d     = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const start = d.toISOString();
-      const end   = new Date(d.getFullYear(), d.getMonth() + 1, 1).toISOString();
-      const label = d.toLocaleString('en-CA', { month: 'short' });
-      const rev   = visible(state.estimates)
-        .filter(e => e.status === 'Accepted' && e.updatedAt >= start && e.updatedAt < end)
-        .reduce((s, e) => s + calc(e).total, 0)
-        + visible(state.jobs)
-        .filter(j => j.status !== 'Cancelled' && j.updatedAt >= start && j.updatedAt < end)
-        .reduce((s, j) => s + calc(j).total, 0);
-      months.push({ label, rev });
-    }
-    const max = Math.max(...months.map(m => m.rev), 1);
-    el.innerHTML = months.map(m => {
-      const h = Math.max(Math.round((m.rev / max) * 80), m.rev > 0 ? 4 : 0);
-      const amt = m.rev > 0 ? '$' + Math.round(m.rev / 1000) + 'k' : '';
-      return `<div class="rev-bar-col">
-        ${amt ? `<div class="rev-amt">${amt}</div>` : ''}
-        <div class="rev-bar" style="height:${h}px"></div>
-        <div class="rev-month">${m.label}</div>
-      </div>`;
-    }).join('');
-  }
-
   // ── Invoice generator ──────────────────────────────────────────
   function invoiceHTML(e) {
     if (!e) return '';
@@ -6168,7 +5964,7 @@ Date: ${date(e.createdAt)}`;
     });
     // Guard against spreadsheet formula injection: a cell starting with = + - @ (or a
     // leading tab/CR) is executed as a formula by Excel/Sheets — prefix it with a quote.
-    const csvCell = function(v){ var s = String(v); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
+    const csvCell = BalencoLib.csvCell;   // formula-injection guard, unit-tested in lib.js
     const csv = rows.map(r => r.map(csvCell).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -6200,7 +5996,7 @@ Date: ${date(e.createdAt)}`;
     visible(state.estimates).forEach(function(e) { addRec(fr ? 'Soumission' : 'Estimate', 'EST-' + (e.estimateNumber || ''), e); });
     visible(state.jobs).forEach(function(j) { addRec('Job', jobNumber(j), j); });
     if (rows.length === 1) { toast(fr ? 'Rien à exporter' : 'Nothing to export'); return; }
-    var csvCell = function(v) { var s = String(v); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return '"' + s.replace(/"/g, '""') + '"'; };
+    var csvCell = BalencoLib.csvCell;     // formula-injection guard, unit-tested in lib.js
     var csv = rows.map(function(r) { return r.map(csvCell).join(','); }).join('\n');
     var blob = new Blob([String.fromCharCode(0xFEFF) + csv], { type: 'text/csv;charset=utf-8' });
     var url = URL.createObjectURL(blob);
