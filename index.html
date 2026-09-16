@@ -2529,6 +2529,9 @@ td { padding:14px; font-size:13px; }
   // display time: exact-match first, then known dynamic prefixes (errors etc.).
   const UI_FR = {
     'Already converted to job':'Déjà convertie en job',
+    'This document charges TPS and TVQ, but you have no GST/QST numbers on file. In Québec you must be registered to charge them, and without the numbers on the document your client cannot claim the credit.':'Ce document facture la TPS et la TVQ, mais aucun numéro de TPS/TVQ n’est au dossier. Au Québec, vous devez être inscrit pour les facturer, et sans les numéros sur le document votre client ne peut pas réclamer le crédit.',
+    'Open Settings to add them? (Set both rates to 0 instead if you are not registered.)':'Ouvrir les Réglages pour les ajouter? (Mettez plutôt les deux taux à 0 si vous n’êtes pas inscrit.)',
+    'Set your GST/QST numbers first — or set both tax rates to 0 if you are not registered.':'Inscrivez d’abord vos numéros de TPS/TVQ — ou mettez les deux taux à 0 si vous n’êtes pas inscrit.',
     'Copying…':'Copie en cours…',
     'That logo is too large — keep it under 2 MB.':'Ce logo est trop lourd — gardez-le sous 2 Mo.',
     'That logo could not be saved.':'Ce logo n’a pas pu être enregistré.',
@@ -2926,10 +2929,43 @@ td { padding:14px; font-size:13px; }
 
   // First-run setup checklist on the dashboard — guides a new owner through the
   // 4 things that make the product usable, then auto-hides (or can be dismissed).
+  // Charging TPS/TVQ with no registration numbers on file is the one unfinished
+  // setup step that is not merely untidy. In Québec you have to be registered to
+  // charge them at all, and an invoice that shows tax without the numbers is not a
+  // document the client can claim an input tax credit against — so they are out of
+  // pocket and the contractor has collected tax they may not be entitled to.
+  //
+  // Both orgs on the platform today are in exactly this state, which says the
+  // dismissible checklist is not enough on its own.
+  //
+  // There are only two correct answers and both are one tap: enter the numbers, or
+  // set the rates to 0 because you are under the $30k small-supplier threshold.
+  // The app currently lets you sail past into a third, invalid state.
+  function taxIdsMissing() {
+    const s = (state && state.settings) || {};
+    const charging = Number(s.tps || 0) > 0 || Number(s.tvq || 0) > 0;
+    return charging && !s.gstNumber && !s.qstNumber;
+  }
+
+  // Called before anything that puts a tax figure in front of a client. Never a
+  // hard stop — a contractor mid-job does not need the app refusing to work — but
+  // it asks every single time, and one tap lands on the field that fixes it.
+  function taxIdsGate() {
+    if (!taxIdsMissing()) return true;
+    if (confirm(tr('This document charges TPS and TVQ, but you have no GST/QST numbers on file. In Québec you must be registered to charge them, and without the numbers on the document your client cannot claim the credit.') +
+        '\n\n' + tr('Open Settings to add them? (Set both rates to 0 instead if you are not registered.)'))) {
+      openTab('settings');
+      const el = $('setGST');
+      if (el) { try { el.scrollIntoView({ behavior:'smooth', block:'center' }); el.focus(); } catch (e) {} }
+      return false;
+    }
+    return true;
+  }
+
   function onboardingSteps() {
     const s = state.settings || {};
     return [
-      { done: !!(s.gstNumber || s.qstNumber),                       tab:'settings',  label: t('onb.tax') },
+      { done: !taxIdsMissing(),                                     tab:'settings',  label: t('onb.tax') },
       { done: visible(state.clients).length > 0,                    tab:'clients',   label: t('onb.client') },
       { done: visible(state.estimates).length > 0,                  tab:'estimates', label: t('onb.est') },
       { done: !!(state.availability && state.availability.enabled), tab:'settings',  label: t('onb.booking') },
@@ -2938,11 +2974,12 @@ td { padding:14px; font-size:13px; }
   function renderOnboarding() {
     const el = $('onboarding');
     if (!el || !state) return;
-    let dismissed = false;
-    try { dismissed = localStorage.getItem('balenco_onboarding') === 'done'; } catch (e) {}
+    let snoozedUntil = 0;
+    try { snoozedUntil = Number(localStorage.getItem('balenco_onboarding_snooze') || 0); } catch (e) {}
+    const snoozed = snoozedUntil > Date.now() && !taxIdsMissing();
     const steps = onboardingSteps();
     const done = steps.filter(x => x.done).length;
-    if (role !== 'owner' || dismissed || done === steps.length) { el.innerHTML = ''; return; }
+    if (role !== 'owner' || snoozed || done === steps.length) { el.innerHTML = ''; return; }
     const segs = steps.map(x => '<span class="setup-seg' + (x.done ? ' done' : '') + '"></span>').join('');
     const rows = steps.map(x =>
       '<button type="button" class="setup-step' + (x.done ? ' done' : '') + '"' +
@@ -2964,7 +3001,11 @@ td { padding:14px; font-size:13px; }
   function toggleSetup() { var s = document.querySelector('.setup'); if (s) s.classList.toggle('open'); }
   window.toggleSetup = toggleSetup;
   document.addEventListener('click', function (e) { var a = document.querySelector('.acct[open]'); if (a && !a.contains(e.target)) a.removeAttribute('open'); });
-  function dismissOnboarding() { try { localStorage.setItem('balenco_onboarding', 'done'); } catch (e) {} renderOnboarding(); }
+  function dismissOnboarding() {
+    if (taxIdsMissing()) { toast(tr('Set your GST/QST numbers first — or set both tax rates to 0 if you are not registered.')); openTab('settings'); return; }
+    try { localStorage.setItem('balenco_onboarding_snooze', String(Date.now() + 7 * 86400000)); } catch (e) {}
+    renderOnboarding();
+  }
   window.dismissOnboarding = dismissOnboarding;
 
   function renderAll() {
@@ -5529,6 +5570,7 @@ Date: ${date(e.createdAt)}`;
   function copyEstimate() {
     const e = currentEstimate();
     if (!e) { toast('Select an estimate first'); return; }
+    if (!taxIdsGate()) return;
     const text = estimateText(e);
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text)
@@ -5542,6 +5584,7 @@ Date: ${date(e.createdAt)}`;
   async function emailEstimate() {
     const e = currentEstimate();
     if (!e) return;
+    if (!taxIdsGate()) return;
     const c = client(e.clientId) || {};
     if (!c.email) { toast(t('es.noEmail')); return; }
     const btn = $('emailEstimateBtn');
@@ -6176,6 +6219,7 @@ Date: ${date(e.createdAt)}`;
     const e = currentEstimate();
     if (!e) { toast('Select an estimate first'); return; }
     if (e.status !== 'Accepted') { toast('Only accepted estimates can be invoiced'); return; }
+    if (!taxIdsGate()) return;
     const win = window.open('', '_blank');
     if (!win) { toast('Popup blocked — please allow popups for balenco.app and try again'); return; }
     win.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Invoice</title><style>' + printStyles() + '</style></head><body>' + invoiceHTML(e) + '<script>window.print()<\/script></body></html>');
@@ -6186,6 +6230,7 @@ Date: ${date(e.createdAt)}`;
   function printJobInvoice(id) {
     const j = state.jobs.find(x => x.id === id);
     if (!j) { toast('Job not found'); return; }
+    if (!taxIdsGate()) return;
     const win = window.open('', '_blank');
     if (!win) { toast('Popup blocked — please allow popups for balenco.app and try again'); return; }
     win.document.write('<!doctype html><html><head><meta charset="utf-8"><title>Invoice</title><style>' + printStyles() + '</style></head><body>' + invoiceHTML(j) + '<script>window.print()<\/script></body></html>');
@@ -6809,6 +6854,7 @@ Date: ${date(e.createdAt)}`;
   function copyApprovalLink() {
     const e = currentEstimate();
     if (!e) { toast('Select an estimate first'); return; }
+    if (!taxIdsGate()) return;
     const link = 'https://balenco.app/?approve=' + (e.approvalToken || e.id);
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(link)
