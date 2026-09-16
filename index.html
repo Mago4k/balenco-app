@@ -5021,7 +5021,7 @@ Date: ${date(e.createdAt)}`;
     // object. `.select("id")` catches an RLS no-op, which reports no error.
     // `payments` is intentionally absent - it is owned by record_manual_payment.
     const _stamp = new Date().toISOString();
-    sb.from("jobs").update({ client_id:_patch.clientId, title:_patch.title, line_items:_patch.line_items || [], subtotal:_patch.subtotal, deposit:_patch.deposit, payment_schedule:_patch.paymentSchedule, payment_notes:_patch.paymentNotes, status:_patch.status, scope:_patch.scope, recurring:_patch.recurring || null, recurring_end:_patch.recurringEnd || null, next_recurrence:_patch.nextRecurrence || null, updated_by:user, updated_at:_stamp }).eq("id", j.id).select("id")
+    sb.from("jobs").update({ client_id:_patch.clientId || null, title:_patch.title, line_items:_patch.line_items || [], subtotal:_patch.subtotal, deposit:_patch.deposit, payment_schedule:_patch.paymentSchedule, payment_notes:_patch.paymentNotes, status:_patch.status, scope:_patch.scope, recurring:_patch.recurring || '', recurring_end:_patch.recurringEnd || null, next_recurrence:_patch.nextRecurrence || null, updated_by:user, updated_at:_stamp }).eq("id", j.id).select("id")
       .then(function (res) {
         if (_sbtn) _sbtn.disabled = false;
         if (res.error) { toast(friendlyError(res.error)); return; }
