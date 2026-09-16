@@ -867,8 +867,18 @@ td { padding:14px; font-size:13px; }
   .jobs-workspace > .card:last-child { order:0; min-height:560px; }
 }
 .dispatch-workspace > .card:last-child { border-left:3px solid var(--brand); }
-#jobDetailOverlay { align-items:stretch!important; justify-content:flex-end!important; }
-#jobDetailPanel { width:min(720px,100%)!important; max-width:none!important; max-height:100vh!important; border-radius:0!important; padding:26px 28px!important; box-shadow:-12px 0 35px var(--shadow); }
+/* The job sheet becomes a full-height right-edge drawer — but only where there IS
+   a sidebar layout to dock it against. These two rules carried no breakpoint, so
+   they applied on a phone too and, being !important, beat the element's own inline
+   bottom-sheet styles: max-height went 88vh -> 100vh and the rounded top corners
+   went square. That left the sheet exactly as tall as the layout viewport, with its
+   action row -- Edit / Invoice / Record payment / Payment link / Close, the only way
+   to record a payment on a job -- in the last 60px, under the iOS toolbar and the
+   home indicator. Unreachable on a phone; fine on the desktop it was written for. */
+@media(min-width:1051px) {
+  #jobDetailOverlay { align-items:stretch!important; justify-content:flex-end!important; }
+  #jobDetailPanel { width:min(720px,100%)!important; max-width:none!important; max-height:100vh!important; border-radius:0!important; padding:26px 28px!important; box-shadow:-12px 0 35px var(--shadow); }
+}
 /* Pocket keeps money in ink; amber is reserved for the one CTA and status pills. */
 .d-amt.amber,.d-out-num { color:var(--text); font-weight:700; }
 .d-amt { font-weight:700; }
@@ -909,6 +919,9 @@ td { padding:14px; font-size:13px; }
 .more-list button:active { background:var(--well); }
 .more-list svg { width:20px; height:20px; stroke-width:1.7; color:var(--muted); flex:none; }
 @media(max-width:1050px) {
+  /* Bottom-sheet tier: clear the home indicator so the sheet's action row is
+     never sitting underneath it. */
+  #jobDetailPanel { padding-bottom:calc(24px + env(safe-area-inset-bottom))!important; }
   .app { grid-template-columns:1fr; }
   .sidebar { display:none; }
   .content { padding:0 20px 100px; }
@@ -932,7 +945,7 @@ td { padding:14px; font-size:13px; }
   .card { padding:16px; }
   .client-workspace > .card:first-child,.estimate-workspace > .card:first-child,.jobs-workspace > .card:first-child,.dispatch-workspace > .card:first-child { position:static; }
   .client-workspace #clientList { grid-template-columns:1fr; }
-  #jobDetailPanel { padding:20px 16px!important; }
+  #jobDetailPanel { padding:20px 16px calc(20px + env(safe-area-inset-bottom))!important; }
   /* Clear the fixed bottom nav so toasts aren't hidden behind it on a phone. */
   #toast { left:16px; right:16px; bottom:calc(70px + env(safe-area-inset-bottom)); }
 }
