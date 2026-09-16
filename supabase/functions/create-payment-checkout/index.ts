@@ -62,10 +62,15 @@ Deno.serve(async (req) => {
   const { data: cfg } = await sb.from('settings')
     .select('company,tps,tvq, stripe_account_id, stripe_charges_enabled, is_platform_owner')
     .eq('org_id', est.org_id).maybeSingle()
-  const subtotal  = Number(est.subtotal || 0)
+  // Same rule as lib.js calc(): each tax rounded to the cent, total = sum of the
+  // rounded parts. Keep these three lines identical everywhere -- a different
+  // rounding here shows the client one number in the email and another in the
+  // portal. Epsilon because 5.005 is stored just under 5.005 and would round down.
+  const r2 = (v: number) => Math.round((v + Number.EPSILON) * 100) / 100
+  const subtotal  = r2(Number(est.subtotal || 0))
   const tpsRate   = Number(cfg?.tps ?? 5)
   const tvqRate   = Number(cfg?.tvq ?? 9.975)
-  const total     = subtotal + subtotal * tpsRate / 100 + subtotal * tvqRate / 100
+  const total     = r2(subtotal + r2(subtotal * tpsRate / 100) + r2(subtotal * tvqRate / 100))
   // `deposit` is the amount REQUESTED on the quote, not money received, so it is
   // NOT subtracted here. It used to be, which capped what the client could pay at
   // total-minus-deposit — putting an uncollected deposit permanently out of reach

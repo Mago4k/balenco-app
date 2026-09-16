@@ -12,13 +12,28 @@
 
   function num(v) { return Number(v) || 0; }
 
-  // Quebec sales tax on a subtotal. Returns RAW (unrounded) floats — format for
-  // display with money(). tpsRate/tvqRate are percents (e.g. 5 and 9.975).
+  // Round to the cent, half up. The epsilon matters: 5.005 is stored as
+  // 5.00499999999999989..., so a plain Math.round(n*100)/100 rounds it DOWN to
+  // 5.00 when both the tax rules and the reader expect 5.01.
+  function round2(v) { return Math.round((num(v) + Number.EPSILON) * 100) / 100; }
+
+  // Quebec sales tax on a subtotal. tpsRate/tvqRate are percents (e.g. 5 and 9.975).
+  //
+  // Every value comes back ALREADY ROUNDED to the cent, and the total is the sum
+  // of the rounded taxes -- not a rounded sum of unrounded ones. That is what
+  // makes a printed invoice foot: the subtotal, the TPS line and the TVQ line are
+  // the same numbers the total was built from. Returning raw floats here meant the
+  // lines were rounded for display while the total was not, and the two disagreed
+  // by a cent on 25% of subtotals.
+  //
+  // It also matches how the taxes are actually remitted: GST and QST are each
+  // computed on the selling price and each rounded (QST has not applied to GST
+  // since 2013), so rounding per tax is the correct arithmetic, not a display hack.
   function calc(subtotal, tpsRate, tvqRate) {
-    var s = num(subtotal);
-    var tps = s * num(tpsRate) / 100;
-    var tvq = s * num(tvqRate) / 100;
-    return { tps: tps, tvq: tvq, total: s + tps + tvq };
+    var s = round2(subtotal);
+    var tps = round2(s * num(tpsRate) / 100);
+    var tvq = round2(s * num(tvqRate) / 100);
+    return { tps: tps, tvq: tvq, total: round2(s + tps + tvq) };
   }
 
   function lineTotal(qty, price) { return num(qty) * num(price); }
@@ -46,7 +61,7 @@
     var paid = (payments || []).reduce(function (x, p) {
       return x + num(p && p.amount);
     }, 0);
-    return Math.max(Math.round((num(total) - paid) * 100) / 100, 0);
+    return Math.max(round2(num(total) - paid), 0);
   }
 
   function money(value) {
@@ -125,6 +140,7 @@
 
   var Lib = {
     calc: calc,
+    round2: round2,
     lineTotal: lineTotal,
     lineItemsTotal: lineItemsTotal,
     owing: owing,

@@ -138,10 +138,13 @@ Deno.serve(async (req) => {
     if (cfg?.email) {
       // Recalculate remaining after this payment
       const { data: fresh } = await sb.from(isJob ? 'jobs' : 'estimates').select('subtotal,deposit,payments').eq('id', estimateId).single()
-      const sub       = Number(fresh?.subtotal || 0)
-      const tps       = sub * Number(cfg.tps ?? 5) / 100
-      const tvq       = sub * Number(cfg.tvq ?? 9.975) / 100
-      const total     = sub + tps + tvq
+      // Same rule as lib.js calc(): each tax rounded to the cent, total = sum of
+      // the rounded parts, so "remaining" here matches what the portal shows.
+      const r2        = (v: number) => Math.round((v + Number.EPSILON) * 100) / 100
+      const sub       = r2(Number(fresh?.subtotal || 0))
+      const tps       = r2(sub * Number(cfg.tps ?? 5) / 100)
+      const tvq       = r2(sub * Number(cfg.tvq ?? 9.975) / 100)
+      const total     = r2(sub + tps + tvq)
       // Deposits are recorded as payment rows (migration 0053), so they are already
       // inside paidSoFar - subtracting `deposit` as well would double-count them.
       const paidSoFar = (fresh?.payments || []).reduce((s: number, p: any) => s + Number(p.amount || 0), 0)

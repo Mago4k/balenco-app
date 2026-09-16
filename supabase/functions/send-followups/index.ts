@@ -87,8 +87,12 @@ Deno.serve(async (req) => {
       continue
     }
 
-    const subtotal = Number(est.subtotal || 0)
-    const total = subtotal * (1 + Number(cfg.tps ?? 5) / 100 + Number(cfg.tvq ?? 9.975) / 100)
+    const r2 = (v: number) => Math.round((v + Number.EPSILON) * 100) / 100
+    const subtotal = r2(Number(est.subtotal || 0))
+    // Was subtotal * (1 + tps/100 + tvq/100) -- a combined multiplier, which is not
+    // the same cents as adding two separately-rounded taxes the way lib.js calc()
+    // and the portal do.
+    const total = r2(subtotal + r2(subtotal * Number(cfg.tps ?? 5) / 100) + r2(subtotal * Number(cfg.tvq ?? 9.975) / 100))
     const deposit = Number(est.deposit || 0)
     const company = cfg.company || 'Balenco'
     // Tokenized portal link — portal-data accepts the unguessable portal_token only.

@@ -86,12 +86,17 @@ Deno.serve(async (req) => {
   }
 
   const fmt = (n: number) => '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')
-  const subtotal  = Number(est.subtotal || 0)
+  // Same rule as lib.js calc(): each tax rounded to the cent, total = sum of the
+  // rounded parts. Keep these three lines identical everywhere -- a different
+  // rounding here shows the client one number in the email and another in the
+  // portal. Epsilon because 5.005 is stored just under 5.005 and would round down.
+  const r2 = (v: number) => Math.round((v + Number.EPSILON) * 100) / 100
+  const subtotal  = r2(Number(est.subtotal || 0))
   const tpsRate   = Number(cfg.tps ?? 5)
   const tvqRate   = Number(cfg.tvq ?? 9.975)
-  const tps       = subtotal * tpsRate / 100
-  const tvq       = subtotal * tvqRate / 100
-  const total     = subtotal + tps + tvq
+  const tps       = r2(subtotal * tpsRate / 100)
+  const tvq       = r2(subtotal * tvqRate / 100)
+  const total     = r2(subtotal + tps + tvq)
   const deposit   = Number(est.deposit || 0)
   const company   = cfg.company || 'Balenco'
   // Tokenized portal link — portal-data accepts the unguessable portal_token only.

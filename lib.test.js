@@ -30,6 +30,35 @@ test('calc — zero tax rates produce no tax', () => {
   assert.deepEqual(Lib.calc(500, 0, 0), { tps: 0, tvq: 0, total: 500 });
 });
 
+// An invoice foots when the numbers PRINTED on it add up. Each line is rendered
+// rounded to the cent, so the check has to be done on the rounded values -- which
+// is what the person reading the invoice does. calc() used to return unrounded
+// floats, so the total disagreed with its own tax lines on 25% of subtotals.
+test('calc — a printed invoice always foots', () => {
+  const r2 = (n) => Math.round(n * 100) / 100;
+  for (const [tps, tvq] of [[5, 9.975], [5, 0], [0, 0], [5, 8]]) {
+    for (let cents = 1; cents <= 50000; cents++) {
+      const s = cents / 100;
+      const r = Lib.calc(s, tps, tvq);
+      assert.equal(
+        r2(r2(s) + r2(r.tps) + r2(r.tvq)).toFixed(2),
+        r2(r.total).toFixed(2),
+        'does not foot at subtotal ' + s + ' @ ' + tps + '/' + tvq
+      );
+    }
+  }
+});
+
+// GST and QST are each computed on the selling price and each rounded to the
+// cent, so a half-cent must round UP. 5.005 is stored just below 5.005, which a
+// plain Math.round(n*100)/100 sends the wrong way.
+test('calc — a half cent rounds up, not down', () => {
+  assert.equal(Lib.calc(100.10, 5, 9.975).tps, 5.01);
+  assert.equal(Lib.round2(5.005), 5.01);
+  assert.equal(Lib.round2(1.005), 1.01);
+  assert.equal(Lib.round2(2.675), 2.68);
+});
+
 test('lineTotal — qty x price', () => {
   assert.equal(Lib.lineTotal(16, 65), 1040);
   assert.equal(Lib.lineTotal(56, 11.50), 644);

@@ -3563,7 +3563,7 @@ Date: ${date(e.createdAt)}`;
     var tps = Number(state.settings.tps ?? 5), tvq = Number(state.settings.tvq ?? 9.975);
     var rows = e.options.map(function(o) {
       var price = Number(o.price || 0);
-      var total = price + price * tps / 100 + price * tvq / 100;
+      var total = BalencoLib.calc(price, tps, tvq).total;
       return '<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line-soft)">' +
         '<div><strong style="color:var(--text)">' + esc(o.name) + '</strong>' + (o.description ? '<div class="muted" style="font-size:12px">' + esc(o.description) + '</div>' : '') + '</div>' +
         '<strong style="color:var(--accent);white-space:nowrap">' + money(total) + '</strong></div>';
