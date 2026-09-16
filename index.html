@@ -1828,7 +1828,11 @@ td { padding:14px; font-size:13px; }
     <div style="max-width:660px;margin:0 auto">
       <!-- Header -->
       <div style="text-align:center;padding:36px 0 28px">
-        <div id="bkLogo" style="width:80px;height:80px;background:var(--brand-panel);border-radius:18px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:36px">🐋</div>
+        <!-- Shown until the contractor's own logo loads, and kept when they have
+             none. It used to be a whale emoji, which is what a client booking an
+             appointment saw at the top of the page. The tile behind it matches
+             icon-192's own ink field, so it reads as the mark, not a gap. -->
+        <div id="bkLogo" style="width:80px;height:80px;background:var(--brand-panel);border-radius:18px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;overflow:hidden"><img src="/icon-192.png" alt="Balenco" style="width:100%;height:100%;object-fit:cover;border-radius:18px"></div>
         <h1 id="bkCompanyName" style="font-size:26px;font-weight:800;color:var(--text);margin:0 0 6px;letter-spacing:-0.5px">Book an Appointment</h1>
         <p style="color:var(--muted);font-size:14px;margin:0" data-i18n="bkp.subtitle">Select a date and time below</p>
       </div>
