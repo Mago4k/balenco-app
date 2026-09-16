@@ -2529,6 +2529,9 @@ td { padding:14px; font-size:13px; }
   // display time: exact-match first, then known dynamic prefixes (errors etc.).
   const UI_FR = {
     'Already converted to job':'Déjà convertie en job',
+    'That logo is too large — keep it under 2 MB.':'Ce logo est trop lourd — gardez-le sous 2 Mo.',
+    'That logo could not be saved.':'Ce logo n’a pas pu être enregistré.',
+    'Uploading…':'Téléversement…',
     'Remove this payment?':'Retirer ce paiement?',
     'The balance goes back up by this amount, on your side and in the client’s portal.':'Le solde remonte de ce montant, de votre côté comme dans le portail du client.',
     'This one was paid by card. Removing it here does NOT refund the client — do that in Stripe. Remove it from the books anyway?':'Ce paiement a été fait par carte. Le retirer ici NE rembourse PAS le client — faites-le dans Stripe. Le retirer des livres quand même?',
@@ -5652,6 +5655,46 @@ Date: ${date(e.createdAt)}`;
     });
   }
 
+  // The logo used to be stored as base64 straight into settings.logo, which made
+  // it the single heaviest thing the app loads: one 512x512 PNG came to 327 kB of
+  // text in a row that fetchState() pulls on EVERY boot — more than the whole
+  // gzipped app — and it went inline into every estimate email, where some clients
+  // strip data: URIs. It lives in the public `logos` bucket now (migration 0058)
+  // and the column holds an https URL.
+  //
+  // settings.logo keeps its meaning: "what to put in an <img src>". Every reader —
+  // the settings preview, estimate HTML, printed invoices, the client portal, the
+  // booking page, and the three edge functions that email a logo — already does
+  // exactly that, so nothing else changed, and an org still carrying an old data:
+  // URI keeps rendering until they re-upload.
+  const LOGO_MIME_EXT = { 'image/png':'png', 'image/jpeg':'jpg', 'image/webp':'webp', 'image/svg+xml':'svg' };
+  const LOGO_MAX_BYTES = 2 * 1024 * 1024;   // matches the bucket's own limit
+
+  function dataUrlToBlob(dataUrl) {
+    const m = /^data:([^;,]+)(;base64)?,/.exec(dataUrl || '');
+    if (!m) return null;
+    const type = m[1];
+    const body = dataUrl.slice(m[0].length);
+    try {
+      if (m[2]) {
+        const bin = atob(body);
+        const buf = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+        return new Blob([buf], { type: type });
+      }
+      return new Blob([decodeURIComponent(body)], { type: type });
+    } catch (e) { return null; }
+  }
+
+  // Pull the object path back out of a public URL so a replaced logo can be
+  // removed. Returns '' for a data: URI or anything not from our bucket, which is
+  // the signal to skip the delete rather than guess.
+  function logoStoragePath(url) {
+    const marker = '/storage/v1/object/public/logos/';
+    const i = String(url || '').indexOf(marker);
+    return i === -1 ? '' : decodeURIComponent(url.slice(i + marker.length).split('?')[0]);
+  }
+
   async function uploadCompanyLogo(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -5664,28 +5707,56 @@ Date: ${date(e.createdAt)}`;
       input.value = '';
       return;
     }
-    // Never make it worse: if the original was already smaller than our output,
-    // keep the original.
-    if (dataUrl.length > file.size * 1.37) {   // ~base64 overhead on the raw bytes
-      const raw = await new Promise(function (res) {
-        const r = new FileReader();
-        r.onload = function () { res(String(r.result)); };
-        r.onerror = function () { res(dataUrl); };
-        r.readAsDataURL(file);
-      });
-      if (raw.length < dataUrl.length) dataUrl = raw;
+    const blob = dataUrlToBlob(dataUrl);
+    if (!blob) { toast(tr('That image could not be read. Try a PNG or JPG.')); input.value = ''; return; }
+    // compressLogo caps raster images at 400px so they land well under this, but
+    // SVG passes through untouched and could be any size.
+    if (blob.size > LOGO_MAX_BYTES) {
+      toast(tr('That logo is too large — keep it under 2 MB.'));
+      input.value = '';
+      return;
     }
+
+    const ext = LOGO_MIME_EXT[blob.type] || 'png';
+    // Timestamped so replacing a logo gets a new URL: the bucket is public and
+    // therefore CDN-cached, and reusing the path would leave the old mark on
+    // screen for hours.
+    const path = orgId + '/logo-' + Date.now() + '.' + ext;
+    const previous = logoStoragePath(state.settings.logo);
+
+    toast(tr('Uploading…'));
+    const up = await sb.storage.from('logos').upload(path, blob, { contentType: blob.type, upsert: false });
+    if (up.error) { toast(friendlyError(up.error)); input.value = ''; return; }
+
+    const pub = sb.storage.from('logos').getPublicUrl(path);
+    const url = pub && pub.data && pub.data.publicUrl;
+    if (!url) {
+      sb.storage.from('logos').remove([path]);
+      toast(tr('That logo could not be saved.'));
+      input.value = '';
+      return;
+    }
+
     // Write first, adopt locally only once it lands (an employee can't write
     // settings, and the preview must not show a logo that was never saved).
-    const { error } = await sb.from('settings').upsert({ org_id: orgId, logo: dataUrl }, { onConflict: 'org_id' });
+    const { error } = await sb.from('settings').upsert({ org_id: orgId, logo: url }, { onConflict: 'org_id' });
     input.value = '';
-    if (error) { toast(friendlyError(error)); return; }
-    state.settings.logo = dataUrl;
+    if (error) {
+      sb.storage.from('logos').remove([path]);   // don't leave an orphan behind
+      toast(friendlyError(error));
+      return;
+    }
+    state.settings.logo = url;
+    // Only once the new one is committed. Failure here is an orphaned object, not
+    // a broken logo, so it is deliberately not surfaced.
+    if (previous && previous !== path) sb.storage.from('logos').remove([previous]);
     renderAll();
-    toast(tr('Company logo uploaded') + ' · ' + Math.round(dataUrl.length / 1024) + ' KB');
+    toast(tr('Company logo uploaded') + ' · ' + Math.round(blob.size / 1024) + ' KB');
   }
 
   function clearCompanyLogo() {
+    const previous = logoStoragePath(state.settings.logo);
+    if (previous) sb.storage.from('logos').remove([previous]);
     state.settings.logo = '';
     sb.from('settings').upsert({ org_id:orgId, logo:'' }, { onConflict:'org_id' }).then(({ error }) => { if (error) { toast(friendlyError(error)); } });
     renderAll();
