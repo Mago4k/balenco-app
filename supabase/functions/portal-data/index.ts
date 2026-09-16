@@ -55,7 +55,9 @@ Deno.serve(async (req) => {
 
   const CLIENT_COLS = 'id,name,phone,email,address,project,status,balance,org_id'
   const EST_LIST    = 'id,estimate_number,title,scope,subtotal,deposit,payment_schedule,status,payments,client_id,options,selected_option'
-  const JOB_LIST    = 'id,job_number,title,scope,subtotal,deposit,payment_schedule,status,payments,client_id'
+  // estimate_id so the portal can drop the quote a job was created from — otherwise
+  // the client is shown the same work twice and their outstanding balance doubles.
+  const JOB_LIST    = 'id,job_number,title,scope,subtotal,deposit,payment_schedule,status,payments,client_id,estimate_id'
   const EST_FULL    = 'id,estimate_number,client_id,org_id,title,scope,subtotal,line_items,deposit,payment_schedule,payment_notes,status,expiry,approved_by,approved_at,created_by,created_at,updated_at,payments,options,selected_option'
 
   if (mode === 'client') {
