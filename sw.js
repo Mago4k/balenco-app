@@ -1,4 +1,4 @@
-const CACHE = 'balenco-v121';
+const CACHE = 'balenco-v122';
 // Precached so the app can boot with no network. supabase-js is the one that
 // MATTERS: index.html calls supabase.createClient() unguarded, so without it the
 // boot throws and the user gets the "check your connection" wall — on a shell
