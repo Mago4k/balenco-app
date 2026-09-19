@@ -2071,17 +2071,64 @@ td { padding:14px; font-size:13px; }
     return (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'id-' + Date.now() + '-' + Math.random().toString(16).slice(2);
   }
 
+  // PostgREST caps every response at 1000 rows on this project — measured, not
+  // assumed: an RPC returning 2500 comes back with exactly 1000 and no error, no
+  // header anyone was reading, nothing. So `select('*')` was a silent cliff. The
+  // contractor who writes their 1001st estimate would simply stop seeing the
+  // oldest ones, and every total on the dashboard would quietly be computed over
+  // a partial ledger.
+  //
+  // Nothing here is near it yet. That is exactly why it had to be fixed now:
+  // the failure is invisible when it arrives and the numbers stay plausible.
+  const PAGE = 1000;
+  // Enough to fill the activity panel and the job sheets' history several times
+  // over. Older entries stay in the database and still export.
+  const LOG_LIMIT = 300;
+
+  // Pages until a short page comes back.
+  //
+  // `id` is always the last sort key. Without it the order is only partial —
+  // expenses share a spent_on date and price items share a times_used count — and
+  // Postgres is free to return tied rows in a different order on each request, so
+  // a row can appear on two pages while another is never returned at all. A total
+  // order is what makes paging correct, not just tidy.
+  async function fetchAllRows(table, orderCol, ascending) {
+    let out = [], from = 0;
+    for (;;) {
+      const res = await sb.from(table).select('*')
+        .order(orderCol, { ascending: !!ascending })
+        .order('id', { ascending: true })
+        .range(from, from + PAGE - 1);
+      if (res.error) return { data: null, error: res.error };
+      const rows = res.data || [];
+      out = out.concat(rows);
+      if (rows.length < PAGE) return { data: out, error: null };
+      from += PAGE;
+      // A runaway loop on a huge table would hang the boot. 50 pages is 50,000
+      // records — far past anything a contractor has, and a sane place to stop
+      // rather than spin.
+      if (from >= PAGE * 50) {
+        console.error('fetchAllRows: stopped at', out.length, 'rows for', table);
+        return { data: out, error: null };
+      }
+    }
+  }
+
   async function fetchState() {
     const _res = await Promise.all([
-      sb.from('clients').select('*').order('created_at', { ascending: false }),
-      sb.from('leads').select('*').order('created_at', { ascending: false }),
-      sb.from('estimates').select('*').order('created_at', { ascending: false }),
-      sb.from('jobs').select('*').order('created_at', { ascending: false }),
-      sb.from('appointments').select('*').order('created_at', { ascending: false }),
-      sb.from('photos').select('*').order('created_at', { ascending: false }),
-      sb.from('logs').select('*').order('created_at', { ascending: false }),
-      sb.from('expenses').select('*').order('spent_on', { ascending: false }),
-      sb.from('price_items').select('*').order('times_used', { ascending: false }).order('description'),
+      fetchAllRows('clients', 'created_at', false),
+      fetchAllRows('leads', 'created_at', false),
+      fetchAllRows('estimates', 'created_at', false),
+      fetchAllRows('jobs', 'created_at', false),
+      fetchAllRows('appointments', 'created_at', false),
+      fetchAllRows('photos', 'created_at', false),
+      // Deliberately NOT paged. The activity feed only ever shows the recent end,
+      // and it is the one table that grows without bound — every action writes a
+      // row and nothing trims them. Fetching the lot on every boot was pure
+      // weight that got heavier the longer someone used the app.
+      sb.from('logs').select('*').order('created_at', { ascending: false }).limit(LOG_LIMIT),
+      fetchAllRows('expenses', 'spent_on', false),
+      fetchAllRows('price_items', 'times_used', false),
       sb.from('settings').select('*').limit(1),
       sb.from('availability').select('*').limit(1),
       // Team list, for the owner-only 'assign to' control. Readable by every org
